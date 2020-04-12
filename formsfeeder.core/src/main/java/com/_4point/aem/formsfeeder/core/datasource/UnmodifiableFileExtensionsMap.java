@@ -12,6 +12,8 @@ public class UnmodifiableFileExtensionsMap extends AbstractFileExtensionsMap imp
 				FileExtensionsEntry.of("application/xml", new String[] { "xml" }),
 				FileExtensionsEntry.of("application/vnd.adobe.xdp+xml", new String[] { "xdp" }),
 				FileExtensionsEntry.of("application/vnd.adobe.central.field-nominated", new String[] { "dat" }),
+				FileExtensionsEntry.of("text/plain", new String[] { "txt" }),
+				FileExtensionsEntry.of("text/html", new String[] { "html", "htm" }),
 				// 
 				// Less common file types
 				FileExtensionsEntry.of("application/msword", new String[] {"doc"}),
