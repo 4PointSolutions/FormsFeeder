@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -43,18 +44,20 @@ public class AbstractFileExtensionsMap implements MimeTypeFileTypeMap {
 	}
 
 	@Override
-	public MimeType getMimeType(Path filePath) {
+	public Optional<MimeType> getMimeType(Path filePath) {
 		String filename = filePath.getFileName().toString();
 		int indexOfExtension = filename.lastIndexOf('.');
 		if (indexOfExtension < 0) {
 			throw new IllegalArgumentException("File Path provided does not have an extension. (" + filePath.toString() + ");");
 		}
-		return byExtension.get(filename.substring(indexOfExtension+1)).getMimeType();
+		FileExtensionsEntry fileExtensionsEntry = byExtension.get(filename.substring(indexOfExtension+1));
+		return fileExtensionsEntry == null ? Optional.empty() : Optional.of(fileExtensionsEntry.getMimeType());
 	}
 
 	@Override
-	public String getFileDefaultExtension(MimeType mimeType) {
-		return byMimeType.get(mimeType).getDefaultExtension();
+	public Optional<String> getFileDefaultExtension(MimeType mimeType) {
+		FileExtensionsEntry fileExtensionsEntry = byMimeType.get(mimeType);
+		return fileExtensionsEntry == null ? Optional.empty() : Optional.of(fileExtensionsEntry.getDefaultExtension());
 	}
 
 	protected static class FileExtensionsEntry {

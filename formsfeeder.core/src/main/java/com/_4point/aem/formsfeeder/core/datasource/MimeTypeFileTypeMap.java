@@ -1,6 +1,7 @@
 package com._4point.aem.formsfeeder.core.datasource;
 
 import java.nio.file.Path;
+import java.util.Optional;
 
 public interface MimeTypeFileTypeMap {
 	/**
@@ -9,7 +10,7 @@ public interface MimeTypeFileTypeMap {
 	 * @param filePath
 	 * @return
 	 */
-	public MimeType getMimeType(Path filePath);
+	public Optional<MimeType> getMimeType(Path filePath);
 	
 	/**
 	 * Returns the default file extension for a given mime-type
@@ -17,5 +18,5 @@ public interface MimeTypeFileTypeMap {
 	 * @param mimeType
 	 * @return
 	 */
-	public String getFileDefaultExtension(MimeType mimeType);
+	public Optional<String> getFileDefaultExtension(MimeType mimeType);
 }

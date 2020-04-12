@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -16,12 +15,9 @@ import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import com._4point.aem.formsfeeder.core.datasource.AbstractFileExtensionsMap;
-import com._4point.aem.formsfeeder.core.datasource.MimeType;
 import com._4point.aem.formsfeeder.core.datasource.AbstractFileExtensionsMap.FileExtensionsEntry;
 
 class AbstractFileExtensionsMapTest {
@@ -73,8 +69,8 @@ class AbstractFileExtensionsMapTest {
 	@MethodSource("mapProvider")
 	void testGetMimeType(TestFileExtensionsMap underTest) {
 		assertAll(
-				()->assertEquals(APPLICATION_PDF_MIMETYPE, underTest.getMimeType(Paths.get("TestDir", "TestFile." + PDF_EXTENSION))),
-				()->assertEquals(APPLICATION_VND_MS_WORD_MIMETYPE, underTest.getMimeType(Paths.get("TestDir", "TestFile." + DOC_EXTENSION)))
+				()->assertEquals(APPLICATION_PDF_MIMETYPE, underTest.getMimeType(Paths.get("TestDir", "TestFile." + PDF_EXTENSION)).get()),
+				()->assertEquals(APPLICATION_VND_MS_WORD_MIMETYPE, underTest.getMimeType(Paths.get("TestDir", "TestFile." + DOC_EXTENSION)).get())
 				);
 	}
 
@@ -82,8 +78,8 @@ class AbstractFileExtensionsMapTest {
 	@MethodSource("mapProvider")
 	void testGetFileDefaultExtension(TestFileExtensionsMap underTest) {
 		assertAll(
-				()->assertEquals(PDF_EXTENSION, underTest.getFileDefaultExtension(APPLICATION_PDF_MIMETYPE)),
-				()->assertEquals(DOC_EXTENSION, underTest.getFileDefaultExtension(APPLICATION_VND_MS_WORD_MIMETYPE))
+				()->assertEquals(PDF_EXTENSION, underTest.getFileDefaultExtension(APPLICATION_PDF_MIMETYPE).get()),
+				()->assertEquals(DOC_EXTENSION, underTest.getFileDefaultExtension(APPLICATION_VND_MS_WORD_MIMETYPE).get())
 				);
 	}
 	
@@ -99,4 +95,12 @@ class AbstractFileExtensionsMapTest {
 				()->assertTrue(msg.contains(testPath.toString()), "Expected exception message (" + msg + ") to contain test path (" + testPath.toString() + ").")
 				);
 	}
+
+	@ParameterizedTest
+	@MethodSource("mapProvider")
+	void testGetMimeType_NonexistentExtension(TestFileExtensionsMap underTest) {
+		Path testPath = Paths.get("TestDir", "TestFile.xxx");
+		assertTrue(underTest.getMimeType(testPath).isEmpty());
+	}
+
 }
