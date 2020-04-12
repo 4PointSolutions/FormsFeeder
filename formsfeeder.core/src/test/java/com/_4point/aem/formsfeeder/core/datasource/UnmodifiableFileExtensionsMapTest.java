@@ -16,8 +16,8 @@ class UnmodifiableFileExtensionsMapTest {
 	void testFrom() {
 		var underTest = UnmodifiableFileExtensionsMap.from(UnmodifiableFileExtensionsMap.DEFAULT_MAP);
 		assertAll(
-				()->assertEquals(MimeType.of("application", "xml"), underTest.getMimeType(Path.of("test.xml"))),
-				()->assertEquals("xdp", underTest.getFileDefaultExtension(MimeType.of("application", "vnd.adobe.xdp+xml")))
+				()->assertEquals(MimeType.of("application", "xml"), underTest.getMimeType(Path.of("test.xml")).get()),
+				()->assertEquals("xdp", underTest.getFileDefaultExtension(MimeType.of("application", "vnd.adobe.xdp+xml")).get())
 				);
 	}
 
