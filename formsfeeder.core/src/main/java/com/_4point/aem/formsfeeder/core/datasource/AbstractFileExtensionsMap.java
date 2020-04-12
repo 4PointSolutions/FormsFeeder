@@ -47,7 +47,7 @@ public class AbstractFileExtensionsMap implements MimeTypeFileTypeMap {
 		String filename = filePath.getFileName().toString();
 		int indexOfExtension = filename.lastIndexOf('.');
 		if (indexOfExtension < 0) {
-			throw new IllegalArgumentException("File Path provided does not have an extension.");
+			throw new IllegalArgumentException("File Path provided does not have an extension. (" + filePath.toString() + ");");
 		}
 		return byExtension.get(filename.substring(indexOfExtension+1)).getMimeType();
 	}

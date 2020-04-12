@@ -6,9 +6,18 @@ import java.util.Map;
 public class UnmodifiableFileExtensionsMap extends AbstractFileExtensionsMap implements MimeTypeFileTypeMap {
 	
 	public static final UnmodifiableFileExtensionsMap DEFAULT_MAP = 
-			UnmodifiableFileExtensionsMap.from( new FileExtensionsEntry[] { 
+			UnmodifiableFileExtensionsMap.from( new FileExtensionsEntry[] {
+				// Common AEM File types we must deal with
 				FileExtensionsEntry.of("application/pdf", new String[] { "pdf" }),
-				FileExtensionsEntry.of("application/vnd.ms-word", new String[] {"doc"})
+				FileExtensionsEntry.of("application/xml", new String[] { "xml" }),
+				FileExtensionsEntry.of("application/vnd.adobe.xdp+xml", new String[] { "xdp" }),
+				FileExtensionsEntry.of("application/vnd.adobe.central.field-nominated", new String[] { "dat" }),
+				// 
+				// Less common file types
+				FileExtensionsEntry.of("application/msword", new String[] {"doc"}),
+				FileExtensionsEntry.of("application/vnd.openxmlformats-officedocument.wordprocessingml.document", new String[] {"docx"}),
+				FileExtensionsEntry.of("application/vnd.ms-excel", new String[] {"xls", "xlsx"}),
+				FileExtensionsEntry.of("application/vnd.adobe.xfdf", new String[] {"xfdf"})
 			} );
 	
 	private UnmodifiableFileExtensionsMap(AbstractFileExtensionsMap map) {
