@@ -54,9 +54,9 @@ class MimeTypeTest {
 		MimeType result = MimeType.of(scenario.getTestValue());
 		
 		assertAll(
-				()->assertEquals(scenario.getExpectedType(), result.getType(), "Unexpected result in Type."),
-				()->assertEquals(scenario.getExpectedSubType(), result.getSubtype(), "Unexpected result in SubType."),
-				()->assertEquals(scenario.getExpectedCharset(), result.getCharset(), "Unexpected result in Charset."),
+				()->assertEquals(scenario.getExpectedType(), result.type(), "Unexpected result in Type."),
+				()->assertEquals(scenario.getExpectedSubType(), result.subtype(), "Unexpected result in SubType."),
+				()->assertEquals(scenario.getExpectedCharset(), result.charset(), "Unexpected result in Charset."),
 				()->assertEquals(scenario.getTestValue(), result.asString().toLowerCase(), "Unexpected result.asString() to match input.")
 				);
 		

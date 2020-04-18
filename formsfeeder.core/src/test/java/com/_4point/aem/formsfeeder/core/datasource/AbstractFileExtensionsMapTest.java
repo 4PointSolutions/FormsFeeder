@@ -69,8 +69,8 @@ class AbstractFileExtensionsMapTest {
 	@MethodSource("mapProvider")
 	void testGetMimeType(TestFileExtensionsMap underTest) {
 		assertAll(
-				()->assertEquals(APPLICATION_PDF_MIMETYPE, underTest.getMimeType(Paths.get("TestDir", "TestFile." + PDF_EXTENSION)).get()),
-				()->assertEquals(APPLICATION_VND_MS_WORD_MIMETYPE, underTest.getMimeType(Paths.get("TestDir", "TestFile." + DOC_EXTENSION)).get())
+				()->assertEquals(APPLICATION_PDF_MIMETYPE, underTest.mimeType(Paths.get("TestDir", "TestFile." + PDF_EXTENSION)).get()),
+				()->assertEquals(APPLICATION_VND_MS_WORD_MIMETYPE, underTest.mimeType(Paths.get("TestDir", "TestFile." + DOC_EXTENSION)).get())
 				);
 	}
 
@@ -78,8 +78,8 @@ class AbstractFileExtensionsMapTest {
 	@MethodSource("mapProvider")
 	void testGetFileDefaultExtension(TestFileExtensionsMap underTest) {
 		assertAll(
-				()->assertEquals(PDF_EXTENSION, underTest.getFileDefaultExtension(APPLICATION_PDF_MIMETYPE).get()),
-				()->assertEquals(DOC_EXTENSION, underTest.getFileDefaultExtension(APPLICATION_VND_MS_WORD_MIMETYPE).get())
+				()->assertEquals(PDF_EXTENSION, underTest.fileDefaultExtension(APPLICATION_PDF_MIMETYPE).get()),
+				()->assertEquals(DOC_EXTENSION, underTest.fileDefaultExtension(APPLICATION_VND_MS_WORD_MIMETYPE).get())
 				);
 	}
 	
@@ -87,7 +87,7 @@ class AbstractFileExtensionsMapTest {
 	@MethodSource("mapProvider")
 	void testGetMimeType_BadFilename(TestFileExtensionsMap underTest) {
 		Path testPath = Paths.get("TestDir", "TestFile");
-		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, ()->underTest.getMimeType(testPath));
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, ()->underTest.mimeType(testPath));
 		String msg = ex.getMessage();
 		assertNotNull(msg);
 		assertAll(
@@ -100,7 +100,7 @@ class AbstractFileExtensionsMapTest {
 	@MethodSource("mapProvider")
 	void testGetMimeType_NonexistentExtension(TestFileExtensionsMap underTest) {
 		Path testPath = Paths.get("TestDir", "TestFile.xxx");
-		assertTrue(underTest.getMimeType(testPath).isEmpty());
+		assertTrue(underTest.mimeType(testPath).isEmpty());
 	}
 
 }

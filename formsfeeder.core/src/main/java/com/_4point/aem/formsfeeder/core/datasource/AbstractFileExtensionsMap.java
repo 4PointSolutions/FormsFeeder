@@ -44,7 +44,7 @@ public class AbstractFileExtensionsMap implements MimeTypeFileTypeMap {
 	}
 
 	@Override
-	public Optional<MimeType> getMimeType(Path filePath) {
+	public Optional<MimeType> mimeType(Path filePath) {
 		String filename = filePath.getFileName().toString();
 		int indexOfExtension = filename.lastIndexOf('.');
 		if (indexOfExtension < 0) {
@@ -55,7 +55,7 @@ public class AbstractFileExtensionsMap implements MimeTypeFileTypeMap {
 	}
 
 	@Override
-	public Optional<String> getFileDefaultExtension(MimeType mimeType) {
+	public Optional<String> fileDefaultExtension(MimeType mimeType) {
 		FileExtensionsEntry fileExtensionsEntry = byMimeType.get(mimeType);
 		return fileExtensionsEntry == null ? Optional.empty() : Optional.of(fileExtensionsEntry.getDefaultExtension());
 	}
@@ -84,6 +84,9 @@ public class AbstractFileExtensionsMap implements MimeTypeFileTypeMap {
 			return extensions;
 		}
 		
+		protected static FileExtensionsEntry of(MimeType mimeType, String[] extensions) {
+			return new FileExtensionsEntry(mimeType, extensions[0], Set.of(extensions));
+		}
 		protected static FileExtensionsEntry of(String mimeType, String[] extensions) {
 			return new FileExtensionsEntry(MimeType.of(mimeType), extensions[0], Set.of(extensions));
 		}

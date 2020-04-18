@@ -8,18 +8,18 @@ public class UnmodifiableFileExtensionsMap extends AbstractFileExtensionsMap imp
 	public static final UnmodifiableFileExtensionsMap DEFAULT_MAP = 
 			UnmodifiableFileExtensionsMap.from( new FileExtensionsEntry[] {
 				// Common AEM File types we must deal with
-				FileExtensionsEntry.of("application/pdf", new String[] { "pdf" }),
-				FileExtensionsEntry.of("application/xml", new String[] { "xml" }),
-				FileExtensionsEntry.of("application/vnd.adobe.xdp+xml", new String[] { "xdp" }),
-				FileExtensionsEntry.of("application/vnd.adobe.central.field-nominated", new String[] { "dat" }),
-				FileExtensionsEntry.of("text/plain", new String[] { "txt" }),
-				FileExtensionsEntry.of("text/html", new String[] { "html", "htm" }),
+				FileExtensionsEntry.of(StandardMimeTypes.APPLICATION_PDF_TYPE, new String[] { "pdf" }),
+				FileExtensionsEntry.of(StandardMimeTypes.APPLICATION_XML_TYPE, new String[] { "xml" }),
+				FileExtensionsEntry.of(StandardMimeTypes.APPLICATION_VND_ADOBE_XDP_TYPE, new String[] { "xdp" }),
+				FileExtensionsEntry.of(StandardMimeTypes.APPLICATION_VND_ADOBE_CENTRAL_FNF_TYPE, new String[] { "dat" }),
+				FileExtensionsEntry.of(StandardMimeTypes.TEXT_PLAIN_TYPE, new String[] { "txt" }),
+				FileExtensionsEntry.of(StandardMimeTypes.TEXT_HTML_TYPE, new String[] { "html", "htm" }),
 				// 
 				// Less common file types
-				FileExtensionsEntry.of("application/msword", new String[] {"doc"}),
-				FileExtensionsEntry.of("application/vnd.openxmlformats-officedocument.wordprocessingml.document", new String[] {"docx"}),
-				FileExtensionsEntry.of("application/vnd.ms-excel", new String[] {"xls", "xlsx"}),
-				FileExtensionsEntry.of("application/vnd.adobe.xfdf", new String[] {"xfdf"})
+				FileExtensionsEntry.of(StandardMimeTypes.APPLICATION_MSWORD_TYPE, new String[] {"doc"}),
+				FileExtensionsEntry.of(StandardMimeTypes.APPLICATION_VND_OPENXML_DOC_TYPE, new String[] {"docx"}),
+				FileExtensionsEntry.of(StandardMimeTypes.APPLICATION_VND_MS_EXCEL_TYPE, new String[] {"xls", "xlsx"}),
+				FileExtensionsEntry.of(StandardMimeTypes.APPLICATION_VND_ADOBE_XFDF_TYPE, new String[] {"xfdf"})
 			} );
 	
 	private UnmodifiableFileExtensionsMap(AbstractFileExtensionsMap map) {

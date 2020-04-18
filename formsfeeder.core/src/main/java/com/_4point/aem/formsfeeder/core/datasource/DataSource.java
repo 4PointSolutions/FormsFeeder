@@ -7,10 +7,10 @@ import java.util.Map;
 import java.util.Optional;
 
 public interface DataSource {
-	MimeType getContentType();
-	InputStream getInputStream();
-	String getName();
-	OutputStream getOutputStream();
-	Optional<Path> getFilename();
-	Map<String, String> getAttributes();
+	MimeType contentType();
+	InputStream inputStream();
+	String name();	// Cannot be null, all data sources must have a name (empty string is valid though).
+	OutputStream outputStream();
+	Optional<Path> filename();
+	Map<String, String> attributes();
 }

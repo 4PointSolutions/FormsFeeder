@@ -9,19 +9,19 @@ public class FileDataSource extends AbstractDataSource implements DataSource {
 	Path filePath;
 	
 	@Override
-	public InputStream getInputStream() {
+	public InputStream inputStream() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public OutputStream getOutputStream() {
+	public OutputStream outputStream() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public Optional<Path> getFilename() {
+	public Optional<Path> filename() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -42,9 +42,9 @@ class ModifiableFileExtensionsMapTest {
 		String testExtension2 = "xx1";
 		underTest.putMapping(testMimeType, List.of(testExtension1, testExtension2));
 		assertAll(
-				()->assertEquals(testMimeType, underTest.getMimeType(Path.of("TestFile." + testExtension1 )).get(), "Extension '" + testExtension1 + "didn't return '" + testMimeType + "'."),
-				()->assertEquals(testMimeType, underTest.getMimeType(Path.of("TestFile." + testExtension2 )).get(), "Extension '" + testExtension2 + "didn't return '" + testMimeType + "'."),
-				()->assertEquals(testExtension1, underTest.getFileDefaultExtension(testMimeType).get(), "TestMimeType '" + testMimeType + "didn't return extension of '" + testExtension1 + "'.")
+				()->assertEquals(testMimeType, underTest.mimeType(Path.of("TestFile." + testExtension1 )).get(), "Extension '" + testExtension1 + "didn't return '" + testMimeType + "'."),
+				()->assertEquals(testMimeType, underTest.mimeType(Path.of("TestFile." + testExtension2 )).get(), "Extension '" + testExtension2 + "didn't return '" + testMimeType + "'."),
+				()->assertEquals(testExtension1, underTest.fileDefaultExtension(testMimeType).get(), "TestMimeType '" + testMimeType + "didn't return extension of '" + testExtension1 + "'.")
 				);
 	}
 
@@ -56,9 +56,9 @@ class ModifiableFileExtensionsMapTest {
 		String testExtension2 = "xx1";
 		underTest.putMapping(testMimeType, List.of(testExtension1, testExtension2));
 		assertAll(
-				()->assertEquals(testMimeType, underTest.getMimeType(Path.of("TestFile." + testExtension1 )).get(), "Extension '" + testExtension1 + "didn't return '" + testMimeType + "'."),
-				()->assertEquals(testMimeType, underTest.getMimeType(Path.of("TestFile." + testExtension2 )).get(), "Extension '" + testExtension2 + "didn't return '" + testMimeType + "'."),
-				()->assertEquals(testExtension1, underTest.getFileDefaultExtension(testMimeType).get(), "TestMimeType '" + testMimeType + "didn't return extension of '" + testExtension1 + "'.")
+				()->assertEquals(testMimeType, underTest.mimeType(Path.of("TestFile." + testExtension1 )).get(), "Extension '" + testExtension1 + "didn't return '" + testMimeType + "'."),
+				()->assertEquals(testMimeType, underTest.mimeType(Path.of("TestFile." + testExtension2 )).get(), "Extension '" + testExtension2 + "didn't return '" + testMimeType + "'."),
+				()->assertEquals(testExtension1, underTest.fileDefaultExtension(testMimeType).get(), "TestMimeType '" + testMimeType + "didn't return extension of '" + testExtension1 + "'.")
 				);
 	}
 
@@ -70,9 +70,9 @@ class ModifiableFileExtensionsMapTest {
 		String testExtension2 = "xx1";
 		underTest.putMapping(testMimeType, List.of(testExtension1, testExtension2));
 		assertAll(
-				()->assertEquals(testMimeType, underTest.getMimeType(Path.of("TestFile." + testExtension1 )).get(), "Extension '" + testExtension1 + "didn't return '" + testMimeType + "'."),
-				()->assertEquals(testMimeType, underTest.getMimeType(Path.of("TestFile." + testExtension2 )).get(), "Extension '" + testExtension2 + "didn't return '" + testMimeType + "'."),
-				()->assertEquals(testExtension1, underTest.getFileDefaultExtension(testMimeType).get(), "TestMimeType '" + testMimeType + "didn't return extension of '" + testExtension1 + "'.")
+				()->assertEquals(testMimeType, underTest.mimeType(Path.of("TestFile." + testExtension1 )).get(), "Extension '" + testExtension1 + "didn't return '" + testMimeType + "'."),
+				()->assertEquals(testMimeType, underTest.mimeType(Path.of("TestFile." + testExtension2 )).get(), "Extension '" + testExtension2 + "didn't return '" + testMimeType + "'."),
+				()->assertEquals(testExtension1, underTest.fileDefaultExtension(testMimeType).get(), "TestMimeType '" + testMimeType + "didn't return extension of '" + testExtension1 + "'.")
 				);
 	}
 

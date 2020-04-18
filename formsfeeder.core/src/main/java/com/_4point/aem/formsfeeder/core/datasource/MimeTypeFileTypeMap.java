@@ -10,7 +10,7 @@ public interface MimeTypeFileTypeMap {
 	 * @param filePath
 	 * @return
 	 */
-	public Optional<MimeType> getMimeType(Path filePath);
+	public Optional<MimeType> mimeType(Path filePath);
 	
 	/**
 	 * Returns the default file extension for a given mime-type
@@ -18,5 +18,5 @@ public interface MimeTypeFileTypeMap {
 	 * @param mimeType
 	 * @return
 	 */
-	public Optional<String> getFileDefaultExtension(MimeType mimeType);
+	public Optional<String> fileDefaultExtension(MimeType mimeType);
 }

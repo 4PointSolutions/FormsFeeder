@@ -5,6 +5,7 @@ package com._4point.aem.formsfeeder.core.datasource;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,16 +22,20 @@ public abstract class AbstractDataSource implements DataSource {
 	
 	protected AbstractDataSource() {
 		super();
+		this.name = "";
+		this.contentType = StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE;
 	}
 
 	protected AbstractDataSource(String name) {
 		super();
 		this.name = name;
+		this.contentType = StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE;
 	}
 
 	protected AbstractDataSource(String name, Map<String, String> attributes) {
 		super();
 		this.name = name;
+		this.contentType = StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE;
 		this.attributes.putAll(attributes);
 	}
 
@@ -48,46 +53,47 @@ public abstract class AbstractDataSource implements DataSource {
 	}
 
 	@Override
-	public MimeType getContentType() {
+	public MimeType contentType() {
 		return contentType;
 	}
 
 	@Override
-	public abstract InputStream getInputStream();
+	public abstract InputStream inputStream();
 
 	@Override
-	public String getName() {
+	public String name() {
 		return name;
 	}
 
 	@Override
-	public abstract OutputStream getOutputStream();
+	public abstract OutputStream outputStream();
 
 	@Override
-	public Optional<Path> getFilename() {
+	public Optional<Path> filename() {
 		return Optional.empty();
 	}
 
 	@Override
-	public Map<String, String> getAttributes() {
+	public Map<String, String> attributes() {
+		// Return a defensive copy
 		return Map.copyOf(attributes);
 	}
 
-	protected Map<String, String> getAttributeMap() {
+	protected Map<String, String> attributeMap() {
 		return attributes;
 	}
 	
-	protected AbstractDataSource setContentType(String contentType) {
+	protected AbstractDataSource contentType(String contentType) {
 		this.contentType = MimeType.of(contentType);
 		return this;
 	}
 	
-	protected AbstractDataSource setContentType(MimeType contentType) {
+	protected AbstractDataSource contentType(MimeType contentType) {
 		this.contentType = contentType;
 		return this;
 	}
 	
-	protected AbstractDataSource setName(String name) {
+	protected AbstractDataSource name(String name) {
 		this.name = name;
 		return this;
 	}

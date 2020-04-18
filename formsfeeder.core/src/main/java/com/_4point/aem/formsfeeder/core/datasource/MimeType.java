@@ -26,15 +26,15 @@ public class MimeType {
 		this.charset = null;
 	}
 
-	public String getType() {
+	public String type() {
 		return type;
 	}
 
-	public String getSubtype() {
+	public String subtype() {
 		return subtype;
 	}
 
-	public Charset getCharset() {
+	public Charset charset() {
 		return charset;
 	}
 
@@ -118,4 +118,11 @@ public class MimeType {
 			return false;
 		return true;
 	}
+
+	@Override
+	public String toString() {
+		return "MimeType [\"" + type + TYPE_SEPARATOR + subtype + "\", charset='" + charset + "']";
+	}
+	
+	
 }
