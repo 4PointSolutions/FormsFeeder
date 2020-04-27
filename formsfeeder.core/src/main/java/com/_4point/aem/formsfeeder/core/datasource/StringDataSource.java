@@ -1,6 +1,8 @@
 package com._4point.aem.formsfeeder.core.datasource;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
@@ -9,10 +11,16 @@ import java.util.Map;
 
 public class StringDataSource extends AbstractDataSource implements DataSource {
 
-	private static final Charset ENCODING = StandardCharsets.UTF_8;
-	private static final MimeType MIME_TYPE = MimeType.of("text", "plain", ENCODING);
-	private final String contents; 
+	public static final Charset ENCODING = StandardCharsets.UTF_8;
 	
+	private static final MimeType MIME_TYPE = MimeType.of("text", "plain", ENCODING);
+	private String contents; 
+	
+	public StringDataSource() {
+		super("", MIME_TYPE);
+		this.contents = "";
+	}
+
 	public StringDataSource(String contents) {
 		super("", MIME_TYPE);
 		this.contents = contents;
@@ -30,15 +38,50 @@ public class StringDataSource extends AbstractDataSource implements DataSource {
 
 	@Override
 	public InputStream inputStream() {
-		return new ByteArrayInputStream(contents.getBytes(ENCODING));
+		return wrapInputStream(()->new ByteArrayInputStream(contents.getBytes(ENCODING)));
 	}
 
 	@Override
 	public OutputStream outputStream() {
-		throw new IllegalStateException("outputStream() is not implemented for " + this.getClass().getName() + ".");
+		return wrapOutputStream(()->new LocalByteArrayOutputStream(new ByteArrayOutputStream()));
 	}
 
 	public final String contents() {
 		return contents;
+	}
+	
+	private class LocalByteArrayOutputStream extends OutputStream {
+		private final ByteArrayOutputStream bos;
+
+		private LocalByteArrayOutputStream(ByteArrayOutputStream bos) {
+			super();
+			this.bos = bos;
+		}
+
+		@Override
+		public void write(byte[] b) throws IOException {
+			bos.write(b);
+		}
+
+		@Override
+		public void write(int b) {
+			bos.write(b);
+		}
+
+		@Override
+		public void write(byte[] b, int off, int len) {
+			bos.write(b, off, len);
+		}
+
+		@Override
+		public void close() throws IOException {
+			bos.close();
+			StringDataSource.this.contents = new String(bos.toByteArray(), ENCODING);
+		}
+
+		@Override
+		public void flush() throws IOException {
+			bos.flush();
+		}
 	}
 }
