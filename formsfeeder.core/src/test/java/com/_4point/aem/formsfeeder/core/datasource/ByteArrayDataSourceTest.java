@@ -15,10 +15,10 @@ class ByteArrayDataSourceTest {
 	void testByteArrayDataSource() throws Exception {
 		ByteArrayDataSource underTest = new ByteArrayDataSource();
 		try (InputStream inputStream = underTest.inputStream()) {
-			
 			assertAll(
 					()->assertEquals(0, inputStream.readAllBytes().length),
 					()->assertEquals("", underTest.name()),
+					()->assertEquals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE, underTest.contentType()),
 					()->assertEquals(0, underTest.attributes().size())
 					);
 		}
@@ -32,6 +32,7 @@ class ByteArrayDataSourceTest {
 			assertAll(
 					()->assertArrayEquals(expectedBytes, inputStream.readAllBytes()),
 					()->assertEquals("", underTest.name()),
+					()->assertEquals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE, underTest.contentType()),
 					()->assertEquals(0, underTest.attributes().size())
 					);
 		}
@@ -46,6 +47,7 @@ class ByteArrayDataSourceTest {
 			assertAll(
 					()->assertArrayEquals(expectedBytes, inputStream.readAllBytes()),
 					()->assertEquals(expectedName, underTest.name()),
+					()->assertEquals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE, underTest.contentType()),
 					()->assertEquals(0, underTest.attributes().size())
 					);
 		}
@@ -62,6 +64,7 @@ class ByteArrayDataSourceTest {
 			assertAll(
 					()->assertArrayEquals(expectedBytes, inputStream.readAllBytes()),
 					()->assertEquals(expectedName, underTest.name()),
+					()->assertEquals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE, underTest.contentType()),
 					()->assertTrue(attributes.keySet().containsAll(expectedAttributes.keySet()), "Expected all the keys to be returned."),
 					()->assertTrue(attributes.values().containsAll(expectedAttributes.values()), "Expected all the values to be returned."),
 					()->assertTrue(expectedAttributes.keySet().containsAll(attributes.keySet()), "Expected no extra keys to be returned."),
@@ -80,7 +83,8 @@ class ByteArrayDataSourceTest {
 			assertAll(
 					()->assertArrayEquals(expectedBytes, inputStream.readAllBytes()),
 					()->assertEquals(expectedName, underTest.name()),
-					()->assertEquals(expectedMimeType, underTest.contentType())
+					()->assertEquals(expectedMimeType, underTest.contentType()),
+					()->assertEquals(0, underTest.attributes().size())
 					);
 		}
 	}

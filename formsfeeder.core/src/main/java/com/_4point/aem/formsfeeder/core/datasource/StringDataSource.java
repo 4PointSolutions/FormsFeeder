@@ -13,7 +13,7 @@ public class StringDataSource extends AbstractDataSource implements DataSource {
 
 	public static final Charset ENCODING = StandardCharsets.UTF_8;
 	
-	private static final MimeType MIME_TYPE = MimeType.of("text", "plain", ENCODING);
+	private static final MimeType MIME_TYPE = StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE;
 	private String contents; 
 	
 	public StringDataSource() {

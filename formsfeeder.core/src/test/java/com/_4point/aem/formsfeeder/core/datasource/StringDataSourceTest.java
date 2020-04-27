@@ -17,6 +17,7 @@ class StringDataSourceTest {
 			assertAll(
 					()->assertEquals(0, inputStream.readAllBytes().length),
 					()->assertEquals("", underTest.name()),
+					()->assertEquals(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE, underTest.contentType()),
 					()->assertEquals(0, underTest.attributes().size())
 					);
 		}
@@ -30,6 +31,7 @@ class StringDataSourceTest {
 			assertAll(
 					()->assertArrayEquals(expectedString.getBytes(StringDataSource.ENCODING), inputStream.readAllBytes()),
 					()->assertEquals("", underTest.name()),
+					()->assertEquals(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE, underTest.contentType()),
 					()->assertEquals(0, underTest.attributes().size())
 					);
 		}
@@ -44,6 +46,7 @@ class StringDataSourceTest {
 			assertAll(
 					()->assertArrayEquals(expectedString.getBytes(StringDataSource.ENCODING), inputStream.readAllBytes()),
 					()->assertEquals(expectedName, underTest.name()),
+					()->assertEquals(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE, underTest.contentType()),
 					()->assertEquals(0, underTest.attributes().size())
 					);
 		}
@@ -60,6 +63,7 @@ class StringDataSourceTest {
 			assertAll(
 					()->assertArrayEquals(expectedString.getBytes(StringDataSource.ENCODING), inputStream.readAllBytes()),
 					()->assertEquals(expectedName, underTest.name()),
+					()->assertEquals(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE, underTest.contentType()),
 					()->assertTrue(attributes.keySet().containsAll(expectedAttributes.keySet()), "Expected all the keys to be returned."),
 					()->assertTrue(attributes.values().containsAll(expectedAttributes.values()), "Expected all the values to be returned."),
 					()->assertTrue(expectedAttributes.keySet().containsAll(attributes.keySet()), "Expected no extra keys to be returned."),
