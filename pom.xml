@@ -52,6 +52,12 @@
 					</exclusion>
 				</exclusions>
 			</dependency>
+			<dependency>	<!-- In-memory File System for writing/reading during unit testing. -->
+				<groupId>com.google.jimfs</groupId>
+				<artifactId>jimfs</artifactId>
+				<version>1.1</version>
+				<scope>test</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 

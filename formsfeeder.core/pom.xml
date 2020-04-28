@@ -27,6 +27,11 @@
 			<artifactId>junit-addons</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>	<!-- In-memory File System for writing/reading during unit testing. -->
+			<groupId>com.google.jimfs</groupId>
+			<artifactId>jimfs</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 </project>
