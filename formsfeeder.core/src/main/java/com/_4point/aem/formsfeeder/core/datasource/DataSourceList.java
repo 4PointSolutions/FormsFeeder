@@ -1,5 +1,6 @@
 package com._4point.aem.formsfeeder.core.datasource;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -100,5 +101,76 @@ public class DataSourceList {
 	 */
 	public static DataSourceList from(List<DataSource> list) {
 		return new DataSourceList(list);
+	}
+	
+	
+	/**
+	 * Create a DataSourceListBuilder for building a DataSourceList.
+	 * 
+	 * @return
+	 */
+	public static DataSourceListBuilder builder() {
+		return DataSourceListBuilder.newBuilder();
+	}
+	
+	public static class DataSourceListBuilder {
+
+		List<DataSource> underConstruction = new ArrayList<>();
+		
+		private DataSourceListBuilder() {
+		}
+		
+		private static DataSourceListBuilder newBuilder() {
+			return new DataSourceListBuilder();
+		}
+
+		public DataSourceList build() {
+			return DataSourceList.from(underConstruction);
+		}
+		
+		public DataSourceListBuilder add(DataSource ds) {
+			underConstruction.add(ds);
+			return this;
+		}
+		
+		public DataSourceListBuilder add(String name, String s) {
+			underConstruction.add(new StringDataSource(s, name));
+			return this;
+		}
+		
+		public DataSourceListBuilder add(String name, Path p) {
+			underConstruction.add(new FileDataSource(p, name));
+			return this;
+		}
+
+		public DataSourceListBuilder add(String name, byte[] ba) {
+			underConstruction.add(new ByteArrayDataSource(ba, name));
+			return this;
+		}
+
+		public DataSourceListBuilder add(String name, int i) {
+			underConstruction.add(new StringDataSource(Integer.toString(i), name));
+			return this;
+		}
+
+		public DataSourceListBuilder add(String name, boolean b) {
+			underConstruction.add(new StringDataSource(Boolean.toString(b), name));
+			return this;
+		}
+
+		public DataSourceListBuilder add(String name, float f) {
+			underConstruction.add(new StringDataSource(Float.toString(f), name));
+			return this;
+		}
+
+		public DataSourceListBuilder add(String name, double d) {
+			underConstruction.add(new StringDataSource(Double.toString(d), name));
+			return this;
+		}
+
+		public DataSourceListBuilder add(String name, long l) {
+			underConstruction.add(new StringDataSource(Long.toString(l), name));
+			return this;
+		}
 	}
 }
