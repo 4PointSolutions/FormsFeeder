@@ -9,50 +9,50 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-public class FileDataSource extends AbstractDataSource implements DataSource {
+/* package */ class FileDataSource extends AbstractDataSource implements DataSource {
 	private final Path filePath;
 	
-	public FileDataSource(Path filePath) {
+	/* package */ FileDataSource(Path filePath) {
 		super("", determineMimeType(filePath, UnmodifiableFileExtensionsMap.DEFAULT_MAP));
 		this.filePath = Objects.requireNonNull(filePath);
 	}
 
-	public FileDataSource(Path filePath, String name) {
+	/* package */ FileDataSource(Path filePath, String name) {
 		super(name, determineMimeType(filePath, UnmodifiableFileExtensionsMap.DEFAULT_MAP));
 		this.filePath = Objects.requireNonNull(filePath);
 	}
 
-	public FileDataSource(Path filePath, String name, Map<String, String> attributes) {
+	/* package */ FileDataSource(Path filePath, String name, Map<String, String> attributes) {
 		super(name, determineMimeType(filePath, UnmodifiableFileExtensionsMap.DEFAULT_MAP), attributes);
 		this.filePath = Objects.requireNonNull(filePath);
 	}
 
-	public FileDataSource(Path filePath, MimeTypeFileTypeMap map) {
+	/* package */ FileDataSource(Path filePath, MimeTypeFileTypeMap map) {
 		super("", determineMimeType(filePath, map));
 		this.filePath = Objects.requireNonNull(filePath);
 	}
 
-	public FileDataSource(Path filePath, String name, MimeTypeFileTypeMap map) {
+	/* package */ FileDataSource(Path filePath, String name, MimeTypeFileTypeMap map) {
 		super(name, determineMimeType(filePath, map));
 		this.filePath = Objects.requireNonNull(filePath);
 	}
 
-	public FileDataSource(Path filePath, String name, Map<String, String> attributes, MimeTypeFileTypeMap map) {
+	/* package */ FileDataSource(Path filePath, String name, Map<String, String> attributes, MimeTypeFileTypeMap map) {
 		super(name, determineMimeType(filePath, map), attributes);
 		this.filePath = Objects.requireNonNull(filePath);
 	}
 
-	public FileDataSource(Path filePath, MimeType contentType) {
+	/* package */ FileDataSource(Path filePath, MimeType contentType) {
 		super("", contentType);
 		this.filePath = Objects.requireNonNull(filePath);
 	}
 
-	public FileDataSource(Path filePath, String name, MimeType contentType) {
+	/* package */ FileDataSource(Path filePath, String name, MimeType contentType) {
 		super(name, contentType);
 		this.filePath = Objects.requireNonNull(filePath);
 	}
 
-	public FileDataSource(Path filePath, String name, MimeType contentType, Map<String, String> attributes) {
+	/* package */ FileDataSource(Path filePath, String name, MimeType contentType, Map<String, String> attributes) {
 		super(name, contentType, attributes);
 		this.filePath = Objects.requireNonNull(filePath);
 	}

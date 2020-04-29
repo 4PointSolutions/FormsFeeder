@@ -8,36 +8,36 @@ import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Map;
 
-public class ByteArrayDataSource extends AbstractDataSource implements DataSource {
+/* package */ class ByteArrayDataSource extends AbstractDataSource implements DataSource {
 
 	private byte[] contents;
 	
-	public ByteArrayDataSource() {
+	/* package */ ByteArrayDataSource() {
 		super();
 		this.contents = new byte[0];
 	}
 
-	public ByteArrayDataSource(byte[] contents) {
+	/* package */ ByteArrayDataSource(byte[] contents) {
 		super();
 		this.contents = Arrays.copyOf(contents, contents.length);
 	}
 
-	public ByteArrayDataSource(byte[] contents, String name) {
+	/* package */ ByteArrayDataSource(byte[] contents, String name) {
 		super(name);
 		this.contents = Arrays.copyOf(contents, contents.length);
 	}
 
-	public ByteArrayDataSource(byte[] contents, String name, Map<String, String> attributes) {
+	/* package */ ByteArrayDataSource(byte[] contents, String name, Map<String, String> attributes) {
 		super(name, attributes);
 		this.contents = Arrays.copyOf(contents, contents.length);
 	}
 
-	public ByteArrayDataSource(byte[] contents, String name, MimeType contentType) {
+	/* package */ ByteArrayDataSource(byte[] contents, String name, MimeType contentType) {
 		super(name, contentType);
 		this.contents = Arrays.copyOf(contents, contents.length);
 	}
 
-	public ByteArrayDataSource(byte[] contents, String name, MimeType contentType, Map<String, String> attributes) {
+	/* package */ ByteArrayDataSource(byte[] contents, String name, MimeType contentType, Map<String, String> attributes) {
 		super(name, contentType, attributes);
 		this.contents = Arrays.copyOf(contents, contents.length);
 	}

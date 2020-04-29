@@ -9,29 +9,29 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-public class StringDataSource extends AbstractDataSource implements DataSource {
+/* package */ class StringDataSource extends AbstractDataSource implements DataSource {
 
 	public static final Charset ENCODING = StandardCharsets.UTF_8;
 	
 	private static final MimeType MIME_TYPE = StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE;
 	private String contents; 
 	
-	public StringDataSource() {
+	/* package */ StringDataSource() {
 		super("", MIME_TYPE);
 		this.contents = "";
 	}
 
-	public StringDataSource(String contents) {
+	/* package */ StringDataSource(String contents) {
 		super("", MIME_TYPE);
 		this.contents = contents;
 	}
 
-	public StringDataSource(String contents, String name) {
+	/* package */ StringDataSource(String contents, String name) {
 		super(name, MIME_TYPE);
 		this.contents = contents;
 	}
 
-	public StringDataSource(String contents, String name, Map<String, String> attributes) {
+	/* package */ StringDataSource(String contents, String name, Map<String, String> attributes) {
 		super(name, MIME_TYPE, attributes);
 		this.contents = contents;
 	}
@@ -46,7 +46,7 @@ public class StringDataSource extends AbstractDataSource implements DataSource {
 		return wrapOutputStream(()->new LocalByteArrayOutputStream(new ByteArrayOutputStream()));
 	}
 
-	public final String contents() {
+	/* package */ final String contents() {
 		return contents;
 	}
 	
