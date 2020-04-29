@@ -234,5 +234,39 @@ class FileDataSourceTest {
 		assertThrows(NullPointerException.class, ()->new FileDataSource(null));
 	}
 
+	/**
+	 * Shouldn't be able to open OutputStream while one or more InputStreams are open. 
+	 *
+	 * We use recursion to test the counting of input streams.
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	void testOutputStreamWhileInputStreamOpen() throws Exception {
+		Path expectedFilePath = fs.getPath("OutputStreamTests", "testOutputStreamWhileInputStreamOpen.txt");
+		byte[] expectedBytes = "Expected Test Data".getBytes();
+		// Create the file used for input.
+		Files.createDirectories(expectedFilePath.getParent());
+		Files.write(expectedFilePath, expectedBytes);
+		
+		// Execute test
+		FileDataSource underTest = new FileDataSource(expectedFilePath);
+		DataSourceTestUtils.openOutputStreamWhileInputStreamOpen(expectedBytes, underTest);
+	}
+
+	/**
+	 * Shouldn't allow getting an input stream while there is still an output stream open. 
+	 * 
+	 * @throws Exception
+	 */
+	@Test
+	void testInputStreamWhileOutputStreamOpen() throws Exception {
+		Path expectedFilePath = fs.getPath("OutputStreamTests", "testInputStreamWhileOutputStreamOpen.txt");
+		Files.createDirectories(expectedFilePath.getParent());
+
+		FileDataSource underTest = new FileDataSource(expectedFilePath);
+		DataSourceTestUtils.openInputStreamAndOutputStream(underTest);
+	}
+
 
 }
