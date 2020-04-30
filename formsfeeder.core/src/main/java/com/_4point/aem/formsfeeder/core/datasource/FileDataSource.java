@@ -61,6 +61,10 @@ import java.util.Optional;
 		return map.mimeType(filePath).orElse(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE);
 	}
 	
+	/* package */ Path contents() {
+		return this.filePath;
+	}
+	
 	@Override
 	public InputStream inputStream() {
 		return wrapInputStream(this::internalInputStream);

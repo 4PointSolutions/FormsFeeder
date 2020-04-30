@@ -1,11 +1,16 @@
 package com._4point.aem.formsfeeder.core.datasource;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Wraps a list of DataSource objects and provides common functions for operating on that list.
@@ -16,6 +21,16 @@ public class DataSourceList {
 
 	private DataSourceList(List<DataSource> list) {
 		this.list = List.copyOf(list);
+	}
+
+	/**
+	 * Predicate to select DataSource by name.
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public static Predicate<DataSource> byName(String name) {
+		return (ds)->ds.name().equals(Objects.requireNonNull(name, "Target DataSource name cannot be null."));
 	}
 
 	/**
@@ -38,7 +53,7 @@ public class DataSourceList {
 	 * @return 
 	 */
 	public final Optional<DataSource> getDataSourceByName(final String name) {
-		return getDataSource((ds)->ds.name().equals(Objects.requireNonNull(name, "Target DataSource name cannot be null.")));
+		return getDataSource(byName(name));
 	}
 
 	/**
@@ -70,7 +85,7 @@ public class DataSourceList {
 	 * @return
 	 */
 	public final List<DataSource> getDataSourcesByName(String name) {
-		return getDataSources((ds)->ds.name().equals(Objects.requireNonNull(name, "Target DataSource name cannot be null.")));
+		return getDataSources(byName(name));
 	}
 
 	/**
@@ -105,117 +120,378 @@ public class DataSourceList {
 	
 	
 	/**
-	 * Create a DataSourceListBuilder for building a DataSourceList.
+	 * Create a DataSourceList.Builder for building a DataSourceList.
 	 * 
 	 * @return
 	 */
-	public static DataSourceListBuilder builder() {
-		return DataSourceListBuilder.newBuilder();
+	public static Builder builder() {
+		return Builder.newBuilder();
 	}
 	
-	public static class DataSourceListBuilder {
+	/**
+	 * DataSourceList.Deconstructor for pulling apart (i.e. deconstructing) a DataSourceList.
+	 * 
+	 * @return
+	 */
+	public Deconstructor deconstructor() {
+		return Deconstructor.from(this);
+	}
+	
+	public static class Builder {
 
 		List<DataSource> underConstruction = new ArrayList<>();
 		
-		private DataSourceListBuilder() {
+		private Builder() {
 		}
 		
-		private static DataSourceListBuilder newBuilder() {
-			return new DataSourceListBuilder();
+		private static Builder newBuilder() {
+			return new Builder();
 		}
 
 		public DataSourceList build() {
 			return DataSourceList.from(underConstruction);
 		}
 		
-		public DataSourceListBuilder add(DataSource ds) {
+		public Builder add(DataSource ds) {
 			underConstruction.add(ds);
 			return this;
 		}
 		
-		public DataSourceListBuilder add(String name, String s) {
+		public Builder add(String name, String s) {
 			underConstruction.add(new StringDataSource(s, name));
 			return this;
 		}
 		
-		public DataSourceListBuilder add(String name, Path p) {
+		public Builder add(String name, Path p) {
 			underConstruction.add(new FileDataSource(p, name));
 			return this;
 		}
 
-		public DataSourceListBuilder add(String name, byte[] ba) {
+		public Builder add(String name, byte[] ba) {
 			underConstruction.add(new ByteArrayDataSource(ba, name));
 			return this;
 		}
 
-		public DataSourceListBuilder add(String name, int i) {
+		public Builder add(String name, int i) {
 			underConstruction.add(new StringDataSource(Integer.toString(i), name));
 			return this;
 		}
 
-		public DataSourceListBuilder add(String name, boolean b) {
+		public Builder add(String name, boolean b) {
 			underConstruction.add(new StringDataSource(Boolean.toString(b), name));
 			return this;
 		}
 
-		public DataSourceListBuilder add(String name, float f) {
+		public Builder add(String name, float f) {
 			underConstruction.add(new StringDataSource(Float.toString(f), name));
 			return this;
 		}
 
-		public DataSourceListBuilder add(String name, double d) {
+		public Builder add(String name, double d) {
 			underConstruction.add(new StringDataSource(Double.toString(d), name));
 			return this;
 		}
 
-		public DataSourceListBuilder add(String name, long l) {
+		public Builder add(String name, long l) {
 			underConstruction.add(new StringDataSource(Long.toString(l), name));
 			return this;
 		}
 
-		public DataSourceListBuilder addDataSources(List<DataSource> dsList) {
+		public Builder addDataSources(List<DataSource> dsList) {
 			dsList.forEach(ds->underConstruction.add(ds));
 			return this;
 		}
 		
-		public DataSourceListBuilder addStrings(String name, List<String> sList) {
+		public Builder addStrings(String name, List<String> sList) {
 			sList.forEach(s->underConstruction.add(new StringDataSource(s, name)));
 			return this;
 		}
 		
-		public DataSourceListBuilder addPaths(String name, List<Path> pList) {
+		public Builder addPaths(String name, List<Path> pList) {
 			pList.forEach(p->underConstruction.add(new FileDataSource(p, name)));
 			return this;
 		}
 
-		public DataSourceListBuilder addByteArrays(String name, List<byte[]> baList) {
+		public Builder addByteArrays(String name, List<byte[]> baList) {
 			baList.forEach(ba->underConstruction.add(new ByteArrayDataSource(ba, name)));
 			return this;
 		}
 
-		public DataSourceListBuilder addIntegers(String name, List<Integer> iList) {
+		public Builder addIntegers(String name, List<Integer> iList) {
 			iList.forEach(i->underConstruction.add(new StringDataSource(i.toString(), name)));
 			return this;
 		}
 
-		public DataSourceListBuilder addBooleans(String name, List<Boolean> bList) {
+		public Builder addBooleans(String name, List<Boolean> bList) {
 			bList.forEach(b->underConstruction.add(new StringDataSource(b.toString(), name)));
 			return this;
 		}
 
-		public DataSourceListBuilder addFloats(String name, List<Float> fList) {
+		public Builder addFloats(String name, List<Float> fList) {
 			fList.forEach(f->underConstruction.add(new StringDataSource(f.toString(), name)));
 			return this;
 		}
 
-		public DataSourceListBuilder addDoubles(String name, List<Double> dList) {
+		public Builder addDoubles(String name, List<Double> dList) {
 			dList.forEach(d->underConstruction.add(new StringDataSource(d.toString(), name)));
 			return this;
 		}
 
-		public DataSourceListBuilder addLongs(String name, List<Long> lList) {
+		public Builder addLongs(String name, List<Long> lList) {
 			lList.forEach(l->underConstruction.add(new StringDataSource(l.toString(), name)));
 			return this;
 		}
+	}
+	
+	/**
+	 * Assists in pulling apart a DataSourceList into its component pieces.
+	 *
+	 */
+	public static class Deconstructor {
+
+		private final DataSourceList dsList;
+		
+		private Deconstructor(DataSourceList dsList) {
+			this.dsList = dsList;
+		}
+
+		public static Deconstructor from(DataSourceList dsList) {
+			return new Deconstructor(dsList);
+		}
+
+		/**
+		 * Passthrough to DataSourceList.getDataSourceByName(String name)
+		 * 
+		 * @param name
+		 * @return
+		 */
+		public final Optional<DataSource> getDataSourceByName(String name) {
+			return dsList.getDataSourceByName(name);
+		}
+
+		/**
+		 * Passthrough to DataSourceList.getDataSource(Predicate<DataSource> predicate)
+		 * 
+		 * @param predicate
+		 * @return
+		 */
+		public final Optional<DataSource> getDataSource(Predicate<DataSource> predicate) {
+			return dsList.getDataSource(predicate);
+		}
+
+		/**
+		 * Passthrough to DataSourceList.getDataSourcesByName(String name)
+		 * 
+		 * @param name
+		 * @return
+		 */
+		public final List<DataSource> getDataSourcesByName(String name) {
+			return dsList.getDataSourcesByName(name);
+		}
+
+		/**
+		 * Passthrough to DataSourceList.getDataSources(Predicate<DataSource> predicate)
+		 * 
+		 * @param predicate
+		 * @return
+		 */
+		public final List<DataSource> getDataSources(Predicate<DataSource> predicate) {
+			return dsList.getDataSources(predicate);
+		}
+
+		public static final String dsToString(DataSource ds) {
+			if (ds instanceof StringDataSource) {
+				// Shortcut if this is already a StringDataSource
+				return ((StringDataSource) ds).contents();
+			}
+			return dsToString(ds, StandardCharsets.UTF_8);	// Assume UTF-8
+		}
+		
+		public static final String dsToString(DataSource ds, Charset cs) {
+			if (ds instanceof StringDataSource && cs == StringDataSource.ENCODING) {
+				// Shortcut if this is already a StringDataSource
+				return ((StringDataSource) ds).contents();
+			}
+			try (InputStream inputStream = ds.inputStream()) {
+				return new String(inputStream.readAllBytes(), cs);
+			} catch (IOException e) {
+				throw new IllegalStateException("Error while converting DataSource to String", e);
+			}
+		}
+		
+		public final Optional<String> getStringByName(String name) {
+			return dsList.getDataSourceByName(name).map(Deconstructor::dsToString);
+		}
+
+		public final Optional<String> getString(Predicate<DataSource> predicate) {
+			return dsList.getDataSource(predicate).map(Deconstructor::dsToString);
+		}
+
+		public final List<String> getStringsByName(String name) {
+			return dsList.getDataSourcesByName(name).stream()
+					.map(Deconstructor::dsToString)
+					.collect(Collectors.toList());
+		}
+
+		public final List<String> getStrings(Predicate<DataSource> predicate) {
+			return dsList.getDataSources(predicate).stream()
+					.map(Deconstructor::dsToString)
+					.collect(Collectors.toList());
+		}
+
+		public static final byte[] dsToByteArray(DataSource ds) {
+			if (ds instanceof ByteArrayDataSource) {
+				// Shortcut if this is already a ByteArrayDataSource
+				return ((ByteArrayDataSource) ds).getContents();
+			}
+			try (InputStream inputStream = ds.inputStream()) {
+				return inputStream.readAllBytes();
+			} catch (IOException e) {
+				throw new IllegalStateException("Error while converting DataSource to ByteArray", e);
+			}
+			
+		}
+		
+		public final Optional<byte[]> getByteArrayByName(String name) {
+			return dsList.getDataSourceByName(name).map(Deconstructor::dsToByteArray);
+		}
+
+		public final Optional<byte[]> getByteArray(Predicate<DataSource> predicate) {
+			return dsList.getDataSource(predicate).map(Deconstructor::dsToByteArray);
+		}
+
+		public final List<byte[]> getByteArraysByName(String name) {
+			return dsList.getDataSourcesByName(name).stream()
+					.map(Deconstructor::dsToByteArray)
+					.collect(Collectors.toList());
+		}
+
+		public final List<byte[]> getByteArrays(Predicate<DataSource> predicate) {
+			return dsList.getDataSources(predicate).stream()
+					.map(Deconstructor::dsToByteArray)
+					.collect(Collectors.toList());
+		}
+
+		public static final Boolean dsToBoolean(DataSource ds) {
+			return Boolean.valueOf(dsToString(ds));
+		}
+
+		public final Optional<Boolean> getBooleanByName(String name) {
+			return dsList.getDataSourceByName(name).map(Deconstructor::dsToBoolean);
+		}
+
+		public final Optional<Boolean> getBoolean(Predicate<DataSource> predicate) {
+			return dsList.getDataSource(predicate).map(Deconstructor::dsToBoolean);
+		}
+
+		public final List<Boolean> getBooleansByName(String name) {
+			return dsList.getDataSourcesByName(name).stream()
+					.map(Deconstructor::dsToBoolean)
+					.collect(Collectors.toList());
+		}
+
+		public final List<Boolean> getBooleans(Predicate<DataSource> predicate) {
+			return dsList.getDataSources(predicate).stream()
+					.map(Deconstructor::dsToBoolean)
+					.collect(Collectors.toList());
+		}
+
+		public static final Double dsToDouble(DataSource ds) {
+			return Double.valueOf(dsToString(ds));
+		}
+
+		public final Optional<Double> getDoubleByName(String name) {
+			return dsList.getDataSourceByName(name).map(Deconstructor::dsToDouble);
+		}
+
+		public final Optional<Double> getDouble(Predicate<DataSource> predicate) {
+			return dsList.getDataSource(predicate).map(Deconstructor::dsToDouble);
+		}
+
+		public final List<Double> getDoublesByName(String name) {
+			return dsList.getDataSourcesByName(name).stream()
+					.map(Deconstructor::dsToDouble)
+					.collect(Collectors.toList());
+		}
+
+		public final List<Double> getDoubles(Predicate<DataSource> predicate) {
+			return dsList.getDataSources(predicate).stream()
+					.map(Deconstructor::dsToDouble)
+					.collect(Collectors.toList());
+		}
+
+		public static final Float dsToFloat(DataSource ds) {
+			return Float.valueOf(dsToString(ds));
+		}
+
+		public final Optional<Float> getFloatByName(String name) {
+			return dsList.getDataSourceByName(name).map(Deconstructor::dsToFloat);
+		}
+
+		public final Optional<Float> getFloat(Predicate<DataSource> predicate) {
+			return dsList.getDataSource(predicate).map(Deconstructor::dsToFloat);
+		}
+
+		public final List<Float> getFloatsByName(String name) {
+			return dsList.getDataSourcesByName(name).stream()
+					.map(Deconstructor::dsToFloat)
+					.collect(Collectors.toList());
+		}
+
+		public final List<Float> getFloats(Predicate<DataSource> predicate) {
+			return dsList.getDataSources(predicate).stream()
+					.map(Deconstructor::dsToFloat)
+					.collect(Collectors.toList());
+		}
+
+		public static final Integer dsToInteger(DataSource ds) {
+			return Integer.valueOf(dsToString(ds));
+		}
+
+		public final Optional<Integer> getIntegerByName(String name) {
+			return dsList.getDataSourceByName(name).map(Deconstructor::dsToInteger);
+		}
+
+		public final Optional<Integer> getInteger(Predicate<DataSource> predicate) {
+			return dsList.getDataSource(predicate).map(Deconstructor::dsToInteger);
+		}
+
+		public final List<Integer> getIntegersByName(String name) {
+			return dsList.getDataSourcesByName(name).stream()
+					.map(Deconstructor::dsToInteger)
+					.collect(Collectors.toList());
+		}
+
+		public final List<Integer> getIntegers(Predicate<DataSource> predicate) {
+			return dsList.getDataSources(predicate).stream()
+					.map(Deconstructor::dsToInteger)
+					.collect(Collectors.toList());
+		}
+
+		public static final Long dsToLong(DataSource ds) {
+			return Long.valueOf(dsToString(ds));
+		}
+
+		public final Optional<Long> getLongByName(String name) {
+			return dsList.getDataSourceByName(name).map(Deconstructor::dsToLong);
+		}
+
+		public final Optional<Long> getLong(Predicate<DataSource> predicate) {
+			return dsList.getDataSource(predicate).map(Deconstructor::dsToLong);
+		}
+
+		public final List<Long> getLongsByName(String name) {
+			return dsList.getDataSourcesByName(name).stream()
+					.map(Deconstructor::dsToLong)
+					.collect(Collectors.toList());
+		}
+
+		public final List<Long> getLongs(Predicate<DataSource> predicate) {
+			return dsList.getDataSources(predicate).stream()
+					.map(Deconstructor::dsToLong)
+					.collect(Collectors.toList());
+		}
+
+
 	}
 }

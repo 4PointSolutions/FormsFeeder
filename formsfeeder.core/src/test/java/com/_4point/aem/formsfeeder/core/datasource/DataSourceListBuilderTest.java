@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 class DataSourceListBuilderTest {
 
+	// DataSource Names
 	private static final String BOOLEAN_DS_NAME = "BooleanDS";
 	private static final String BYTE_ARRAY_DS_NAME = "ByteArrayDS";
 	private static final String DOUBLE_DS_NAME = "DoubleDS";
@@ -25,6 +26,8 @@ class DataSourceListBuilderTest {
 	private static final String FILE_DS_NAME = "FileDS";
 	private static final String STRING_DS_NAME = "StringDS";
 	private static final String DUMMY_DS_NAME = "DummyDS";
+	
+	// Custom Data Source
 	private static final DataSource dummyDS = new DataSource() {
 
 		@Override
@@ -57,18 +60,20 @@ class DataSourceListBuilderTest {
 			return Collections.emptyMap();
 		}
 	};
-	
+
+	// Data for standard data sources.
+	private static final boolean booleanData = true;
+	private static final byte[] byteArrayData = new byte[0];
+	private static final double doubleData = Double.MAX_VALUE;
+	private static final float floatData = Float.MAX_VALUE;
+	private static final int intData = Integer.MAX_VALUE;
+	private static final long longData = Long.MAX_VALUE;
+	private static final Path pathData = Paths.get("FileDS.txt");
+	private static final String stringData = "String Data";
+ 
 	@Test
 	void testBuildAll() throws Exception{
 		// Construct a DataSourceList with one of each and every type
-		boolean booleanData = true;
-		byte[] byteArrayData = new byte[0];
-		double doubleData = Double.MAX_VALUE;
-		float floatData = Float.MAX_VALUE;
-		int intData = Integer.MAX_VALUE;
-		long longData = Long.MAX_VALUE;
-		Path pathData = Paths.get("FileDS.txt");
-		String stringData = "String Data";
 		DataSourceList result = DataSourceList.builder()
 				.add(dummyDS)
 				.add(BOOLEAN_DS_NAME, booleanData)
@@ -113,16 +118,7 @@ class DataSourceListBuilderTest {
 
 	@Test
 	void testBuildAllLists() throws Exception{
-		// Construct a DataSourceList with one of each and every type
-		boolean booleanData = true;
-		byte[] byteArrayData = new byte[0];
-		double doubleData = Double.MAX_VALUE;
-		float floatData = Float.MAX_VALUE;
-		int intData = Integer.MAX_VALUE;
-		long longData = Long.MAX_VALUE;
-		Path pathData = Paths.get("FileDS.txt");
-		String stringData = "String Data";
-		
+		// Construct a DataSourceList with one or more of each and every type
 		List<DataSource> dsList = List.of(dummyDS, dummyDS);
 		List<Boolean> bList = List.of(booleanData, booleanData, booleanData);
 		List<byte[]> baList = List.of(byteArrayData);

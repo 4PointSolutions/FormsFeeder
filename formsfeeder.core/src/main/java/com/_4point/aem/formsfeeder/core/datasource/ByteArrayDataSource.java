@@ -42,6 +42,10 @@ import java.util.Map;
 		this.contents = Arrays.copyOf(contents, contents.length);
 	}
 
+	/* package */ final byte[] getContents() {
+		return contents;
+	}
+
 	@Override
 	public InputStream inputStream() {
 		return wrapInputStream(()->new ByteArrayInputStream(contents));
