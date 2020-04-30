@@ -7,7 +7,7 @@ import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
  *
  */
 @FunctionalInterface
-public interface FeedProducer {
+public interface FeedSupplier {
 	
 	/**
 	 * Get the list of DataSource objects for this transaction.
