@@ -172,5 +172,50 @@ public class DataSourceList {
 			underConstruction.add(new StringDataSource(Long.toString(l), name));
 			return this;
 		}
+
+		public DataSourceListBuilder addDataSources(List<DataSource> dsList) {
+			dsList.forEach(ds->underConstruction.add(ds));
+			return this;
+		}
+		
+		public DataSourceListBuilder addStrings(String name, List<String> sList) {
+			sList.forEach(s->underConstruction.add(new StringDataSource(s, name)));
+			return this;
+		}
+		
+		public DataSourceListBuilder addPaths(String name, List<Path> pList) {
+			pList.forEach(p->underConstruction.add(new FileDataSource(p, name)));
+			return this;
+		}
+
+		public DataSourceListBuilder addByteArrays(String name, List<byte[]> baList) {
+			baList.forEach(ba->underConstruction.add(new ByteArrayDataSource(ba, name)));
+			return this;
+		}
+
+		public DataSourceListBuilder addIntegers(String name, List<Integer> iList) {
+			iList.forEach(i->underConstruction.add(new StringDataSource(i.toString(), name)));
+			return this;
+		}
+
+		public DataSourceListBuilder addBooleans(String name, List<Boolean> bList) {
+			bList.forEach(b->underConstruction.add(new StringDataSource(b.toString(), name)));
+			return this;
+		}
+
+		public DataSourceListBuilder addFloats(String name, List<Float> fList) {
+			fList.forEach(f->underConstruction.add(new StringDataSource(f.toString(), name)));
+			return this;
+		}
+
+		public DataSourceListBuilder addDoubles(String name, List<Double> dList) {
+			dList.forEach(d->underConstruction.add(new StringDataSource(d.toString(), name)));
+			return this;
+		}
+
+		public DataSourceListBuilder addLongs(String name, List<Long> lList) {
+			lList.forEach(l->underConstruction.add(new StringDataSource(l.toString(), name)));
+			return this;
+		}
 	}
 }

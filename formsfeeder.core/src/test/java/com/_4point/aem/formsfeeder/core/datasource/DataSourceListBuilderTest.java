@@ -111,6 +111,98 @@ class DataSourceListBuilderTest {
 		assertTrue(result.list().isEmpty());
 	}
 
+	@Test
+	void testBuildAllLists() throws Exception{
+		// Construct a DataSourceList with one of each and every type
+		boolean booleanData = true;
+		byte[] byteArrayData = new byte[0];
+		double doubleData = Double.MAX_VALUE;
+		float floatData = Float.MAX_VALUE;
+		int intData = Integer.MAX_VALUE;
+		long longData = Long.MAX_VALUE;
+		Path pathData = Paths.get("FileDS.txt");
+		String stringData = "String Data";
+		
+		List<DataSource> dsList = List.of(dummyDS, dummyDS);
+		List<Boolean> bList = List.of(booleanData, booleanData, booleanData);
+		List<byte[]> baList = List.of(byteArrayData);
+		List<Double> dList = List.of(doubleData, doubleData);
+		List<Float> fList = List.of(floatData, floatData, floatData);
+		List<Integer> iList = List.of(intData);
+		List<Long> lList = List.of(longData, longData);
+		List<Path> pList = List.of(pathData, pathData, pathData);
+		List<String> sList = List.of(stringData);
+		int expectedSize = dsList.size() + bList.size() + baList.size() + dList.size() + fList.size() + iList.size() + lList.size() + pList.size() + sList.size();
+		
+		DataSourceList result = DataSourceList.builder()
+				.addDataSources(dsList)
+				.addBooleans(BOOLEAN_DS_NAME, bList)
+				.addByteArrays(BYTE_ARRAY_DS_NAME, baList)
+				.addDoubles(DOUBLE_DS_NAME, dList)
+				.addFloats(FLOAT_DS_NAME, fList)
+				.addIntegers(INTEGER_DS_NAME, iList)
+				.addLongs(LONG_DS_NAME, lList)
+				.addPaths(FILE_DS_NAME, pList)
+				.addStrings(STRING_DS_NAME, sList)
+				.build();
+		
+		List<DataSource> resultList = result.list();
+		assertAll(
+				()->assertEquals(expectedSize, 18),					// # of DSs matches what we've encoded below.
+				()->assertEquals(expectedSize, resultList.size()),	// # of DSs that were added.
+				()->assertSame(dummyDS, resultList.get(0)),
+				()->assertSame(dummyDS, resultList.get(1)),
+				()->assertEquals(BOOLEAN_DS_NAME, resultList.get(2).name()),
+				()->assertEquals(Boolean.toString(booleanData), readIntoString(resultList.get(2).inputStream())),
+				()->assertEquals(BOOLEAN_DS_NAME, resultList.get(3).name()),
+				()->assertEquals(Boolean.toString(booleanData), readIntoString(resultList.get(3).inputStream())),
+				()->assertEquals(BOOLEAN_DS_NAME, resultList.get(4).name()),
+				()->assertEquals(Boolean.toString(booleanData), readIntoString(resultList.get(4).inputStream())),
+				()->assertEquals(BYTE_ARRAY_DS_NAME, resultList.get(5).name()),
+				()->assertArrayEquals(byteArrayData, resultList.get(5).inputStream().readAllBytes()),
+				()->assertEquals(DOUBLE_DS_NAME, resultList.get(6).name()),
+				()->assertEquals(Double.toString(doubleData), readIntoString(resultList.get(6).inputStream())),
+				()->assertEquals(DOUBLE_DS_NAME, resultList.get(7).name()),
+				()->assertEquals(Double.toString(doubleData), readIntoString(resultList.get(7).inputStream())),
+				()->assertEquals(FLOAT_DS_NAME, resultList.get(8).name()),
+				()->assertEquals(Float.toString(floatData), readIntoString(resultList.get(8).inputStream())),
+				()->assertEquals(FLOAT_DS_NAME, resultList.get(9).name()),
+				()->assertEquals(Float.toString(floatData), readIntoString(resultList.get(9).inputStream())),
+				()->assertEquals(FLOAT_DS_NAME, resultList.get(10).name()),
+				()->assertEquals(Float.toString(floatData), readIntoString(resultList.get(10).inputStream())),
+				()->assertEquals(INTEGER_DS_NAME, resultList.get(11).name()),
+				()->assertEquals(Integer.toString(intData), readIntoString(resultList.get(11).inputStream())),
+				()->assertEquals(LONG_DS_NAME, resultList.get(12).name()),
+				()->assertEquals(Long.toString(longData), readIntoString(resultList.get(12).inputStream())),
+				()->assertEquals(LONG_DS_NAME, resultList.get(13).name()),
+				()->assertEquals(Long.toString(longData), readIntoString(resultList.get(13).inputStream())),
+				()->assertEquals(FILE_DS_NAME, resultList.get(14).name()),
+				()->assertEquals(pathData, resultList.get(14).filename().get()),
+				()->assertEquals(FILE_DS_NAME, resultList.get(15).name()),
+				()->assertEquals(pathData, resultList.get(15).filename().get()),
+				()->assertEquals(FILE_DS_NAME, resultList.get(16).name()),
+				()->assertEquals(pathData, resultList.get(16).filename().get()),
+				()->assertEquals(STRING_DS_NAME, resultList.get(17).name()),
+				()->assertEquals(stringData, readIntoString(resultList.get(17).inputStream()))
+				);
+	}
+
+	@Test
+	void testBuildEmptyLists() throws Exception {
+		DataSourceList result = DataSourceList.builder()
+				.addDataSources(Collections.emptyList())
+				.addBooleans(BOOLEAN_DS_NAME, Collections.emptyList())
+				.addByteArrays(BYTE_ARRAY_DS_NAME, Collections.emptyList())
+				.addDoubles(DOUBLE_DS_NAME, Collections.emptyList())
+				.addFloats(FLOAT_DS_NAME, Collections.emptyList())
+				.addIntegers(INTEGER_DS_NAME, Collections.emptyList())
+				.addLongs(LONG_DS_NAME, Collections.emptyList())
+				.addPaths(FILE_DS_NAME, Collections.emptyList())
+				.addStrings(STRING_DS_NAME, Collections.emptyList())
+				.build();
+		
+		assertTrue(result.list().isEmpty());
+	}
 
 	private static String readIntoString(InputStream is) throws IOException {
 		return new String(is.readAllBytes());
