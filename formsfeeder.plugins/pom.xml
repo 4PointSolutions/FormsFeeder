@@ -1,0 +1,17 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com._4point.aem</groupId>
+    <artifactId>formsfeeder</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+  </parent>
+  <artifactId>formsfeeder.plugins</artifactId>
+  <packaging>pom</packaging>
+  <name>Plug-in Project Parent</name>
+  <description>Parent project for example plugins.</description>
+  <modules>
+  	<module>example</module>
+  	<module>debug</module>
+  </modules>
+  
+</project>
