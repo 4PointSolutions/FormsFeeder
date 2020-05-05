@@ -6,6 +6,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -17,8 +18,22 @@ import java.util.stream.Collectors;
  *
  */
 public class DataSourceList {
+	private static final DataSourceList EMPTY_LIST = new DataSourceList();
+	
 	private final List<DataSource> list;
 
+	/**
+	 * Constructs an empty list.  Just used by the EMPTY_LIST constant.
+	 */
+	private DataSourceList() {
+		this.list =  Collections.emptyList();
+	}
+	
+	/**
+	 * Private constructor that is used by from() method.  It makes a defensive copy of the provided list. 
+	 * 
+	 * @param list
+	 */
 	private DataSourceList(List<DataSource> list) {
 		this.list = List.copyOf(list);
 	}
@@ -115,9 +130,30 @@ public class DataSourceList {
 	 * @return 
 	 */
 	public static DataSourceList from(List<DataSource> list) {
-		return new DataSourceList(list);
+		if (list.isEmpty()) {
+			return EMPTY_LIST;	// Don't bother creating a new object.  Re-use EMPTY_LIST.
+		} else {
+			return new DataSourceList(list);
+		}
 	}
 	
+	/**
+	 * Static constructor for an empty DataSourceList.
+	 * 
+	 * @return
+	 */
+	public static DataSourceList emptyList() {
+		return EMPTY_LIST;
+	}
+	
+	/**
+	 * Returns true if the list is empty.
+	 * 
+	 * @return
+	 */
+	public final boolean isEmpty() {
+		return this.list().isEmpty();
+	}
 	
 	/**
 	 * Create a DataSourceList.Builder for building a DataSourceList.

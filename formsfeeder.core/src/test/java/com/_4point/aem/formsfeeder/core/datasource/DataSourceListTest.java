@@ -2,6 +2,7 @@ package com._4point.aem.formsfeeder.core.datasource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -83,4 +84,14 @@ class DataSourceListTest {
 				);
 	}
 
+	@Test
+	void testEmptyList() {
+		DataSourceList emptyList = DataSourceList.emptyList();
+		assertTrue(emptyList.isEmpty());
+		assertTrue(emptyList.list().isEmpty());
+		assertSame(emptyList, DataSourceList.emptyList());	// Test that we always get the same EmptyList back
+		assertSame(emptyList, DataSourceList.from(Collections.emptyList()));	// Test that we always get the same EmptyList back
+		
+		assertFalse(underTest.isEmpty());	// Test that a non-empty list returns not empty.
+	}
 }
