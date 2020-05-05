@@ -12,13 +12,14 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.stereotype.Component;
 
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
 
 /**
  * @author Decebal Suiu
  */
-@Configuration
+@Component
 public class SpringPluginManager extends DefaultPluginManager implements ApplicationContextAware {
 
     private ApplicationContext applicationContext;
