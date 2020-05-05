@@ -1,17 +1,92 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>com._4point.aem</groupId>
-    <artifactId>formsfeeder</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-  </parent>
-  <artifactId>formsfeeder.plugins</artifactId>
-  <packaging>pom</packaging>
-  <name>Plug-in Project Parent</name>
-  <description>Parent project for example plugins.</description>
-  <modules>
-  	<module>example</module>
-  	<module>debug</module>
-  </modules>
-  
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com._4point.aem</groupId>
+		<artifactId>formsfeeder</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+	<artifactId>formsfeeder.plugins</artifactId>
+	<packaging>pom</packaging>
+	<name>Plug-in Project Parent</name>
+	<description>Parent project for example plugins.</description>
+	<modules>
+		<module>example</module>
+		<module>debug</module>
+	</modules>
+
+	<dependencies>
+		<dependency>
+			<groupId>com._4point.aem</groupId>
+			<artifactId>formsfeeder.core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<!-- !!! VERY IMPORTANT -->
+			<scope>provided</scope>
+		</dependency>
+		<!-- Server App Code -->
+		<dependency>
+			<groupId>org.pf4j</groupId>
+			<artifactId>pf4j</artifactId>
+			<version>${pf4j.version}</version>
+			<!-- !!! VERY IMPORTANT -->
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<version>3.2.0</version>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+						<manifestEntries>
+							<Plugin-Class>${plugin.class}</Plugin-Class>
+							<Plugin-Id>${plugin.id}</Plugin-Id>
+							<Plugin-Version>${plugin.version}</Plugin-Version>
+							<Plugin-Requires>1.0.0</Plugin-Requires>
+							<Plugin-Dependencies>${plugin.dependencies}</Plugin-Dependencies>
+							<Plugin-Description>${plugin.description}</Plugin-Description>
+							<Plugin-Provider>4Point Solutions</Plugin-Provider>
+							<Plugin-License>Apache License 2.0</Plugin-License>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<!-- <plugin> -->
+			<!-- <groupId>org.apache.maven.plugins</groupId> -->
+			<!-- <artifactId>maven-compiler-plugin</artifactId> -->
+			<!-- <version>2.5.1</version> -->
+			<!-- <configuration> -->
+			<!-- <annotationProcessors> -->
+			<!-- <annotationProcessor>org.pf4j.processor.ExtensionAnnotationProcessor</annotationProcessor> -->
+			<!-- </annotationProcessors> -->
+			<!-- </configuration> -->
+			<!-- </plugin> -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M4</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.junit.jupiter</groupId>
+						<artifactId>junit-jupiter-engine</artifactId>
+						<version>5.6.2</version>
+					</dependency>
+				</dependencies>
+			</plugin>
+		</plugins>
+	</build>
 </project>

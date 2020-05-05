@@ -13,11 +13,11 @@
 
 	<properties>
 		<!-- PF4J Plugin properties for this plugin -->
-		<plugin.id>debug</plugin.id>
-		<plugin.class>com._4point.aem.formsfeeder.plugins.debug</plugin.class>
+		<plugin.id>com._4point.aem.formsfeeder.plugins.debug</plugin.id>
+		<plugin.class>com._4point.aem.formsfeeder.plugins.debug.DebugPlugin</plugin.class>
 		<plugin.version>0.0.1-SNAPSHOT</plugin.version>
-		<plugin.provider />
 		<plugin.dependencies />
+		<plugin.description>Debugging Plug-in - Displays the inputs to stdout.</plugin.description>
 	</properties>
 
 	<dependencies>
@@ -36,28 +36,6 @@
 			<artifactId>junit-addons</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<!-- Server App Code -->
-		<dependency>
-			<groupId>com._4point.aem</groupId>
-			<artifactId>formsfeeder.server</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-			<!-- !!! VERY IMPORTANT -->
-			<scope>provided</scope>
-		</dependency>
-		<!-- pf4j - Plugin Framework for Java -->
-		<dependency>
-			<groupId>org.pf4j</groupId>
-			<artifactId>pf4j</artifactId>
-			<version>${pf4j.version}</version>
-			<!-- !!! VERY IMPORTANT -->
-			<scope>provided</scope>
-		</dependency>
-      <dependency>
-        <groupId>org.slf4j</groupId>
-        <artifactId>slf4j-simple</artifactId>
-        <version>${slf4j.version}</version>
-        <scope>test</scope>
-      </dependency>
 	</dependencies>
 
 </project>

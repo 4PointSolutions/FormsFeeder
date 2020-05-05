@@ -6,7 +6,7 @@
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
 		<version>2.2.6.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<artifactId>formsfeeder.server</artifactId>
 	<name>Forms Feeder Server Framework</name>
@@ -14,7 +14,8 @@
 
 	<properties>
 		<java.version>11</java.version>
-        <pf4j-spring.version>0.6.0</pf4j-spring.version>
+		<pf4j-spring.version>0.6.0</pf4j-spring.version>
+		<pf4j.version>3.3.1</pf4j.version>
 	</properties>
 
 	<dependencies>
@@ -44,9 +45,19 @@
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
+			<groupId>com._4point.aem</groupId>
+			<artifactId>formsfeeder.pf4j-api</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>org.pf4j</groupId>
-			<artifactId>pf4j-spring</artifactId>
-			<version>${pf4j-spring.version}</version>
+			<artifactId>pf4j</artifactId>
+			<version>${pf4j.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->
+		<dependency>
+			<groupId>javax.annotation</groupId>
+			<artifactId>javax.annotation-api</artifactId>
 		</dependency>
 	</dependencies>
 

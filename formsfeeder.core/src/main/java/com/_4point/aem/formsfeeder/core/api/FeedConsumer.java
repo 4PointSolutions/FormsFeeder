@@ -3,7 +3,7 @@ package com._4point.aem.formsfeeder.core.api;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 
 /**
- * FeedConsumer is an interface that is implemented by classes that wish to consume a feed from a FeedProducer.
+ * FeedConsumer is an interface that is implemented by classes that wish to consume a feed from a FeedSupplier.
  *
  */
 @FunctionalInterface

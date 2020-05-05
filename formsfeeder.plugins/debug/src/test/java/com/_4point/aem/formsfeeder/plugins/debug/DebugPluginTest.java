@@ -21,7 +21,7 @@ import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 class DebugPluginTest {
 	private static final String RESULT_DS_NAME = "Message";	// Use the same name for all DSes in result.
 	
-	private DebugPlugin underTest = new DebugPlugin();
+	private DebugPlugin.DebugFeedConsumerExtension underTest = new DebugPlugin.DebugFeedConsumerExtension();
 	
 	@Test
 	void testAccept() throws Exception {
@@ -93,6 +93,11 @@ class DebugPluginTest {
 				()->assertTrue(strList.get(2).contains(DIRECTORY)),
 				()->assertTrue(strList.get(2).contains(FILENAME))
 				);
+	}
+
+	@Test
+	void testName() throws Exception {
+		assertEquals("Debug", underTest.name());
 	}
 
 }
