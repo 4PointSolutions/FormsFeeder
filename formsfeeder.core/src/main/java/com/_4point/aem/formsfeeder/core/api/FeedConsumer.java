@@ -86,35 +86,35 @@ public interface FeedConsumer {
 	@SuppressWarnings("serial")
 	public static class FeedConsumerBadRequestException extends FeedConsumerException {
 
-		private FeedConsumerBadRequestException() {
+		public FeedConsumerBadRequestException() {
 			super();
 		}
 
-		private FeedConsumerBadRequestException(FailureAction action) {
+		public FeedConsumerBadRequestException(FailureAction action) {
 			super(action);
 		}
 
-		private FeedConsumerBadRequestException(String message, FailureAction action) {
+		public FeedConsumerBadRequestException(String message, FailureAction action) {
 			super(message, action);
 		}
 
-		private FeedConsumerBadRequestException(String message, Throwable cause, FailureAction action) {
+		public FeedConsumerBadRequestException(String message, Throwable cause, FailureAction action) {
 			super(message, cause, action);
 		}
 
-		private FeedConsumerBadRequestException(String message, Throwable cause) {
+		public FeedConsumerBadRequestException(String message, Throwable cause) {
 			super(message, cause);
 		}
 
-		private FeedConsumerBadRequestException(String message) {
+		public FeedConsumerBadRequestException(String message) {
 			super(message);
 		}
 
-		private FeedConsumerBadRequestException(Throwable cause, FailureAction action) {
+		public FeedConsumerBadRequestException(Throwable cause, FailureAction action) {
 			super(cause, action);
 		}
 
-		private FeedConsumerBadRequestException(Throwable cause) {
+		public FeedConsumerBadRequestException(Throwable cause) {
 			super(cause);
 		}
 	}
@@ -129,35 +129,35 @@ public interface FeedConsumer {
 	@SuppressWarnings("serial")
 	public static class FeedConsumerInternalErrorException extends FeedConsumerException {
 
-		private FeedConsumerInternalErrorException() {
+		public FeedConsumerInternalErrorException() {
 			super();
 		}
 
-		private FeedConsumerInternalErrorException(FailureAction action) {
+		public FeedConsumerInternalErrorException(FailureAction action) {
 			super(action);
 		}
 
-		private FeedConsumerInternalErrorException(String message, FailureAction action) {
+		public FeedConsumerInternalErrorException(String message, FailureAction action) {
 			super(message, action);
 		}
 
-		private FeedConsumerInternalErrorException(String message, Throwable cause, FailureAction action) {
+		public FeedConsumerInternalErrorException(String message, Throwable cause, FailureAction action) {
 			super(message, cause, action);
 		}
 
-		private FeedConsumerInternalErrorException(String message, Throwable cause) {
+		public FeedConsumerInternalErrorException(String message, Throwable cause) {
 			super(message, cause);
 		}
 
-		private FeedConsumerInternalErrorException(String message) {
+		public FeedConsumerInternalErrorException(String message) {
 			super(message);
 		}
 
-		private FeedConsumerInternalErrorException(Throwable cause, FailureAction action) {
+		public FeedConsumerInternalErrorException(Throwable cause, FailureAction action) {
 			super(cause, action);
 		}
 
-		private FeedConsumerInternalErrorException(Throwable cause) {
+		public FeedConsumerInternalErrorException(Throwable cause) {
 			super(cause);
 		}
 		
