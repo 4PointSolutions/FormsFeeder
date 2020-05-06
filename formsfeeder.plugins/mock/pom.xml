@@ -1,0 +1,41 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com._4point.aem</groupId>
+		<artifactId>formsfeeder.plugins</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+	</parent>
+	<artifactId>mock</artifactId>
+	<name>Mock Plugin for Unit Tests</name>
+	<description>This plugin mocks a variety of situations and is used by the formsfeeder.server unit tests.</description>
+
+	<properties>
+		<!-- PF4J Plugin properties for this plugin -->
+		<plugin.id>com._4point.aem.formsfeeder.plugins.mock</plugin.id>
+		<plugin.class>com._4point.aem.formsfeeder.plugins.mock.MockPlugin</plugin.class>
+		<plugin.version>0.0.1-SNAPSHOT</plugin.version>
+		<plugin.dependencies />
+		<plugin.description>Mock Plug-in - Required by formsfeeder.server unit tests.</plugin.description>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit-addons</groupId>
+			<artifactId>junit-addons</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+</project>

@@ -9,7 +9,6 @@ import org.pf4j.PluginWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com._4point.aem.formsfeeder.core.api.FeedConsumer;
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
