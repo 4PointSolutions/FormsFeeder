@@ -63,11 +63,11 @@ public class ServicesEndpoint {
     public Response invokeWithBody(@PathParam("remainder") String remainder, @HeaderParam("Content-Type") String contentType, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @Context UriInfo uriInfo, InputStream in) {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
-		logger.info("Recieved POST request to '" + SERVICES_PATH + remainder + "'.");
+		logger.info("Recieved POST request to '" + SERVICES_PATH + "/" + remainder + "'.");
 		final DataSourceList dataSourceList = convertMultipartFormDataToDataSourceList(in);
 		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet());
 		// TODO:  Merge the two dataSourceLists before calling invokePlugin()
-		return invokePlugin(remainder, dataSourceList, logger);
+		return invokePlugin(remainder, dataSourceList2, logger);
 	}
 
 	private Response invokePlugin(final String remainder, final DataSourceList dataSourceList, final Logger logger) {
