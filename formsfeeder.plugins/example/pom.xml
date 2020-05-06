@@ -17,8 +17,7 @@
 		<plugin.class>com._4point.aem.formsfeeder.plugins.example.ExamplePlugin</plugin.class>
 		<plugin.version>0.0.1-SNAPSHOT</plugin.version>
 		<plugin.dependencies />
-		<plugin.description>Example Plug-in - Makes calls to AEM to render a
-			form.</plugin.description>
+		<plugin.description>Example Plug-in - Makes calls to AEM to render a form.</plugin.description>
 	</properties>
 
 	<dependencies>
