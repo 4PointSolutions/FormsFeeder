@@ -138,6 +138,19 @@ public class DataSourceList {
 	}
 	
 	/**
+	 * Static constructor for DataSourceList.  Merges one or more other DataSourceLists into one. 
+	 * 
+	 * @param srcLists
+	 * @return
+	 */
+	public static DataSourceList from(DataSourceList... srcLists) {
+		List<DataSource> accumulator = new ArrayList<>();
+		for(var srcList : srcLists) {
+			accumulator.addAll(srcList.list());
+		}
+		return new DataSourceList(accumulator);
+	}
+	/**
 	 * Static constructor for an empty DataSourceList.
 	 * 
 	 * @return

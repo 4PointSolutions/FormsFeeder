@@ -94,4 +94,40 @@ class DataSourceListTest {
 		
 		assertFalse(underTest.isEmpty());	// Test that a non-empty list returns not empty.
 	}
+	
+	@Test
+	void testFrom_MultipleDataSourceLists_OneList() {
+		DataSourceList underTest2 = DataSourceList.from(underTest);
+		assertAll(
+				()->assertIterableEquals(List.of(DS1), underTest2.getDataSourcesByName(FIRST_NAME)),
+				()->assertIterableEquals(List.of(DS2, DS3), underTest2.getDataSourcesByName(SECOND_NAME)),
+				()->assertIterableEquals(List.of(DS4), underTest2.getDataSourcesByName(THIRD_NAME)),
+				()->assertTrue(underTest.getDataSourcesByName("SomethingNotThere").isEmpty())
+				);
+		
+	}
+
+	@Test
+	void testFrom_MultipleDataSourceLists_TwoLists() {
+		DataSourceList underTest2 = DataSourceList.from(underTest, underTest);
+		assertAll(
+				()->assertIterableEquals(List.of(DS1, DS1), underTest2.getDataSourcesByName(FIRST_NAME)),
+				()->assertIterableEquals(List.of(DS2, DS3, DS2, DS3), underTest2.getDataSourcesByName(SECOND_NAME)),
+				()->assertIterableEquals(List.of(DS4, DS4), underTest2.getDataSourcesByName(THIRD_NAME)),
+				()->assertTrue(underTest.getDataSourcesByName("SomethingNotThere").isEmpty())
+				);
+		
+	}
+
+	@Test
+	void testFrom_MultipleDataSourceLists_ThreeLists() {
+		DataSourceList underTest2 = DataSourceList.from(underTest, underTest, underTest);
+		assertAll(
+				()->assertIterableEquals(List.of(DS1, DS1, DS1), underTest2.getDataSourcesByName(FIRST_NAME)),
+				()->assertIterableEquals(List.of(DS2, DS3, DS2, DS3, DS2, DS3), underTest2.getDataSourcesByName(SECOND_NAME)),
+				()->assertIterableEquals(List.of(DS4, DS4, DS4), underTest2.getDataSourcesByName(THIRD_NAME)),
+				()->assertTrue(underTest.getDataSourcesByName("SomethingNotThere").isEmpty())
+				);
+		
+	}
 }
