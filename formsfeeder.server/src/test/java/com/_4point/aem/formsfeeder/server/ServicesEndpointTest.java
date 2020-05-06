@@ -7,11 +7,17 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -36,16 +42,74 @@ class ServicesEndpointTest {
 	}
 	
 	@Test
-	void testInvokeNoParams() {
+	void testInvokeGetNoParams() {
 		Response response = ClientBuilder.newClient()
 				 .target(uri)
 				 .path(DEBUG_PLUGIN_PATH)
 				 .request()
 				 .get();
 		
-		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 	}
 
+	@Test
+	void testInvokeGetOneParams() {
+		String expectedParamName = "QueryParam1";
+		String expectedParamValue = "QueryParam1 Value";
+		Response response = ClientBuilder.newClient()
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .queryParam(expectedParamName, expectedParamValue)
+				 .request()
+				 .get();
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		String responseBody = getResponseBody(response);
+		assertTrue(responseBody.contains(expectedParamName), "Expected response body to contain '" + expectedParamName + "', but was '" + responseBody + "'.");
+		assertTrue(responseBody.contains(expectedParamValue), "Expected response body to contain '" + expectedParamValue + "', but was '" + responseBody + "'.");
+	}
+
+	@Test
+	void testInvokeGetManyParams() {
+		String queryParamString = "QueryParam";
+		String queryValueString = "Value";
+		String expectedParamName1 = queryParamString + "1";
+		String expectedParamValue1 = expectedParamName1 + " " + queryValueString;
+		String expectedParamName2 = queryParamString + "2";
+		String expectedParamValue2 = expectedParamName2 + " " + queryValueString;
+		String expectedParamName3 = queryParamString + "3";
+		String expectedParamValue3 = expectedParamName3 + " " + queryValueString;
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .queryParam(expectedParamName1, expectedParamValue1)
+				 .queryParam(expectedParamName2, expectedParamValue2)
+				 .queryParam(expectedParamName3, expectedParamValue3)
+				 .request()
+				 .get();
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		
+		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
+		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
+		int returnsCount = 0;
+		for (Entry<String, List<FormDataBodyPart>> field : fields.entrySet()) {
+			for (var body : field.getValue()) {
+				returnsCount++;
+				assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(body.getMediaType()), "Expected response media type (" + body.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+				String value = body.getEntityAs(String.class);
+				assertTrue(value.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + value + "'.");
+				assertTrue(value.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + value + "'.");
+			}
+		}
+		assertEquals(3, returnsCount);
+	}
+
+	// Other test scenarios
+	// TODO: Test 
 	@Test
 	void testInvokeNoParams_BadPath() {
 		Response response = ClientBuilder.newClient()

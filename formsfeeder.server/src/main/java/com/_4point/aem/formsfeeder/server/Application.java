@@ -8,6 +8,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 
 import com._4point.aem.formsfeeder.core.api.FeedConsumer;
@@ -22,7 +23,10 @@ public class Application {
 		System.out.println("inside Main");
 //		pluginManager = new DefaultPluginManager();
 	    
-		SpringApplication.run(Application.class, args);
+		ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
+		
+		System.out.println("Contains springPlunginManager " + ctx.containsBeanDefinition("springPluginManager"));
+		System.out.println("Contains feedConsumers " + ctx.containsBeanDefinition("feedConsumers"));
 		
 //		pluginManager.stopPlugins();
 	}
