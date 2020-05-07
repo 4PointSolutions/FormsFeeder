@@ -29,6 +29,11 @@ public class MockPlugin extends Plugin {
 		private static final String DS_NAME_SCENARIO = "scenario";
 		
 		private static final String SCENARIO_NAME_UNKNOWN = "Unknown";
+
+		// List of valid scenarios
+		private static final String SCENARIO_NAME_BAD_REQUEST_EXCEPTION = "BadRequestException";
+		private static final String SCENARIO_NAME_INTERNAL_ERROR_EXCEPTION = "InternalErrorException";
+		private static final String SCENARIO_NAME_UNCHECKED_EXCEPTION = "UncheckedException";
 		
 		@Override
 		public String name() {
@@ -44,10 +49,16 @@ public class MockPlugin extends Plugin {
 			logger.info("MockPlugin scenario is {}", scenario);
 			switch(scenario)
 			{
-				case SCENARIO_NAME_UNKNOWN:
-					throw new FeedConsumerBadRequestException("No scenario name was provided.");
-				default:
-					throw new FeedConsumerBadRequestException("Unexpected scenario name was provided (" + scenario + ").");
+			case SCENARIO_NAME_BAD_REQUEST_EXCEPTION:
+				throw new FeedConsumerBadRequestException("Throwing FeedConsumerBadRequestException because scenario was '" + scenario + "'.");
+			case SCENARIO_NAME_INTERNAL_ERROR_EXCEPTION:
+				throw new FeedConsumerInternalErrorException("Throwing FeedConsumerInternalErrorException because scenario was '" + scenario + "'.");
+			case SCENARIO_NAME_UNCHECKED_EXCEPTION:
+				throw new IllegalStateException("Throwing IllegalStateException because scenario was '" + scenario + "'.");
+			case SCENARIO_NAME_UNKNOWN:
+				throw new FeedConsumerBadRequestException("No scenario name was provided.");
+			default:
+				throw new FeedConsumerBadRequestException("Unexpected scenario name was provided (" + scenario + ").");
 			}
 		}
 
