@@ -5,11 +5,11 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
@@ -31,7 +31,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com._4point.aem.formsfeeder.core.api.FeedConsumer;
+import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerBadRequestException;
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerException;
+import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerInternalErrorException;
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
@@ -73,7 +75,7 @@ public class ServicesEndpoint {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		logger.info("Recieved GET request to '" + SERVICES_PATH + "/" + remainder + "'.");
-		final DataSourceList dataSourceList = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet());
+		final DataSourceList dataSourceList = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		return invokePlugin(remainder, dataSourceList, logger);
 	}
 
@@ -100,7 +102,7 @@ public class ServicesEndpoint {
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		logger.info("Received " + MediaType.MULTIPART_FORM_DATA + " POST request to '" + SERVICES_PATH + "/" + remainder + "'.");
 		final DataSourceList dataSourceList1 = convertMultipartFormDataToDataSourceList(formData, logger);
-		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet());
+		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2), logger);
 	}
 
@@ -128,8 +130,8 @@ public class ServicesEndpoint {
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		MediaType mediaType = httpHeaders.getMediaType();
 		logger.info("Received '" + mediaType.toString() + "' POST request to '" + SERVICES_PATH + "/" + remainder + "'.");
-		final DataSourceList dataSourceList1 = convertBodyToDataSourceList(in, mediaType);
-		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet());
+		final DataSourceList dataSourceList1 = convertBodyToDataSourceList(in, mediaType, logger);
+		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2), logger);
 	}
 
@@ -141,19 +143,33 @@ public class ServicesEndpoint {
 	 * @param logger
 	 * @return
 	 */
-	private Response invokePlugin(final String remainder, final DataSourceList dataSourceList, final Logger logger) {
+	private final Response invokePlugin(final String remainder, final DataSourceList dataSourceList, final Logger logger) {
 		Optional<FeedConsumer> optConsumer = feedConsumers.consumer(determineConsumerName(remainder));
 		if (optConsumer.isEmpty()) {
 			// TODO: We're currently relying on the Jersey framework to return a reasonable error message.
-			// Unfortunately, it is just barely adequate.  Would like to make it better at some point.
+			// Unfortunately, the message is just barely adequate.  Would like to make it better at some point.
 			String msg = "Resource '" + SERVICES_PATH + "/" + remainder + "' does not exist.";
 			logger.error(msg);
 			throw new NotFoundException(msg);
 		} else {
 			try {
-				return convertToResponse(invokeConsumer(dataSourceList, optConsumer.get()), logger);
+				return convertToResponse(invokeConsumer(dataSourceList, optConsumer.get(), logger), logger);
+			} catch (FeedConsumerInternalErrorException e) {
+				String msg = String.format("Plugin processor experienced an Internal Server Error. (%s)", e.getMessage());
+				logger.error(msg);
+				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).type(MediaType.TEXT_PLAIN_TYPE).build();
+			} catch (FeedConsumerBadRequestException e) {
+				String msg = String.format("Plugin processor detected Bad Request. (%s)", e.getMessage());
+				logger.error(msg);
+				return Response.status(Response.Status.BAD_REQUEST).entity(msg).type(MediaType.TEXT_PLAIN_TYPE).build();
 			} catch (FeedConsumerException e) {
-				throw new InternalServerErrorException("Plugin processor error.", e);
+				String msg = String.format("Plugin processor error. (%s)", e.getMessage());
+				logger.error(msg);
+				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).type(MediaType.TEXT_PLAIN_TYPE).build();
+			} catch (Exception e) {
+				String msg = String.format("Error within Plugin processor. (%s)", e.getMessage());
+				logger.error(msg);
+				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).type(MediaType.TEXT_PLAIN_TYPE).build();
 			}
 		}
 	}
@@ -164,11 +180,12 @@ public class ServicesEndpoint {
 	 * @param queryParams
 	 * @return
 	 */
-	private DataSourceList convertQueryParamsToDataSourceList(final Collection<Entry<String, List<String>>> queryParams) {
+	private static final DataSourceList convertQueryParamsToDataSourceList(final Collection<Entry<String, List<String>>> queryParams, Logger logger) {
 		Builder builder = DataSourceList.builder();
 		for (Entry<String, List<String>> entry : queryParams) {
 			String name = entry.getKey();
 			for(String value : entry.getValue()) {
+				logger.debug("Found Query Parameter '" + name + "'.");
 				builder.add(name, value);
 			}
 		}
@@ -224,8 +241,9 @@ public class ServicesEndpoint {
 	 * @return
 	 * @throws IOException
 	 */
-	private DataSourceList convertBodyToDataSourceList(InputStream in, MediaType contentType) throws IOException {
+	private static final DataSourceList convertBodyToDataSourceList(InputStream in, MediaType contentType, Logger logger) throws IOException {
 		// TODO: Handle filename in the POST headers
+		logger.debug("Found Body Parameter of type '" + contentType.toString() + "'.");
 		return DataSourceList.builder().add(FLUENTFORMS_DS_NAME_PREFIX + "BodyBytes", in.readAllBytes(), fromMediaType(contentType)).build();
 	}
 
@@ -237,8 +255,11 @@ public class ServicesEndpoint {
 	 * @return
 	 * @throws FeedConsumerException
 	 */
-	private final DataSourceList invokeConsumer(final DataSourceList inputs, final FeedConsumer consumer) throws FeedConsumerException {
-		return consumer.accept(inputs);
+	private static final DataSourceList invokeConsumer(final DataSourceList inputs, final FeedConsumer consumer, Logger logger) throws FeedConsumerException {
+		logger.debug("Before calling Plugin");
+		DataSourceList accept = consumer.accept(inputs);
+		logger.debug("After calling Plugin");
+		return accept;
 	}
 	
 	/**

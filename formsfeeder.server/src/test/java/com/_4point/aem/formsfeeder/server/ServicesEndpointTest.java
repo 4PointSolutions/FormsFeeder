@@ -1,7 +1,11 @@
 package com._4point.aem.formsfeeder.server;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringReader;
@@ -14,7 +18,6 @@ import java.util.Map.Entry;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -33,8 +36,10 @@ class ServicesEndpointTest {
 
 	private static final String SERVICE_PATH = "/services";
 	private static final String DEBUG_PLUGIN_PATH = SERVICE_PATH + "/Debug";
+	private static final String MOCK_PLUGIN_PATH = SERVICE_PATH + "/Mock";
 	
 	private static final String BODY_DS_NAME = "fluentforms:BodyBytes";
+	private static final String MOCK_PLUGIN_SCENARIO_NAME = "scenario";
 	
 	@LocalServerPort
 	private int port;
@@ -363,6 +368,245 @@ class ServicesEndpointTest {
 		assertEquals(3, returnsCount);
 	}
 
+	@Test
+	void testInvokePostManyQueryParamsOneFormParam() {
+		String expectedBodyParamName = "BodyParam1";
+		String expectedBodyParamValue = "BodyParam1 Value";
+		String queryParamString = "QueryParam";
+		String queryValueString = "Value";
+		String expectedQueryParamName1 = queryParamString + "1";
+		String expectedQueryParamValue1 = expectedQueryParamName1 + " " + queryValueString;
+		String expectedQueryParamName2 = queryParamString + "2";
+		String expectedQueryParamValue2 = expectedQueryParamName2 + " " + queryValueString;
+		String expectedQueryParamName3 = queryParamString + "3";
+		String expectedQueryParamValue3 = expectedQueryParamName3 + " " + queryValueString;
+		
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(expectedBodyParamName, expectedBodyParamValue);
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .queryParam(expectedQueryParamName1, expectedQueryParamValue1)
+				 .queryParam(expectedQueryParamName2, expectedQueryParamValue2)
+				 .queryParam(expectedQueryParamName3, expectedQueryParamValue3)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		
+		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
+		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
+		int returnsCount = 0;
+		for (Entry<String, List<FormDataBodyPart>> field : fields.entrySet()) {
+			for (var body : field.getValue()) {
+				returnsCount++;
+				
+				MediaType mediaType = body.getMediaType();
+				assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(mediaType), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+				String value = body.getEntityAs(String.class);
+				if (value.contains("Body")) {
+					assertTrue(value.contains(expectedBodyParamName), "Expected response body to contain '" + expectedBodyParamName + "', but was '" + value + "'.");
+					assertTrue(value.contains(expectedBodyParamValue), "Expected response body to contain '" + expectedBodyParamValue + "', but was '" + value + "'.");
+				} else {
+					assertTrue(value.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + value + "'.");
+					assertTrue(value.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + value + "'.");
+				}
+			}
+		}
+		assertEquals(4, returnsCount);
+	}
+
+	@Test
+	void testInvokePostManyQueryParamsManyFormParams() {
+		String bodyParamString = "BodyParam";
+		String bodyValueString = "Value";
+		String expectedBodyParamName1 = bodyParamString + "1";
+		String expectedBodyParamValue1 = expectedBodyParamName1 + " " + bodyValueString;
+		String expectedBodyParamName2 = bodyParamString + "2";
+		String expectedBodyParamValue2 = expectedBodyParamName2 + " " + bodyValueString;
+		String expectedBodyParamName3 = bodyParamString + "3";
+		String expectedBodyParamValue3 = expectedBodyParamName3 + " " + bodyValueString;
+		String expectedBodyParamName4 = bodyParamString + "4";
+		InputStream expectedBodyParamValue4 = (InputStream)(new ByteArrayInputStream("<root>Body Text Value</root>".getBytes(StandardCharsets.UTF_8)));
+
+		String queryParamString = "QueryParam";
+		String queryValueString = "Value";
+		String expectedParamName1 = queryParamString + "1";
+		String expectedParamValue1 = expectedParamName1 + " " + queryValueString;
+		String expectedParamName2 = queryParamString + "2";
+		String expectedParamValue2 = expectedParamName2 + " " + queryValueString;
+		String expectedParamName3 = queryParamString + "3";
+		String expectedParamValue3 = expectedParamName3 + " " + queryValueString;
+
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(expectedBodyParamName1, expectedBodyParamValue1);
+		bodyData.field(expectedBodyParamName2, expectedBodyParamValue2);
+		bodyData.field(expectedBodyParamName3, expectedBodyParamValue3);
+		bodyData.field(expectedBodyParamName4, expectedBodyParamValue4, MediaType.APPLICATION_XML_TYPE);
+
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .queryParam(expectedParamName1, expectedParamValue1)
+				 .queryParam(expectedParamName2, expectedParamValue2)
+				 .queryParam(expectedParamName3, expectedParamValue3)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		
+		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
+		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
+		int returnsCount = 0;
+		for (Entry<String, List<FormDataBodyPart>> field : fields.entrySet()) {
+			for (var body : field.getValue()) {
+				returnsCount++;
+				
+				MediaType mediaType = body.getMediaType();
+				assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(mediaType), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+				String value = body.getEntityAs(String.class);
+				if (value.contains("Body")) {
+					if (value.contains("BodyParam4")) {
+						// Look for the XML parameter
+						
+					} else {
+						assertTrue(value.contains(bodyParamString), "Expected response body to contain '" + bodyParamString + "', but was '" + value + "'.");
+						assertTrue(value.contains(bodyValueString), "Expected response body to contain '" + bodyValueString + "', but was '" + value + "'.");
+					}
+				} else {
+					assertTrue(value.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + value + "'.");
+					assertTrue(value.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + value + "'.");
+				}
+			}
+		}
+		assertEquals(7, returnsCount);
+	}
+
+	// Use the Mock plugin to test some Exception scenarios
+	
+	// Cannot throw exceptions from the plugin at this time.  I am looking into the issue.
+	@Test
+	void testInvokePost_BadRequestExceptionFromPlugin() {
+		String scenarioName = "BadRequestException";
+		
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, scenarioName);
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		String responseBody = getResponseBody(response);
+		assertNotNull(responseBody);
+		assertAll(
+				()->assertTrue(responseBody.contains("Bad Request")),
+				()->assertTrue(responseBody.contains(scenarioName))
+				);
+	}
+
+	@Test
+	void testInvokePost_InternalServerExceptionFromPlugin() {
+		String scenarioName = "InternalErrorException";
+		
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, scenarioName);
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		String responseBody = getResponseBody(response);
+		assertNotNull(responseBody);
+		assertAll(
+				()->assertTrue(responseBody.contains("Internal Server Error")),
+				()->assertTrue(responseBody.contains(scenarioName))
+				);
+	}
+
+	@Test
+	void testInvokePost_UncheckedExceptionFromPlugin() {
+		String scenarioName = "UncheckedException";
+		
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, scenarioName);
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		String responseBody = getResponseBody(response);
+		assertNotNull(responseBody);
+		assertAll(
+				()->assertTrue(responseBody.contains("Error within Plugin processor")),
+				()->assertTrue(responseBody.contains(scenarioName))
+				);
+	}
+
+	@Disabled
+	void testInvokePost_OtherFeedConsumerExceptionFromPlugin() {
+		String scenarioName = "OtherFeedConsumerException";
+		
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, scenarioName);
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		String responseBody = getResponseBody(response);
+		assertNotNull(responseBody);
+		assertAll(
+				()->assertTrue(responseBody.contains("Plugin processor error")),
+				()->assertTrue(responseBody.contains(scenarioName))
+				);
+	}
+
+	// TODO: Implement this in mock plugin.
+	@Disabled
+	void testInvokePost_ReturnPdfFromPlugin() {
+		
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, "ReturnPdf");
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		String responseBody = getResponseBody(response);
+	}
+
+	
+	
 	@Test
 	void testInvokeGetNoParams_BadPath() {
 		Response response = ClientBuilder.newClient()
