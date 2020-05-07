@@ -221,6 +221,11 @@ public class DataSourceList {
 			return this;
 		}
 
+		public Builder add(String name, byte[] ba, MimeType contentType) {
+			underConstruction.add(new ByteArrayDataSource(ba, name, contentType));
+			return this;
+		}
+
 		public Builder add(String name, int i) {
 			underConstruction.add(new StringDataSource(Integer.toString(i), name));
 			return this;
@@ -263,6 +268,11 @@ public class DataSourceList {
 
 		public Builder addByteArrays(String name, List<byte[]> baList) {
 			baList.forEach(ba->underConstruction.add(new ByteArrayDataSource(ba, name)));
+			return this;
+		}
+
+		public Builder addByteArrays(String name, List<byte[]> baList, MimeType contentType) {
+			baList.forEach(ba->underConstruction.add(new ByteArrayDataSource(ba, name, contentType)));
 			return this;
 		}
 

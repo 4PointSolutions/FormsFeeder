@@ -26,6 +26,7 @@ class DataSourceListBuilderTest {
 	private static final String FILE_DS_NAME = "FileDS";
 	private static final String STRING_DS_NAME = "StringDS";
 	private static final String DUMMY_DS_NAME = "DummyDS";
+	private static final String BYTE_ARRAY_W_CT_DS_NAME = "ByteArrayDSWithContentType";
 	
 	// Custom Data Source
 	private static final DataSource dummyDS = new DataSource() {
@@ -70,6 +71,7 @@ class DataSourceListBuilderTest {
 	private static final long longData = Long.MAX_VALUE;
 	private static final Path pathData = Paths.get("FileDS.txt");
 	private static final String stringData = "String Data";
+	private static final MimeType mimeType = StandardMimeTypes.APPLICATION_PDF_TYPE;
  
 	@Test
 	void testBuildAll() throws Exception{
@@ -84,12 +86,13 @@ class DataSourceListBuilderTest {
 				.add(LONG_DS_NAME, longData)
 				.add(FILE_DS_NAME, pathData)
 				.add(STRING_DS_NAME, stringData)
+				.add(BYTE_ARRAY_W_CT_DS_NAME, byteArrayData, mimeType)
 				.build();
 		
 		List<DataSource> resultList = result.list();
 		
 		assertAll(
-				()->assertEquals(9, resultList.size()),	// 9 DSes were added.
+				()->assertEquals(10, resultList.size()),	// 10 DSes were added.
 				()->assertSame(dummyDS, resultList.get(0)),
 				()->assertEquals(BOOLEAN_DS_NAME, resultList.get(1).name()),
 				()->assertEquals(Boolean.toString(booleanData), readIntoString(resultList.get(1).inputStream())),
@@ -106,7 +109,10 @@ class DataSourceListBuilderTest {
 				()->assertEquals(FILE_DS_NAME, resultList.get(7).name()),
 				()->assertEquals(pathData, resultList.get(7).filename().get()),
 				()->assertEquals(STRING_DS_NAME, resultList.get(8).name()),
-				()->assertEquals(stringData, readIntoString(resultList.get(8).inputStream()))
+				()->assertEquals(stringData, readIntoString(resultList.get(8).inputStream())),
+				()->assertEquals(BYTE_ARRAY_W_CT_DS_NAME, resultList.get(9).name()),
+				()->assertArrayEquals(byteArrayData, resultList.get(9).inputStream().readAllBytes()),
+				()->assertEquals(mimeType, resultList.get(9).contentType())
 				);
 	}
 
@@ -128,7 +134,7 @@ class DataSourceListBuilderTest {
 		List<Long> lList = List.of(longData, longData);
 		List<Path> pList = List.of(pathData, pathData, pathData);
 		List<String> sList = List.of(stringData);
-		int expectedSize = dsList.size() + bList.size() + baList.size() + dList.size() + fList.size() + iList.size() + lList.size() + pList.size() + sList.size();
+		int expectedSize = dsList.size() + bList.size() + baList.size() + dList.size() + fList.size() + iList.size() + lList.size() + pList.size() + sList.size() + baList.size();
 		
 		DataSourceList result = DataSourceList.builder()
 				.addDataSources(dsList)
@@ -140,11 +146,12 @@ class DataSourceListBuilderTest {
 				.addLongs(LONG_DS_NAME, lList)
 				.addPaths(FILE_DS_NAME, pList)
 				.addStrings(STRING_DS_NAME, sList)
+				.addByteArrays(BYTE_ARRAY_W_CT_DS_NAME, baList, mimeType)
 				.build();
 		
 		List<DataSource> resultList = result.list();
 		assertAll(
-				()->assertEquals(expectedSize, 18),					// # of DSs matches what we've encoded below.
+				()->assertEquals(expectedSize, 19),					// # of DSs matches what we've encoded below.
 				()->assertEquals(expectedSize, resultList.size()),	// # of DSs that were added.
 				()->assertSame(dummyDS, resultList.get(0)),
 				()->assertSame(dummyDS, resultList.get(1)),
@@ -179,7 +186,10 @@ class DataSourceListBuilderTest {
 				()->assertEquals(FILE_DS_NAME, resultList.get(16).name()),
 				()->assertEquals(pathData, resultList.get(16).filename().get()),
 				()->assertEquals(STRING_DS_NAME, resultList.get(17).name()),
-				()->assertEquals(stringData, readIntoString(resultList.get(17).inputStream()))
+				()->assertEquals(stringData, readIntoString(resultList.get(17).inputStream())),
+				()->assertEquals(BYTE_ARRAY_W_CT_DS_NAME, resultList.get(18).name()),
+				()->assertArrayEquals(byteArrayData, resultList.get(18).inputStream().readAllBytes()),
+				()->assertEquals(mimeType, resultList.get(18).contentType())
 				);
 	}
 
