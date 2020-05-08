@@ -34,9 +34,9 @@ import org.springframework.boot.web.server.LocalServerPort;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
 class ServicesEndpointTest {
 
-	private static final String SERVICE_PATH = "/services";
-	private static final String DEBUG_PLUGIN_PATH = SERVICE_PATH + "/Debug";
-	private static final String MOCK_PLUGIN_PATH = SERVICE_PATH + "/Mock";
+	private static final String API_V1_PATH = "/api/v1";
+	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
+	private static final String MOCK_PLUGIN_PATH = API_V1_PATH + "/Mock";
 	
 	private static final String BODY_DS_NAME = "fluentforms:BodyBytes";
 	private static final String MOCK_PLUGIN_SCENARIO_NAME = "scenario";
