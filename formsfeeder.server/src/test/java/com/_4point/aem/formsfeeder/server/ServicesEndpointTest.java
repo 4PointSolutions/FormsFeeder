@@ -34,6 +34,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.LocalServerPort;
 
+import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
 
@@ -45,7 +46,7 @@ class ServicesEndpointTest {
 	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
 	private static final String MOCK_PLUGIN_PATH = API_V1_PATH + "/Mock";
 	
-	private static final String BODY_DS_NAME = "fluentforms:BodyBytes";
+	private static final String BODY_DS_NAME = "formsfeeder:BodyBytes";
 	private static final String MOCK_PLUGIN_SCENARIO_NAME = "scenario";
 	
 	@LocalServerPort
@@ -67,6 +68,7 @@ class ServicesEndpointTest {
 				 .get();
 		
 		assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 	}
 
 	@Test
@@ -85,6 +87,7 @@ class ServicesEndpointTest {
 		String responseBody = getResponseBody(response);
 		assertTrue(responseBody.contains(expectedParamName), "Expected response body to contain '" + expectedParamName + "', but was '" + responseBody + "'.");
 		assertTrue(responseBody.contains(expectedParamValue), "Expected response body to contain '" + expectedParamValue + "', but was '" + responseBody + "'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 	}
 
 	@Test
@@ -109,6 +112,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
 		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
 		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
@@ -137,6 +141,7 @@ class ServicesEndpointTest {
 				 .post(null);
 		
 		assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 	}
 
 
@@ -153,6 +158,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		String responseBody = getResponseBody(response);
 		assertTrue(responseBody.contains(expectedParamName), "Expected response body to contain '" + expectedParamName + "', but was '" + responseBody + "'.");
 		assertTrue(responseBody.contains(expectedParamValue), "Expected response body to contain '" + expectedParamValue + "', but was '" + responseBody + "'.");
@@ -180,6 +186,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
 		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
 		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
@@ -207,6 +214,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		String responseBody = getResponseBody(response);
 		assertTrue(responseBody.contains(BODY_DS_NAME), "Expected response body to contain '" + BODY_DS_NAME + "', but was '" + responseBody + "'.");
 		assertTrue(responseBody.contains(MediaType.APPLICATION_OCTET_STREAM), "Expected response body to contain '" + MediaType.APPLICATION_OCTET_STREAM + "', but was '" + responseBody + "'.");
@@ -226,6 +234,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		String responseBody = getResponseBody(response);
 		assertTrue(responseBody.contains(expectedBodyText), "Expected response body to contain '" + expectedBodyText + "', but was '" + responseBody + "'.");
 	}
@@ -245,6 +254,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
 		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
 		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
@@ -290,6 +300,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
 		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
 		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
@@ -329,6 +340,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		String responseBody = getResponseBody(response);
 		assertTrue(responseBody.contains(expectedParamName), "Expected response body to contain '" + expectedParamName + "', but was '" + responseBody + "'.");
 		assertTrue(responseBody.contains(expectedParamValue), "Expected response body to contain '" + expectedParamValue + "', but was '" + responseBody + "'.");
@@ -359,6 +371,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
 		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
 		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
@@ -403,6 +416,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
 		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
 		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
@@ -466,6 +480,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
 		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
 		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
@@ -513,6 +528,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		String responseBody = getResponseBody(response);
 		assertNotNull(responseBody);
 		assertAll(
@@ -537,6 +553,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		String responseBody = getResponseBody(response);
 		assertNotNull(responseBody);
 		assertAll(
@@ -561,6 +578,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		String responseBody = getResponseBody(response);
 		assertNotNull(responseBody);
 		assertAll(
@@ -585,6 +603,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.INTERNAL_SERVER_ERROR.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		String responseBody = getResponseBody(response);
 		assertNotNull(responseBody);
 		assertAll(
@@ -608,6 +627,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(APPLICATION_PDF.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		assertTrue(response.hasEntity(), "Expected response to have entity");
 		PDDocument pdf = PDDocument.load((InputStream)response.getEntity());
 		PDDocumentCatalog catalog = pdf.getDocumentCatalog();
@@ -630,6 +650,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.APPLICATION_XML_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/xml'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		assertTrue(response.hasEntity(), "Expected response to have entity");
 		XML xml = new XMLDocument((InputStream)response.getEntity());
 		assertEquals(2, Integer.valueOf(xml.xpath("count(//form1/*)").get(0)));
@@ -650,6 +671,7 @@ class ServicesEndpointTest {
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
 		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
 		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
@@ -686,6 +708,7 @@ class ServicesEndpointTest {
 				 .get();
 		
 		assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 	}
 
 	@Test
@@ -697,7 +720,7 @@ class ServicesEndpointTest {
 				 .post(Entity.entity(InputStream.nullInputStream(), MediaType.TEXT_PLAIN_TYPE));
 		
 		assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
-		System.out.println(getResponseBody(response));
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 	}
 
 

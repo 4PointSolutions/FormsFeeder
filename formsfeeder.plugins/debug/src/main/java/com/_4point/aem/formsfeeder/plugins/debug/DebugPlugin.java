@@ -1,6 +1,7 @@
 package com._4point.aem.formsfeeder.plugins.debug;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 import org.pf4j.Extension;
 import org.pf4j.ExtensionPoint;
@@ -18,6 +19,8 @@ import com._4point.aem.formsfeeder.core.datasource.MimeType;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 
 public class DebugPlugin extends Plugin {
+	
+	private static final Set<String> blacklistedDataSources = Set.of("formsfeeder:x-correlation-id");
 
 	public DebugPlugin(PluginWrapper wrapper) {
 		super(wrapper);
@@ -26,7 +29,7 @@ public class DebugPlugin extends Plugin {
 	/**
 	 * This is a sample plugin that can be used to help debug interactions with the
 	 * FormsFeeder Server. It prints to the log all DataSources it receives and
-	 * returns a text description of each DataSOurce it receives to the caller.
+	 * returns a text description of each DataSource it receives to the caller.
 	 *
 	 */
 	@Extension
@@ -41,9 +44,11 @@ public class DebugPlugin extends Plugin {
 			Builder responseBuilder = DataSourceList.builder();
 
 			for (DataSource ds : dataSources.list()) {
-				String msg = toMessageString(ds);
-				responseBuilder.add(RESULT_DS_NAME, msg);
-				logger.info(msg);
+				if (!blacklistedDataSources.contains(ds.name())) {
+					String msg = toMessageString(ds);
+					responseBuilder.add(RESULT_DS_NAME, msg);
+					logger.info(msg);
+				}
 			}
 
 			return responseBuilder.build();

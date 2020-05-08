@@ -38,6 +38,7 @@ class DebugPluginTest {
 		String FILENAME = "filename.txt";
 
 		final DataSourceList input = DataSourceList.builder()
+				.add("formsfeeder:x-correlation-id", "correlationId")	// This should be ignored.
 				.add(STRING_PARAM_NAME, STRING_PARAM_VALUE)
 				.add(BYTEARRAY_PARAM_NAME, BYTEARRAY_PARAM_VALUE)
 				.add(new DataSource() {
