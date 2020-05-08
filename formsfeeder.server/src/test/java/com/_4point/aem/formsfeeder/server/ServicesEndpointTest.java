@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -21,6 +22,8 @@ import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -31,9 +34,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.LocalServerPort;
 
+import com.jcabi.xml.XML;
+import com.jcabi.xml.XMLDocument;
+
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
 class ServicesEndpointTest {
 
+	private static final MediaType APPLICATION_PDF = MediaType.valueOf("application/pdf");
 	private static final String API_V1_PATH = "/api/v1";
 	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
 	private static final String MOCK_PLUGIN_PATH = API_V1_PATH + "/Mock";
@@ -586,9 +593,8 @@ class ServicesEndpointTest {
 				);
 	}
 
-	// TODO: Implement this in mock plugin.
-	@Disabled
-	void testInvokePost_ReturnPdfFromPlugin() {
+	@Test
+	void testInvokePost_ReturnPdfFromPlugin() throws Exception {
 		
 		FormDataMultiPart bodyData = new FormDataMultiPart();
 		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, "ReturnPdf");
@@ -601,10 +607,74 @@ class ServicesEndpointTest {
 				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
-		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
-		String responseBody = getResponseBody(response);
+		assertTrue(APPLICATION_PDF.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertTrue(response.hasEntity(), "Expected response to have entity");
+		PDDocument pdf = PDDocument.load((InputStream)response.getEntity());
+		PDDocumentCatalog catalog = pdf.getDocumentCatalog();
+		assertNotNull(pdf);
+		assertNotNull(catalog);
 	}
 
+	@Test
+	void testInvokePost_ReturnXmlFromPlugin() throws Exception {
+		
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, "ReturnXml");
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.APPLICATION_XML_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/xml'.");
+		assertTrue(response.hasEntity(), "Expected response to have entity");
+		XML xml = new XMLDocument((InputStream)response.getEntity());
+		assertEquals(2, Integer.valueOf(xml.xpath("count(//form1/*)").get(0)));
+	}
+	
+	@Test
+	void testInvokePost_ReturnPdfAndXmlFromPlugin() throws Exception {
+		
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, "ReturnPdfAndXml");
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		
+		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
+		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
+		int returnsCount = 0;
+		for (Entry<String, List<FormDataBodyPart>> field : fields.entrySet()) {
+			for (var body : field.getValue()) {
+				returnsCount++;
+				
+				MediaType mediaType = body.getMediaType();
+				if (APPLICATION_PDF.isCompatible(mediaType)) {
+					PDDocument pdf = PDDocument.load(body.getEntityAs(InputStream.class));
+					PDDocumentCatalog catalog = pdf.getDocumentCatalog();
+					assertNotNull(pdf);
+					assertNotNull(catalog);
+				} else if (MediaType.APPLICATION_XML_TYPE.isCompatible(mediaType)) {
+					XML xml = new XMLDocument(body.getEntityAs(InputStream.class));
+					assertEquals(2, Integer.valueOf(xml.xpath("count(//form1/*)").get(0)));
+					
+				} else {
+					fail("Found unexpected mediaType in response '" + mediaType.toString() + "'.");
+				}
+			}
+		}
+		assertEquals(2, returnsCount, "Expected 2 parts in the response.");
+	}
 	
 	
 	@Test

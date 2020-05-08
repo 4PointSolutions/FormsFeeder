@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Test;
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerBadRequestException;
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerException;
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerInternalErrorException;
+import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
+import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.plugins.mock.MockPlugin.MockExtension;
 
 class MockPluginTest {
@@ -48,6 +50,52 @@ class MockPluginTest {
 		String msg = ex.getMessage();
 		assertNotNull(msg);
 		assertTrue(msg.contains(scenarioName), "Expected msg to contain '" + scenarioName + "' but didn't (" + msg + ").");
+	}
+	
+	@Test
+	void testScenario_ReturnPdf() throws Exception {
+		final String scenarioName = "ReturnPdf";
+		DataSourceList result = underTest.accept(createBuilder(scenarioName).build());
+		assertNotNull(result);
+		assertEquals(1, result.list().size());
+		DataSource pdfDataSource = result.list().get(0);
+		assertAll(
+				()->assertEquals(StandardMimeTypes.APPLICATION_PDF_TYPE, pdfDataSource.contentType()),
+				()->assertEquals("SampleForm.pdf", pdfDataSource.filename().get().getFileName().toString()),
+				()->assertEquals("PdfResult", pdfDataSource.name())
+				);
+	}
+	
+	@Test
+	void testScenario_ReturnXml() throws Exception {
+		final String scenarioName = "ReturnXml";
+		DataSourceList result = underTest.accept(createBuilder(scenarioName).build());
+		assertNotNull(result);
+		assertEquals(1, result.list().size());
+		DataSource xmlDataSource = result.list().get(0);
+		assertAll(
+				()->assertEquals(StandardMimeTypes.APPLICATION_XML_TYPE, xmlDataSource.contentType()),
+				()->assertEquals("SampleForm_data.xml", xmlDataSource.filename().get().getFileName().toString()),
+				()->assertEquals("XmlResult", xmlDataSource.name())
+				);
+	}
+	
+	@Test
+	void testScenario_ReturnPdfAndXml() throws Exception {
+		final String scenarioName = "ReturnPdfAndXml";
+		DataSourceList result = underTest.accept(createBuilder(scenarioName).build());
+		assertNotNull(result);
+		assertEquals(2, result.list().size());
+		DataSource pdfDataSource = result.list().get(0);
+		DataSource xmlDataSource = result.list().get(1);
+		assertAll(
+				()->assertEquals(StandardMimeTypes.APPLICATION_PDF_TYPE, pdfDataSource.contentType()),
+				()->assertEquals("SampleForm.pdf", pdfDataSource.filename().get().getFileName().toString()),
+				()->assertEquals("PdfResult", pdfDataSource.name()),
+				()->assertEquals(StandardMimeTypes.APPLICATION_XML_TYPE, xmlDataSource.contentType()),
+				()->assertEquals("SampleForm_data.xml", xmlDataSource.filename().get().getFileName().toString()),
+				()->assertEquals("XmlResult", xmlDataSource.name())
+				);
 	}
 	
 	@Test
