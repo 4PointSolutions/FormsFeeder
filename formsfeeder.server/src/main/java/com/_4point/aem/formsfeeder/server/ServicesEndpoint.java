@@ -315,7 +315,7 @@ public class ServicesEndpoint {
 	 * @param mimeType
 	 * @return
 	 */
-	private static final MediaType fromMimeType(MimeType mimeType) {
+	private static final MediaType fromMimeType(final MimeType mimeType) {
 		Charset charset = mimeType.charset();
 		if (charset != null) {
 			return new MediaType(mimeType.type(), mimeType.subtype(), charset.name());
@@ -330,7 +330,7 @@ public class ServicesEndpoint {
 	 * @param mediaType
 	 * @return
 	 */
-	private static final MimeType fromMediaType(MediaType mediaType) {
+	private static final MimeType fromMediaType(final MediaType mediaType) {
 		return MimeType.of(mediaType.toString());
 	}
 
@@ -340,7 +340,7 @@ public class ServicesEndpoint {
 	 * @param correlationId
 	 * @return
 	 */
-	private static DataSourceList generateFormsFeederDataSourceList(String correlationId) {
+	private static final DataSourceList generateFormsFeederDataSourceList(final String correlationId) {
 		return DataSourceList.builder()
 				.add(FORMSFEEDER_DS_NAME_PREFIX + CorrelationId.CORRELATION_ID_HDR, correlationId)
 				.build();
