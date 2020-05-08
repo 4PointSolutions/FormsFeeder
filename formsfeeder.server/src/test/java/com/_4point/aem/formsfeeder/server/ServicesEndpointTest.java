@@ -562,7 +562,7 @@ class ServicesEndpointTest {
 				);
 	}
 
-	@Disabled
+	@Test
 	void testInvokePost_OtherFeedConsumerExceptionFromPlugin() {
 		String scenarioName = "OtherFeedConsumerException";
 		
@@ -627,6 +627,7 @@ class ServicesEndpointTest {
 				 .post(Entity.entity(InputStream.nullInputStream(), MediaType.TEXT_PLAIN_TYPE));
 		
 		assertEquals(Response.Status.NOT_FOUND.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		System.out.println(getResponseBody(response));
 	}
 
 

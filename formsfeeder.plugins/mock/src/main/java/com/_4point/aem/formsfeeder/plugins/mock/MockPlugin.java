@@ -34,12 +34,14 @@ public class MockPlugin extends Plugin {
 		private static final String SCENARIO_NAME_BAD_REQUEST_EXCEPTION = "BadRequestException";
 		private static final String SCENARIO_NAME_INTERNAL_ERROR_EXCEPTION = "InternalErrorException";
 		private static final String SCENARIO_NAME_UNCHECKED_EXCEPTION = "UncheckedException";
+		private static final String SCENARIO_OTHER_FEED_CONSUMER_EXCEPTION = "OtherFeedConsumerException";
 		
 		@Override
 		public String name() {
 			return FEED_CONSUMER_NAME;
 		}
 
+		@SuppressWarnings("serial")
 		@Override
 		public DataSourceList accept(DataSourceList dataSources) throws FeedConsumerException {
 			
@@ -49,6 +51,15 @@ public class MockPlugin extends Plugin {
 			logger.info("MockPlugin scenario is {}", scenario);
 			switch(scenario)
 			{
+			case SCENARIO_OTHER_FEED_CONSUMER_EXCEPTION:
+				throw new FeedConsumerException() {
+
+					@Override
+					public String getMessage() {
+						return "Throwing anonymous FeedConsumerException because scenario was '" + scenario + "'.";
+					}
+					
+				};
 			case SCENARIO_NAME_BAD_REQUEST_EXCEPTION:
 				throw new FeedConsumerBadRequestException("Throwing FeedConsumerBadRequestException because scenario was '" + scenario + "'.");
 			case SCENARIO_NAME_INTERNAL_ERROR_EXCEPTION:

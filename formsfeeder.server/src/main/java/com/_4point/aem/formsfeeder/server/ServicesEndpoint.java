@@ -134,7 +134,8 @@ public class ServicesEndpoint {
 	}
 
 	/**
-	 * Determines if there is a plug-in associated with an Url provided and, if so, then invokes that plug-in. 
+	 * Determines if there is a plug-in associated with an Url provided and, if so, then invokes that plug-in.  Also
+	 * captures any exceptions that a plugin throws and converts it to a response. 
 	 * 
 	 * @param remainder
 	 * @param dataSourceList
@@ -144,29 +145,27 @@ public class ServicesEndpoint {
 	private final Response invokePlugin(final String remainder, final DataSourceList dataSourceList, final Logger logger) {
 		Optional<FeedConsumer> optConsumer = feedConsumers.consumer(determineConsumerName(remainder));
 		if (optConsumer.isEmpty()) {
-			// TODO: We're currently relying on the Jersey framework to return a reasonable error message.
-			// Unfortunately, the message is just barely adequate.  Would like to make it better at some point.
 			String msg = "Resource '" + API_V1_PATH + "/" + remainder + "' does not exist.";
-			logger.error(msg);
-			throw new NotFoundException(msg);
+			logger.error(msg + " Returning \"Not Found\" status code.");
+			return Response.status(Response.Status.NOT_FOUND).entity(msg).type(MediaType.TEXT_PLAIN_TYPE).build();
 		} else {
 			try {
 				return convertToResponse(invokeConsumer(dataSourceList, optConsumer.get(), logger), logger);
 			} catch (FeedConsumerInternalErrorException e) {
 				String msg = String.format("Plugin processor experienced an Internal Server Error. (%s)", e.getMessage());
-				logger.error(msg,e);
+				logger.error(msg + " Returning \"Internal Server Error\" status code.",e);
 				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).type(MediaType.TEXT_PLAIN_TYPE).build();
 			} catch (FeedConsumerBadRequestException e) {
 				String msg = String.format("Plugin processor detected Bad Request. (%s)", e.getMessage());
-				logger.error(msg, e);
+				logger.error(msg + " Returning \"Bad Request\" status code.", e);
 				return Response.status(Response.Status.BAD_REQUEST).entity(msg).type(MediaType.TEXT_PLAIN_TYPE).build();
 			} catch (FeedConsumerException e) {
 				String msg = String.format("Plugin processor error. (%s)", e.getMessage());
-				logger.error(msg, e);
+				logger.error(msg + " Returning \"Internal Server Error\" status code.", e);
 				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).type(MediaType.TEXT_PLAIN_TYPE).build();
 			} catch (Exception e) {
 				String msg = String.format("Error within Plugin processor. (%s)", e.getMessage());
-				logger.error(msg, e);
+				logger.error(msg + " Returning \"Internal Server Error\" status code.", e);
 				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).type(MediaType.TEXT_PLAIN_TYPE).build();
 			}
 		}
