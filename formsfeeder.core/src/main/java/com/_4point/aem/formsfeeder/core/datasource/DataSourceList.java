@@ -62,10 +62,10 @@ public class DataSourceList {
 	 * 
 	 * Will generate a NullPointerException if the name parameter is null.
 	 * 
-	 * Shortcut function for <code>getDataSource((ds)->ds.name().equals(name))</code>
+	 * Shortcut function for <code>getDataSource((ds)-&gt;ds.name().equals(name))</code>
 	 * 
 	 * @param name
-	 * @return 
+	 * @return the first DataSource with the specified name
 	 */
 	public final Optional<DataSource> getDataSourceByName(final String name) {
 		return getDataSource(byName(name));
@@ -77,7 +77,7 @@ public class DataSourceList {
 	 * Will generate a NullPointerException if the predicate parameter is null.
 	 * 
 	 * @param predicate
-	 * @return
+	 * @return the first DataSource which where the predicate provided evaluates to true
 	 */
 	public final Optional<DataSource> getDataSource(final Predicate<DataSource> predicate) {
 		Objects.requireNonNull(predicate, "Predicate provided cannot be null.");
@@ -94,10 +94,10 @@ public class DataSourceList {
 	 * 
 	 * Will generate a NullPointerException if the name parameter is null.
 	 * 
-	 * Shortcut function for <code>getDataSources((ds)->ds.name().equals(name))</code>
+	 * Shortcut function for <code>getDataSources((ds)-&gt;ds.name().equals(name))</code>
 	 * 
 	 * @param name
-	 * @return
+	 * @return a list of the DataSource objects with the specified name
 	 */
 	public final List<DataSource> getDataSourcesByName(String name) {
 		return getDataSources(byName(name));
@@ -109,7 +109,7 @@ public class DataSourceList {
 	 * Will generate a NullPointerException if the predicate parameter is null.
 	 * 
 	 * @param predicate
-	 * @return
+	 * @return a list of DataSource objects where the predicate provided evaluates to true
 	 */
 	public final List<DataSource> getDataSources(final Predicate<DataSource> predicate) {
 		Objects.requireNonNull(predicate, "Predicate provided cannot be null.");
@@ -127,7 +127,7 @@ public class DataSourceList {
 	 * do not affect the list.
 	 * 
 	 * @param list
-	 * @return 
+	 * @return a DataSourceList containing the DataSources in the list provided
 	 */
 	public static DataSourceList from(List<DataSource> list) {
 		if (list.isEmpty()) {
@@ -141,7 +141,7 @@ public class DataSourceList {
 	 * Static constructor for DataSourceList.  Merges one or more other DataSourceLists into one. 
 	 * 
 	 * @param srcLists
-	 * @return
+	 * @return a DataSourceList containing all the DataSources in the DataSourceLists provided
 	 */
 	public static DataSourceList from(DataSourceList... srcLists) {
 		List<DataSource> accumulator = new ArrayList<>();
@@ -153,7 +153,7 @@ public class DataSourceList {
 	/**
 	 * Static constructor for an empty DataSourceList.
 	 * 
-	 * @return
+	 * @return an empty DataSourceList
 	 */
 	public static DataSourceList emptyList() {
 		return EMPTY_LIST;
@@ -162,7 +162,7 @@ public class DataSourceList {
 	/**
 	 * Returns true if the list is empty.
 	 * 
-	 * @return
+	 * @return true if list is empty otherwise false
 	 */
 	public final boolean isEmpty() {
 		return this.list().isEmpty();
@@ -171,7 +171,7 @@ public class DataSourceList {
 	/**
 	 * Create a DataSourceList.Builder for building a DataSourceList.
 	 * 
-	 * @return
+	 * @return new DataSourceList.Builder object
 	 */
 	public static Builder builder() {
 		return Builder.newBuilder();
@@ -180,7 +180,7 @@ public class DataSourceList {
 	/**
 	 * DataSourceList.Deconstructor for pulling apart (i.e. deconstructing) a DataSourceList.
 	 * 
-	 * @return
+	 * @return new DataSourceList.Deconstructor object
 	 */
 	public Deconstructor deconstructor() {
 		return Deconstructor.from(this);
@@ -329,7 +329,7 @@ public class DataSourceList {
 		}
 
 		/**
-		 * Passthrough to DataSourceList.getDataSource(Predicate<DataSource> predicate)
+		 * Passthrough to DataSourceList.getDataSource(Predicate&lt;DataSource&gt; predicate)
 		 * 
 		 * @param predicate
 		 * @return
@@ -349,7 +349,7 @@ public class DataSourceList {
 		}
 
 		/**
-		 * Passthrough to DataSourceList.getDataSources(Predicate<DataSource> predicate)
+		 * Passthrough to DataSourceList.getDataSources(Predicate&lt;DataSource&gt; predicate)
 		 * 
 		 * @param predicate
 		 * @return
@@ -358,6 +358,12 @@ public class DataSourceList {
 			return dsList.getDataSources(predicate);
 		}
 
+		/**
+		 * Convert contents of a DataSource to a String.  Assumes that the source input stream is UTF-8.
+		 * 
+		 * @param ds
+		 * @return contents of the DataSource as a String object.
+		 */
 		public static final String dsToString(DataSource ds) {
 			if (ds instanceof StringDataSource) {
 				// Shortcut if this is already a StringDataSource
@@ -366,6 +372,14 @@ public class DataSourceList {
 			return dsToString(ds, StandardCharsets.UTF_8);	// Assume UTF-8
 		}
 		
+		/**
+		 * Convert contents of a DataSource to a String.  Assumes that the source input stream is in the character
+		 * set provided.
+		 * 
+		 * @param ds
+		 * @param cs
+		 * @return
+		 */
 		public static final String dsToString(DataSource ds, Charset cs) {
 			if (ds instanceof StringDataSource && cs == StringDataSource.ENCODING) {
 				// Shortcut if this is already a StringDataSource
