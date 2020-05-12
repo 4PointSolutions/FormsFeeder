@@ -75,8 +75,8 @@
 		</dependency>
 		<dependency>
 			<groupId>org.pf4j</groupId>
-			<artifactId>pf4j</artifactId>
-			<version>${pf4j.version}</version>
+			<artifactId>pf4j-spring</artifactId>
+			<version>${pf4j-spring.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->
 		<dependency>

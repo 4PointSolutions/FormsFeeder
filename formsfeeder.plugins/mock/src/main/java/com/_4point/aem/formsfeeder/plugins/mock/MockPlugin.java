@@ -5,6 +5,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Map;
@@ -109,7 +110,12 @@ public class MockPlugin extends Plugin {
 				try {
 					URI uri = pdfResource.toURI();
 					if (zipfs == null && (uri.toString().startsWith("/") || uri.toString().startsWith("jar:"))) {
-						zipfs = FileSystems.newFileSystem(uri, Map.of("create", "true"));
+						try {
+							zipfs = FileSystems.getFileSystem(uri);
+						} catch (FileSystemNotFoundException e) {
+							// File system doesn't exist, so create it.
+							zipfs = FileSystems.newFileSystem(uri, Map.of("create", "true"));
+						}
 						return Path.of(uri);
 					} else {
 						return Path.of(uri);

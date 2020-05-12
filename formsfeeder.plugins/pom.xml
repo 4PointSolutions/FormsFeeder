@@ -28,8 +28,8 @@
 		<!-- Server App Code -->
 		<dependency>
 			<groupId>org.pf4j</groupId>
-			<artifactId>pf4j</artifactId>
-			<version>${pf4j.version}</version>
+			<artifactId>pf4j-spring</artifactId>
+			<version>${pf4j-spring.version}</version>
 			<!-- !!! VERY IMPORTANT -->
 			<scope>provided</scope>
 		</dependency>
