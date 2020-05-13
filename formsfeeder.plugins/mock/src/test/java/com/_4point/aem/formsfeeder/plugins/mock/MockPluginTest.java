@@ -12,6 +12,8 @@ import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.plugins.mock.MockPlugin.MockExtension;
 
+import junitx.util.PrivateAccessor;
+
 class MockPluginTest {
 
 	MockExtension underTest = new MockPlugin.MockExtension();
@@ -109,13 +111,32 @@ class MockPluginTest {
 	}
 
 	@Test
-	void testScenario_Unknown() {
+	void testScenario_UnknownScenarioName() {
 		FeedConsumerBadRequestException ex = assertThrows(FeedConsumerBadRequestException.class, ()->underTest.accept(DataSourceList.emptyList()));
 		String msg = ex.getMessage();
 		assertNotNull(msg);
 		assertEquals("No scenario name was provided.", msg);
 	}
 
+	@Test
+	void testReturnConfigValue() throws Exception {
+		final String expectedConfigValue = "UnitTestValue";
+		final String scenarioName = "ReturnConfigValue";
+		final MockPluginProperties properties = new MockPluginProperties();
+		PrivateAccessor.setField(properties, "configValue", expectedConfigValue);
+		MockExtension underTest2 = new MockPlugin.MockExtension();
+		underTest2.setMockProperties(properties);
+		DataSourceList result = underTest2.accept(createBuilder(scenarioName).build());
+		assertNotNull(result);
+		assertEquals(1, result.list().size());
+		DataSource returnedDataSource = result.list().get(0);
+		assertAll(
+				()->assertEquals(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE, returnedDataSource.contentType()),
+				()->assertEquals("ConfigValue", returnedDataSource.name()),
+				()->assertEquals(expectedConfigValue, result.deconstructor().getStringByName("ConfigValue").get())
+				);
+	}
+	
 	private static DataSourceList.Builder createBuilder(String scenario) {
 		return DataSourceList.builder()
 					  		 .add("scenario", scenario);

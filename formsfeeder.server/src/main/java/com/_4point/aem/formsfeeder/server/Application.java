@@ -1,9 +1,5 @@
 package com._4point.aem.formsfeeder.server;
 
-import java.util.List;
-
-import org.pf4j.PluginManager;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,11 +7,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 
-import com._4point.aem.formsfeeder.core.api.FeedConsumer;
-import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
-import com._4point.aem.formsfeeder.server.pf4j.SpringPluginManager;
-
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "com._4point.aem.formsfeeder")
 public class Application {
 
 	public static void main(String[] args) {

@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com._4point.aem.formsfeeder.core.api.FeedConsumer;
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
+import com._4point.aem.formsfeeder.pf4j.SpringPluginManager;
 
 @Component
 public class FeedConsumers {

@@ -34,6 +34,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.LocalServerPort;
 
+import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
@@ -698,7 +699,27 @@ class ServicesEndpointTest {
 		assertEquals(2, returnsCount, "Expected 2 parts in the response.");
 	}
 	
-	
+	@Disabled
+	void testInvokePost_ReturnConfigValueFromPlugin() throws Exception {
+		
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, "ReturnConfigValue");
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/xml'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		assertTrue(response.hasEntity(), "Expected response to have entity");
+		String returnedConfigValue = new String(((InputStream)response.getEntity()).readAllBytes(), StandardCharsets.UTF_8);
+		assertEquals("FromApplicationProperties", returnedConfigValue, "Expected the Config Value to match the value in application.properties (\"FromApplicationProperties\")." );
+	}
+		
 	@Test
 	void testInvokeGetNoParams_BadPath() {
 		Response response = ClientBuilder.newClient()

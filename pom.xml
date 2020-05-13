@@ -13,6 +13,7 @@
 		<module>formsfeeder.core</module>
 		<module>formsfeeder.server</module>
 		<module>formsfeeder.plugins</module>
+		<module>formsfeeder.pf4j-spring</module>
 	</modules>
 
 	<properties>

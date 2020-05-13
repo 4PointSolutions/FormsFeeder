@@ -1,6 +1,7 @@
 package com._4point.aem.formsfeeder.server.pf4j;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
@@ -8,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
+import com._4point.aem.formsfeeder.pf4j.SpringPluginManager;
 
 class FeedConsumersTest {
 	

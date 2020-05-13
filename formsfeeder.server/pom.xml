@@ -30,7 +30,6 @@
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-multipart</artifactId>
-			<version>${jersey.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -70,13 +69,13 @@
 		</dependency>
 		<dependency>
 			<groupId>com._4point.aem</groupId>
-			<artifactId>formsfeeder.pf4j-api</artifactId>
+			<artifactId>formsfeeder.pf4j-spring</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.pf4j</groupId>
-			<artifactId>pf4j-spring</artifactId>
-			<version>${pf4j-spring.version}</version>
+			<artifactId>pf4j</artifactId>
+			<version>${pf4j.version}</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->
 		<dependency>

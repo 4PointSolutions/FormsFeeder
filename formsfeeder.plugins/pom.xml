@@ -11,6 +11,11 @@
 	<packaging>pom</packaging>
 	<name>Plug-in Project Parent</name>
 	<description>Parent project for example plugins.</description>
+
+	<properties>
+		<spring-boot.version>2.2.6.RELEASE</spring-boot.version>
+	</properties>
+
 	<modules>
 		<module>example</module>
 		<module>debug</module>
@@ -19,8 +24,22 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot</artifactId>
+			<version>${spring-boot.version}</version>
+			<!-- !!! VERY IMPORTANT -->
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>com._4point.aem</groupId>
 			<artifactId>formsfeeder.core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<!-- !!! VERY IMPORTANT -->
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com._4point.aem</groupId>
+			<artifactId>formsfeeder.pf4j-spring</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 			<!-- !!! VERY IMPORTANT -->
 			<scope>provided</scope>
@@ -28,10 +47,16 @@
 		<!-- Server App Code -->
 		<dependency>
 			<groupId>org.pf4j</groupId>
-			<artifactId>pf4j-spring</artifactId>
-			<version>${pf4j-spring.version}</version>
+			<artifactId>pf4j</artifactId>
+			<version>${pf4j.version}</version>
 			<!-- !!! VERY IMPORTANT -->
 			<scope>provided</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>

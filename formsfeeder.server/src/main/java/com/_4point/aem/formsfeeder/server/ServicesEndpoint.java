@@ -54,7 +54,7 @@ public class ServicesEndpoint {
 	
 	@Autowired
 	private FeedConsumers feedConsumers;
-
+	
 	/**
 	 * Method that gets invoked for all GET transactions
 	 *  
