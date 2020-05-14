@@ -94,11 +94,9 @@ public class MockPlugin extends Plugin {
 			switch(scenario)
 			{
 			case SCENARIO_RETURN_CONFIG_VALUE:
-				Environment environment2 = this.getEnvironment();
-				logger.info("environment2 is " + (environment2 == null ? "" : "not ") + "null.");
-				logger.info("environment is " + (environment == null ? "" : "not ") + "null.");
-				String configValue = environment2.getProperty("formsfeeder.plugins.mock.configValue");
-				logger.info("setting ConfigValue to '" + configValue + "'.");
+				logger.debug("environment is " + (this.getEnvironment() == null ? "" : "not ") + "null.");
+				String configValue = this.getEnvironment().getProperty("formsfeeder.plugins.mock.configValue");
+				logger.debug("setting ConfigValue to '" + configValue + "'.");
 				if (configValue == null) {
 					configValue = "substitutedValue";
 				}
