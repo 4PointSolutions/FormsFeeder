@@ -1,6 +1,10 @@
 package com._4point.aem.formsfeeder.plugins.mock;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.core.env.Environment;
@@ -13,9 +17,6 @@ import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.plugins.mock.MockPlugin.MockExtension;
-import com._4point.aem.formsfeeder.plugins.mock.MockPlugin.MockPluginProperties;
-
-import junitx.util.PrivateAccessor;
 
 class MockPluginTest {
 
@@ -125,8 +126,6 @@ class MockPluginTest {
 	void testReturnConfigValue() throws Exception {
 		final String expectedConfigValue = "UnitTestValue";
 		final String scenarioName = "ReturnConfigValue";
-		final MockPluginProperties properties = new MockPluginProperties();
-		PrivateAccessor.setField(properties, "configValue", expectedConfigValue);
 		MockExtension underTest2 = new MockPlugin.MockExtension();
 		underTest2.accept(getMockEnvironment(expectedConfigValue));
 		DataSourceList result = underTest2.accept(createBuilder(scenarioName).build());

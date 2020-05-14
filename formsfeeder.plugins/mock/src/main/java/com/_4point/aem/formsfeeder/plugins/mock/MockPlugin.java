@@ -168,26 +168,4 @@ public class MockPlugin extends Plugin {
 		}
 	}
 
-	@Component
-	@ConfigurationProperties(prefix="formsfeeder.plugins.mock")
-	@Extension
-	public static class MockPluginProperties implements ExtensionPoint {
-		Logger logger = LoggerFactory.getLogger(this.getClass());
-
-		private String configValue;
-		
-		public MockPluginProperties() {
-			logger.info("Inside MockPluginProperties constructor");
-		}
-
-		public final String getConfigValue() {
-			return configValue;
-		}
-		
-		public final void setConfigValue(String configValue) {
-			logger.info("Setting configValue to '" + configValue + "'.");
-			this.configValue = configValue;
-		}
-		
-	}
 }
