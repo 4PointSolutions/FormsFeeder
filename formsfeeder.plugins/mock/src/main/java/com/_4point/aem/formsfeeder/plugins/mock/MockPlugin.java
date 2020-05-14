@@ -16,19 +16,18 @@ import org.pf4j.Plugin;
 import org.pf4j.PluginWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
-import com._4point.aem.formsfeeder.pf4j.SpringPlugin;
+import com._4point.aem.formsfeeder.pf4j.spring.EnvironmentConsumer;
 
 @Component
-public class MockPlugin extends SpringPlugin {
+public class MockPlugin extends Plugin {
 	Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	public MockPlugin(PluginWrapper wrapper) {
@@ -41,7 +40,7 @@ public class MockPlugin extends SpringPlugin {
 	 */
 	@Component
 	@Extension
-	public static class MockExtension implements NamedFeedConsumer, ExtensionPoint {
+	public static class MockExtension implements NamedFeedConsumer, EnvironmentConsumer, ExtensionPoint {
 		Logger logger = LoggerFactory.getLogger(this.getClass());
 
 		public static final String FEED_CONSUMER_NAME = "Mock";
@@ -61,22 +60,21 @@ public class MockPlugin extends SpringPlugin {
 
 		private FileSystem zipfs = null;	// Used to hold ZipFs so that we can read our .jar resources using FileSystem
 		
-		private MockPluginProperties mockProperties;
+		private Environment environment;
 		
 		public MockExtension() {
 			super();
-			this.mockProperties = null;
 			logger.info("inside MockExtension constructor");
 		}
 		
-		public final MockPluginProperties getMockProperties() {
-			return mockProperties;
+		public final Environment getEnvironment() {
+			return environment;
 		}
 
-		@Autowired
-		public final void setMockProperties(MockPluginProperties mockProperties) {
-			logger.info("setting mockProperties is " + (mockProperties == null ? "" : "not ") + "null");
-			this.mockProperties = mockProperties;
+		public final void setEnvironment(Environment environment) {
+			logger.info("setting environment is " + (environment == null ? "" : "not ") + "null");
+			this.environment = environment;
+			logger.info("setting formsfeeder.plugins.mock.configValue is " + (environment.getProperty("formsfeeder.plugins.mock.configValue") == null ? " null." : "'" + environment.getProperty("formsfeeder.plugins.mock.configValue") + "'."));
 		}
 
 		@Override
@@ -96,7 +94,10 @@ public class MockPlugin extends SpringPlugin {
 			switch(scenario)
 			{
 			case SCENARIO_RETURN_CONFIG_VALUE:
-				String configValue = this.mockProperties.getConfigValue();
+				Environment environment2 = this.getEnvironment();
+				logger.info("environment2 is " + (environment2 == null ? "" : "not ") + "null.");
+				logger.info("environment is " + (environment == null ? "" : "not ") + "null.");
+				String configValue = environment2.getProperty("formsfeeder.plugins.mock.configValue");
 				logger.info("setting ConfigValue to '" + configValue + "'.");
 				if (configValue == null) {
 					configValue = "substitutedValue";
@@ -160,17 +161,33 @@ public class MockPlugin extends SpringPlugin {
 				}
 			}
 		}
+
+		@Override
+		public void accept(Environment environment) {
+			setEnvironment(environment);
+		}
 	}
 
-	@Override
-	protected ApplicationContext createApplicationContext() {
-		logger.info("inside createApplicationContext");
-		AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext();
-        applicationContext.setClassLoader(getWrapper().getPluginClassLoader());
-        applicationContext.register(MockPluginProperties.class);
-        applicationContext.refresh();
+	@Component
+	@ConfigurationProperties(prefix="formsfeeder.plugins.mock")
+	@Extension
+	public static class MockPluginProperties implements ExtensionPoint {
+		Logger logger = LoggerFactory.getLogger(this.getClass());
 
-        return applicationContext;
-    }
+		private String configValue;
+		
+		public MockPluginProperties() {
+			logger.info("Inside MockPluginProperties constructor");
+		}
 
+		public final String getConfigValue() {
+			return configValue;
+		}
+		
+		public final void setConfigValue(String configValue) {
+			logger.info("Setting configValue to '" + configValue + "'.");
+			this.configValue = configValue;
+		}
+		
+	}
 }

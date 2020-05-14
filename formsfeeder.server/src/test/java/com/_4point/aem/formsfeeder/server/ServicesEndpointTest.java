@@ -699,7 +699,7 @@ class ServicesEndpointTest {
 		assertEquals(2, returnsCount, "Expected 2 parts in the response.");
 	}
 	
-	@Disabled
+	@Test
 	void testInvokePost_ReturnConfigValueFromPlugin() throws Exception {
 		
 		FormDataMultiPart bodyData = new FormDataMultiPart();

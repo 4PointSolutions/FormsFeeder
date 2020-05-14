@@ -3,6 +3,8 @@ package com._4point.aem.formsfeeder.plugins.mock;
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerBadRequestException;
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerException;
@@ -11,6 +13,7 @@ import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.plugins.mock.MockPlugin.MockExtension;
+import com._4point.aem.formsfeeder.plugins.mock.MockPlugin.MockPluginProperties;
 
 import junitx.util.PrivateAccessor;
 
@@ -125,7 +128,7 @@ class MockPluginTest {
 		final MockPluginProperties properties = new MockPluginProperties();
 		PrivateAccessor.setField(properties, "configValue", expectedConfigValue);
 		MockExtension underTest2 = new MockPlugin.MockExtension();
-		underTest2.setMockProperties(properties);
+		underTest2.accept(getMockEnvironment(expectedConfigValue));
 		DataSourceList result = underTest2.accept(createBuilder(scenarioName).build());
 		assertNotNull(result);
 		assertEquals(1, result.list().size());
@@ -135,6 +138,76 @@ class MockPluginTest {
 				()->assertEquals("ConfigValue", returnedDataSource.name()),
 				()->assertEquals(expectedConfigValue, result.deconstructor().getStringByName("ConfigValue").get())
 				);
+	}
+
+	private static Environment getMockEnvironment(String expectedConfigValue) {
+		return new Environment() {
+			
+			@Override
+			public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
+				return null;
+			}
+			
+			@Override
+			public String resolvePlaceholders(String text) {
+				return null;
+			}
+			
+			@Override
+			public <T> T getRequiredProperty(String key, Class<T> targetType) throws IllegalStateException {
+				return null;
+			}
+			
+			@Override
+			public String getRequiredProperty(String key) throws IllegalStateException {
+				return null;
+			}
+			
+			@Override
+			public <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
+				return null;
+			}
+			
+			@Override
+			public <T> T getProperty(String key, Class<T> targetType) {
+				return null;
+			}
+			
+			@Override
+			public String getProperty(String key, String defaultValue) {
+				return null;
+			}
+			
+			@Override
+			public String getProperty(String key) {
+				return expectedConfigValue;
+			}
+			
+			@Override
+			public boolean containsProperty(String key) {
+				return false;
+			}
+			
+			@Override
+			public String[] getDefaultProfiles() {
+				return null;
+			}
+			
+			@Override
+			public String[] getActiveProfiles() {
+				return null;
+			}
+			
+			@Override
+			public boolean acceptsProfiles(Profiles profiles) {
+				return false;
+			}
+			
+			@Override
+			public boolean acceptsProfiles(String... profiles) {
+				return false;
+			}
+		};
 	}
 	
 	private static DataSourceList.Builder createBuilder(String scenario) {
