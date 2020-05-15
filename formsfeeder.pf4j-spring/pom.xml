@@ -13,7 +13,14 @@
 	<version>0.0.1-SNAPSHOT</version>
 	<name>FormsFeeder PF4J/Spring Interface</name>
 	<description>Based on the pf4j-spring project, this version is customized for the FormsFeeder project.</description>
-
+	
+	<!--
+	In order to build this project, you just need to use the standard build procedure.  One of the two following options:
+	install
+	clean install
+	
+	I'm finding that this project is small enough that a clean install is still fast enough that I mostly use it. 
+	 -->
 	<properties>
 		<java.version>11</java.version>
 		<pf4j.version>3.3.1</pf4j.version>

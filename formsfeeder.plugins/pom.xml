@@ -12,6 +12,16 @@
 	<name>Plug-in Project Parent</name>
 	<description>Parent project for example plugins.</description>
 
+	<!--
+	In order to build this project, you just need to always clean.  For some reason the plug-in that generates the extensions.idx
+	file that is required by the pf4j framework does not get executed when a clean is not performed (i.e. when classes are not compiled).
+	
+	Therefore these projects should always be build with the following goals:
+	clean verify
+	 
+	There is no need to install because these plugins are not referenced as dependencies, so they do not need to be installed in the local
+	maven repository.
+	 -->
 	<properties>
 		<spring-boot.version>2.2.6.RELEASE</spring-boot.version>
 	</properties>

@@ -11,6 +11,16 @@
 	<name>Mock Plugin for Unit Tests</name>
 	<description>This plugin mocks a variety of situations and is used by the formsfeeder.server unit tests.</description>
 
+	<!--
+	In order to build this project, you just need to always clean.  For some reason the plug-in that generates the extensions.idx
+	file that is required by the pf4j framework does not get executed when a clean is not performed (i.e. when classes are not compiled).
+	
+	Therefore this project should always be build with the following goals:
+	clean verify
+	 
+	There is no need to install because these plugins are not referenced as dependencies, so they do not need to be installed in the local
+	maven repository.
+	 -->
 	<properties>
 		<!-- PF4J Plugin properties for this plugin -->
 		<plugin.id>com._4point.aem.formsfeeder.plugins.mock</plugin.id>

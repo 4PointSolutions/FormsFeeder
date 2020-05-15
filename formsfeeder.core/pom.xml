@@ -11,6 +11,11 @@
 	<name>AEM Forms Feeder Core Classes</name>
 	<description>Project containing common classes that are used by other Forms Feeder projects.</description>
 
+	<!--
+	In order to build this project, you just need to use the standard build procedure.  One of the two following options:
+	install
+	clean install
+	 -->
 	<dependencies>
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>

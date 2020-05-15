@@ -9,6 +9,11 @@
 	<name>AEM Forms Feeder Project</name>
 	<description>Project to create feeders for AEM Forms.</description>
 
+	<!--
+	In order to build this project, you just need to use the standard build procedure.  One of the two following options:
+	install
+	clean verify 
+	 -->
 	<modules>
 		<module>formsfeeder.core</module>
 		<module>formsfeeder.server</module>
