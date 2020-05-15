@@ -46,6 +46,19 @@
 			<artifactId>junit-addons</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- AEM Dependencies -->
+		<dependency>
+			<groupId>com._4point.aem</groupId>
+			<artifactId>fluentforms.core</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com._4point.aem.docservices</groupId>
+			<artifactId>rest-services.client</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		
 	</dependencies>
 
 </project>
