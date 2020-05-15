@@ -16,7 +16,7 @@ import org.pf4j.Plugin;
 import org.pf4j.PluginWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +24,7 @@ import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
+import com._4point.aem.formsfeeder.pf4j.spring.ApplicationContextConsumer;
 import com._4point.aem.formsfeeder.pf4j.spring.EnvironmentConsumer;
 
 @Component
@@ -40,7 +41,7 @@ public class MockPlugin extends Plugin {
 	 */
 	@Component
 	@Extension
-	public static class MockExtension implements NamedFeedConsumer, EnvironmentConsumer, ExtensionPoint {
+	public static class MockExtension implements NamedFeedConsumer, EnvironmentConsumer, ApplicationContextConsumer, ExtensionPoint {
 		Logger logger = LoggerFactory.getLogger(this.getClass());
 
 		public static final String FEED_CONSUMER_NAME = "Mock";
@@ -57,10 +58,13 @@ public class MockPlugin extends Plugin {
 		private static final String SCENARIO_RETURN_XML = "ReturnXml";
 		private static final String SCENARIO_RETURN_PDF_AND_XML = "ReturnPdfAndXml";
 		private static final String SCENARIO_RETURN_CONFIG_VALUE = "ReturnConfigValue";
+		private static final String SCENARIO_RETURN_APPLICATION_CONTEXT_CONFIG_VALUE = "ReturnApplicationContextConfigValue";
 
 		private FileSystem zipfs = null;	// Used to hold ZipFs so that we can read our .jar resources using FileSystem
 		
 		private Environment environment;
+		
+		private ApplicationContext applicationContext;
 		
 		public MockExtension() {
 			super();
@@ -72,9 +76,18 @@ public class MockPlugin extends Plugin {
 		}
 
 		public final void setEnvironment(Environment environment) {
-			logger.info("setting environment is " + (environment == null ? "" : "not ") + "null");
+			logger.debug("setting environment is " + (environment == null ? "" : "not ") + "null");
 			this.environment = environment;
-			logger.info("setting formsfeeder.plugins.mock.configValue is " + (environment.getProperty("formsfeeder.plugins.mock.configValue") == null ? " null." : "'" + environment.getProperty("formsfeeder.plugins.mock.configValue") + "'."));
+			logger.debug("setting formsfeeder.plugins.mock.configValue is " + (environment.getProperty("formsfeeder.plugins.mock.configValue") == null ? " null." : "'" + environment.getProperty("formsfeeder.plugins.mock.configValue") + "'."));
+		}
+		
+		public final ApplicationContext getApplicationContext() {
+			return applicationContext;
+		}
+
+		public final void setApplicationContext(ApplicationContext applicationContext) {
+			logger.debug("setting applicationContext is " + (applicationContext == null ? "" : "not ") + "null");
+			this.applicationContext = applicationContext;
 		}
 
 		@Override
@@ -93,14 +106,23 @@ public class MockPlugin extends Plugin {
 			logger.info("MockPlugin scenario is {}", scenario);
 			switch(scenario)
 			{
+			case SCENARIO_RETURN_APPLICATION_CONTEXT_CONFIG_VALUE:
+				logger.debug("applicationContext is " + (this.getApplicationContext() == null ? "" : "not ") + "null.");
+				String ctxConfigValue = this.getApplicationContext().getBean(Environment.class).getProperty("formsfeeder.plugins.mock.configValue");
+				logger.debug("setting ConfigValue to '" + ctxConfigValue + "'.");
+				if (ctxConfigValue == null) {
+					ctxConfigValue = "substitutedValue";
+				}
+				builder.add("ConfigValue", ctxConfigValue);
+				break;
 			case SCENARIO_RETURN_CONFIG_VALUE:
 				logger.debug("environment is " + (this.getEnvironment() == null ? "" : "not ") + "null.");
-				String configValue = this.getEnvironment().getProperty("formsfeeder.plugins.mock.configValue");
-				logger.debug("setting ConfigValue to '" + configValue + "'.");
-				if (configValue == null) {
-					configValue = "substitutedValue";
+				String envConfigValue = this.getEnvironment().getProperty("formsfeeder.plugins.mock.configValue");
+				logger.debug("setting ConfigValue to '" + envConfigValue + "'.");
+				if (envConfigValue == null) {
+					envConfigValue = "substitutedValue";
 				}
-				builder.add("ConfigValue", configValue);
+				builder.add("ConfigValue", envConfigValue);
 				break;
 			case SCENARIO_RETURN_PDF_AND_XML:
 				builder.add("PdfResult", getResourcePath("SampleForm.pdf"));
@@ -163,6 +185,11 @@ public class MockPlugin extends Plugin {
 		@Override
 		public void accept(Environment environment) {
 			setEnvironment(environment);
+		}
+
+		@Override
+		public void accept(ApplicationContext ctx) {
+			setApplicationContext(ctx);
 		}
 	}
 

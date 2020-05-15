@@ -30,6 +30,8 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -699,11 +701,14 @@ class ServicesEndpointTest {
 		assertEquals(2, returnsCount, "Expected 2 parts in the response.");
 	}
 	
-	@Test
-	void testInvokePost_ReturnConfigValueFromPlugin() throws Exception {
+	// There are a couple of ways to get an environment variable (through Environment or through ApplicationContext to get Environment bean).
+	// This test test each of the possible ways.
+	@ParameterizedTest
+	@ValueSource(strings= {"ReturnConfigValue", "ReturnApplicationContextConfigValue"})
+	void testInvokePost_ReturnConfigValueFromPlugin(String scenarioName) throws Exception {
 		
 		FormDataMultiPart bodyData = new FormDataMultiPart();
-		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, "ReturnConfigValue");
+		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, scenarioName);
 		
 		Response response = ClientBuilder.newClient()
 				 .register(MultiPartFeature.class)

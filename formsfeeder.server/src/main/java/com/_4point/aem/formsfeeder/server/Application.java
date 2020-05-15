@@ -1,5 +1,7 @@
 package com._4point.aem.formsfeeder.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,18 +11,10 @@ import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication(scanBasePackages = "com._4point.aem.formsfeeder")
 public class Application {
+	private final static Logger logger = LoggerFactory.getLogger(Application.class);
 
 	public static void main(String[] args) {
-		
-		System.out.println("inside Main");
-//		pluginManager = new DefaultPluginManager();
-	    
-		ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
-		
-		System.out.println("Contains springPlunginManager " + ctx.containsBeanDefinition("springPluginManager"));
-		System.out.println("Contains feedConsumers " + ctx.containsBeanDefinition("feedConsumers"));
-		
-//		pluginManager.stopPlugins();
+		SpringApplication.run(Application.class, args);
 	}
 
 	@Bean

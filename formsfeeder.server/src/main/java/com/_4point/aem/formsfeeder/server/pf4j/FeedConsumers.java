@@ -9,12 +9,14 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com._4point.aem.formsfeeder.core.api.FeedConsumer;
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
 import com._4point.aem.formsfeeder.pf4j.SpringPluginManager;
+import com._4point.aem.formsfeeder.pf4j.spring.ApplicationContextConsumer;
 import com._4point.aem.formsfeeder.pf4j.spring.EnvironmentConsumer;
 
 @Component
@@ -27,6 +29,9 @@ public class FeedConsumers {
 	@Autowired
 	private Environment environment;
 
+	@Autowired
+	private ApplicationContext applicationContext;
+	
 	private List<NamedFeedConsumer> consumers = null;
 	
 	/* package */ FeedConsumers() {
@@ -49,6 +54,7 @@ public class FeedConsumers {
 	}
 
 	private List<NamedFeedConsumer> initializeExtensions() {
+		
 		List<NamedFeedConsumer> extensions = Objects.requireNonNull(springPluginManager, "SpringPluginManager has not been initialized!").getExtensions(NamedFeedConsumer.class);
 		// Populate extensions with Spring beans
 		for (NamedFeedConsumer extension:extensions) {
@@ -56,6 +62,11 @@ public class FeedConsumers {
 				EnvironmentConsumer envConsumer = (EnvironmentConsumer)extension;
 				logger.info("Initializing EnvironmentConsumer extension '{}'.", extension.name());
 				envConsumer.accept(environment);
+			}
+			if (extension instanceof ApplicationContextConsumer) {
+				ApplicationContextConsumer ctxConsumer = (ApplicationContextConsumer)extension;
+				logger.info("Initializing ApplicationContextConsumer extension '{}'.", extension.name());
+				ctxConsumer.accept(applicationContext);
 			}
 		}
 		return extensions;
