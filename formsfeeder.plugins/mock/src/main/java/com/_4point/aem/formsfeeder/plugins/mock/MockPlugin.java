@@ -8,6 +8,7 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 import org.pf4j.Extension;
@@ -21,6 +22,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
+import com._4point.aem.formsfeeder.core.api.PluginsConsumer;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
@@ -41,7 +43,7 @@ public class MockPlugin extends Plugin {
 	 */
 	@Component
 	@Extension
-	public static class MockExtension implements NamedFeedConsumer, EnvironmentConsumer, ApplicationContextConsumer, ExtensionPoint {
+	public static class MockExtension implements NamedFeedConsumer, EnvironmentConsumer, ApplicationContextConsumer, PluginsConsumer, ExtensionPoint {
 		Logger logger = LoggerFactory.getLogger(this.getClass());
 
 		public static final String FEED_CONSUMER_NAME = "Mock";
@@ -59,6 +61,7 @@ public class MockPlugin extends Plugin {
 		private static final String SCENARIO_RETURN_PDF_AND_XML = "ReturnPdfAndXml";
 		private static final String SCENARIO_RETURN_CONFIG_VALUE = "ReturnConfigValue";
 		private static final String SCENARIO_RETURN_APPLICATION_CONTEXT_CONFIG_VALUE = "ReturnApplicationContextConfigValue";
+		private static final String SCENARIO_CALL_ANOTHER_PLUGIN = "CallAnotherPlugin";
 
 		private FileSystem zipfs = null;	// Used to hold ZipFs so that we can read our .jar resources using FileSystem
 		
@@ -66,28 +69,38 @@ public class MockPlugin extends Plugin {
 		
 		private ApplicationContext applicationContext;
 		
+		private List<NamedFeedConsumer> pluginsList;
+		
 		public MockExtension() {
 			super();
-			logger.info("inside MockExtension constructor");
+			logger.debug("inside MockExtension constructor");
 		}
 		
-		public final Environment getEnvironment() {
+		private final Environment environment() {
 			return environment;
 		}
 
-		public final void setEnvironment(Environment environment) {
+		private final void environment(Environment environment) {
 			logger.debug("setting environment is " + (environment == null ? "" : "not ") + "null");
 			this.environment = environment;
 			logger.debug("setting formsfeeder.plugins.mock.configValue is " + (environment.getProperty("formsfeeder.plugins.mock.configValue") == null ? " null." : "'" + environment.getProperty("formsfeeder.plugins.mock.configValue") + "'."));
 		}
 		
-		public final ApplicationContext getApplicationContext() {
+		private final ApplicationContext applicationContext() {
 			return applicationContext;
 		}
 
-		public final void setApplicationContext(ApplicationContext applicationContext) {
+		private final void applicationContext(ApplicationContext applicationContext) {
 			logger.debug("setting applicationContext is " + (applicationContext == null ? "" : "not ") + "null");
 			this.applicationContext = applicationContext;
+		}
+
+		private final List<NamedFeedConsumer> pluginsList() {
+			return pluginsList;
+		}
+
+		private final void pluginsList(List<NamedFeedConsumer> pluginsList) {
+			this.pluginsList = pluginsList;
 		}
 
 		@Override
@@ -106,9 +119,21 @@ public class MockPlugin extends Plugin {
 			logger.info("MockPlugin scenario is {}", scenario);
 			switch(scenario)
 			{
+			case SCENARIO_CALL_ANOTHER_PLUGIN:
+				logger.debug("pluginsList is " + (this.pluginsList() == null ? "" : "not ") + "null.");
+				NamedFeedConsumer debugPlugin = this.pluginsList().stream()
+																  .filter(c->"Debug".equals(c.name()))
+																  .findAny()
+																  .orElseThrow(()->new FeedConsumerInternalErrorException("Couldn't find Debug plugin!"));
+				DataSourceList debugInputs = DataSourceList.builder()
+														   .addDataSources(deconstructor.getDataSources(ds->!(ds.name().equalsIgnoreCase(DS_NAME_SCENARIO))))	// String out the scenario name.
+														   .build();
+				DataSourceList debugResult = debugPlugin.accept(debugInputs);	// Pass the debug plugin all our inputs
+				builder.addDataSources(debugResult.getDataSources(x->true));	// return all the debug-pluing outputs to the caller.
+				break;
 			case SCENARIO_RETURN_APPLICATION_CONTEXT_CONFIG_VALUE:
-				logger.debug("applicationContext is " + (this.getApplicationContext() == null ? "" : "not ") + "null.");
-				String ctxConfigValue = this.getApplicationContext().getBean(Environment.class).getProperty(FORMSFEEDER_PLUGINS_ENV_PARAM_PREFIX + "mock.configValue");
+				logger.debug("applicationContext is " + (this.applicationContext() == null ? "" : "not ") + "null.");
+				String ctxConfigValue = this.applicationContext().getBean(Environment.class).getProperty(FORMSFEEDER_PLUGINS_ENV_PARAM_PREFIX + "mock.configValue");
 				logger.debug("setting ConfigValue to '" + ctxConfigValue + "'.");
 				if (ctxConfigValue == null) {
 					ctxConfigValue = "substitutedValue";
@@ -116,8 +141,8 @@ public class MockPlugin extends Plugin {
 				builder.add("ConfigValue", ctxConfigValue);
 				break;
 			case SCENARIO_RETURN_CONFIG_VALUE:
-				logger.debug("environment is " + (this.getEnvironment() == null ? "" : "not ") + "null.");
-				String envConfigValue = this.getEnvironment().getProperty(FORMSFEEDER_PLUGINS_ENV_PARAM_PREFIX + "mock.configValue");
+				logger.debug("environment is " + (this.environment() == null ? "" : "not ") + "null.");
+				String envConfigValue = this.environment().getProperty(FORMSFEEDER_PLUGINS_ENV_PARAM_PREFIX + "mock.configValue");
 				logger.debug("setting ConfigValue to '" + envConfigValue + "'.");
 				if (envConfigValue == null) {
 					envConfigValue = "substitutedValue";
@@ -184,12 +209,17 @@ public class MockPlugin extends Plugin {
 
 		@Override
 		public void accept(Environment environment) {
-			setEnvironment(environment);
+			environment(environment);
 		}
 
 		@Override
 		public void accept(ApplicationContext ctx) {
-			setApplicationContext(ctx);
+			applicationContext(ctx);
+		}
+
+		@Override
+		public void accept(List<NamedFeedConsumer> consumers) {
+			pluginsList(consumers);
 		}
 	}
 

@@ -724,6 +724,52 @@ class ServicesEndpointTest {
 		String returnedConfigValue = new String(((InputStream)response.getEntity()).readAllBytes(), StandardCharsets.UTF_8);
 		assertEquals("FromApplicationProperties", returnedConfigValue, "Expected the Config Value to match the value in application.properties (\"FromApplicationProperties\")." );
 	}
+	
+	@Test
+	void testInvokePost_CallAnotherPlugin() throws Exception {
+		
+		String bodyParamString = "BodyParam";
+		String bodyValueString = "Value";
+		String expectedParamName1 = bodyParamString + "1";
+		String expectedParamValue1 = expectedParamName1 + " " + bodyValueString;
+		String expectedParamName2 = bodyParamString + "2";
+		String expectedParamValue2 = expectedParamName2 + " " + bodyValueString;
+		String expectedParamName3 = bodyParamString + "3";
+		String expectedParamValue3 = expectedParamName3 + " " + bodyValueString;
+
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(expectedParamName1, expectedParamValue1);
+		bodyData.field(expectedParamName2, expectedParamValue2);
+		bodyData.field(expectedParamName3, expectedParamValue3);
+		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, "CallAnotherPlugin");
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		
+		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
+		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
+		int returnsCount = 0;
+		for (Entry<String, List<FormDataBodyPart>> field : fields.entrySet()) {
+			for (var body : field.getValue()) {
+				returnsCount++;
+				assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(body.getMediaType()), "Expected response media type (" + body.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+				String value = body.getEntityAs(String.class);
+				assertTrue(value.contains(bodyParamString), "Expected response body to contain '" + bodyParamString + "', but was '" + value + "'.");
+				assertTrue(value.contains(bodyValueString), "Expected response body to contain '" + bodyValueString + "', but was '" + value + "'.");
+			}
+		}
+		assertEquals(3, returnsCount);
+	}
+	
+	
 		
 	@Test
 	void testInvokeGetNoParams_BadPath() {

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com._4point.aem.formsfeeder.core.api.FeedConsumer;
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
+import com._4point.aem.formsfeeder.core.api.PluginsConsumer;
 import com._4point.aem.formsfeeder.pf4j.SpringPluginManager;
 import com._4point.aem.formsfeeder.pf4j.spring.ApplicationContextConsumer;
 import com._4point.aem.formsfeeder.pf4j.spring.EnvironmentConsumer;
@@ -67,6 +68,11 @@ public class FeedConsumers {
 				ApplicationContextConsumer ctxConsumer = (ApplicationContextConsumer)extension;
 				logger.info("Initializing ApplicationContextConsumer extension '{}'.", extension.name());
 				ctxConsumer.accept(applicationContext);
+			}
+			if (extension instanceof PluginsConsumer) {
+				PluginsConsumer pluginsConsumer = (PluginsConsumer)extension;
+				logger.info("Initializing PluginsConsumer extension '{}'.", extension.name());
+				pluginsConsumer.accept(extensions);
 			}
 		}
 		return extensions;

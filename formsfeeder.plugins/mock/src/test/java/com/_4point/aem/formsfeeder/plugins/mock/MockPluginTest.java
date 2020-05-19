@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -28,6 +29,7 @@ import org.springframework.core.io.Resource;
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerBadRequestException;
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerException;
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerInternalErrorException;
+import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
@@ -141,9 +143,8 @@ class MockPluginTest {
 	void testReturnConfigValue() throws Exception {
 		final String expectedConfigValue = "UnitTestValue";
 		final String scenarioName = "ReturnConfigValue";
-		MockExtension underTest2 = new MockPlugin.MockExtension();
-		underTest2.accept(getMockEnvironment(expectedConfigValue));
-		DataSourceList result = underTest2.accept(createBuilder(scenarioName).build());
+		underTest.accept(getMockEnvironment(expectedConfigValue));
+		DataSourceList result = underTest.accept(createBuilder(scenarioName).build());
 		assertNotNull(result);
 		assertEquals(1, result.list().size());
 		DataSource returnedDataSource = result.list().get(0);
@@ -158,20 +159,65 @@ class MockPluginTest {
 	void testReturnConfigValueUsingApplicationContext() throws Exception {
 		final String expectedConfigValue = "UnitTestValue";
 		final String scenarioName = "ReturnApplicationContextConfigValue";
-		MockExtension underTest2 = new MockPlugin.MockExtension();
-		underTest2.accept(getApplicationContext(expectedConfigValue));
-		DataSourceList result = underTest2.accept(createBuilder(scenarioName).build());
+		underTest.accept(getMockApplicationContext(expectedConfigValue));
+		DataSourceList result = underTest.accept(createBuilder(scenarioName).build());
+		assertNotNull(result);
+		assertEquals(1, result.list().size());
+		DataSource returnedDataSource = result.list().get(0);
+		final String expectedConfigName = "ConfigValue";
+		assertAll(
+				()->assertEquals(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE, returnedDataSource.contentType()),
+				()->assertEquals(expectedConfigName, returnedDataSource.name()),
+				()->assertEquals(expectedConfigValue, result.deconstructor().getStringByName(expectedConfigName).get())
+				);
+	}
+
+	@Test
+	void testCallAnotherPlugin() throws Exception {
+		final String expectedReturnedName = "UnitTestName";
+		final String expectedReturnedValue = "UnitTestValue";
+		final String scenarioName = "CallAnotherPlugin";
+		underTest.accept(getMockConsumers());
+		DataSourceList result = underTest.accept(createBuilder(scenarioName).add(expectedReturnedName, expectedReturnedValue).build());
 		assertNotNull(result);
 		assertEquals(1, result.list().size());
 		DataSource returnedDataSource = result.list().get(0);
 		assertAll(
 				()->assertEquals(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE, returnedDataSource.contentType()),
-				()->assertEquals("ConfigValue", returnedDataSource.name()),
-				()->assertEquals(expectedConfigValue, result.deconstructor().getStringByName("ConfigValue").get())
+				()->assertEquals(expectedReturnedName, returnedDataSource.name()),
+				()->assertEquals(expectedReturnedValue, result.deconstructor().getStringByName(expectedReturnedName).get())
 				);
 	}
 
-	private ApplicationContext getApplicationContext(String expectedConfigValue) {
+	private List<NamedFeedConsumer> getMockConsumers() {
+		NamedFeedConsumer mockDebugPlugin = new NamedFeedConsumer() {
+			
+			@Override
+			public DataSourceList accept(DataSourceList dataSources) throws FeedConsumerException {
+				return dataSources;
+			}
+			
+			@Override
+			public String name() {
+				return "Debug";
+			}
+		};
+		NamedFeedConsumer mockOtherPlugin = new NamedFeedConsumer() {
+			
+			@Override
+			public DataSourceList accept(DataSourceList dataSources) throws FeedConsumerException {
+				return dataSources;
+			}
+			
+			@Override
+			public String name() {
+				return "Other";
+			}
+		};
+		return List.of(mockOtherPlugin, mockDebugPlugin, mockOtherPlugin);
+	}
+
+	private ApplicationContext getMockApplicationContext(String expectedConfigValue) {
 		return new ApplicationContext() {
 			
 			@Override
