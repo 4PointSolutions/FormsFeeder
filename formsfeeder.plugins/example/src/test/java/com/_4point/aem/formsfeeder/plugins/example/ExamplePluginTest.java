@@ -8,6 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -21,39 +23,80 @@ import org.springframework.core.env.Profiles;
 
 import com._4point.aem.fluentforms.impl.SimpleDocumentFactoryImpl;
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerBadRequestException;
+import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
 import com._4point.aem.formsfeeder.plugins.example.ExamplePlugin.ExampleFeedConsumerExtension;
-import com._4point.aem.formsfeeder.plugins.example.ExamplePlugin.ExampleFeedConsumerExtension.ExampleParameters;
+import com._4point.aem.formsfeeder.plugins.example.ExamplePlugin.ExampleFeedConsumerExtension.ExamplePluginInputParameters;
 
 class ExamplePluginTest {
-	private static final Path SAMPLE_FILES = Paths.get("src", "test", "resources", "SampleForms");
-	private static final Path SAMPLE_XDP = SAMPLE_FILES.resolve("SampleForm.xdp");
-	private static final Path SAMPLE_DATA = SAMPLE_FILES.resolve("SampleForm_data.xml");
+	private static final Path RESOURCES_FOLDER = Paths.get("src", "test", "resources");
+	private static final Path SAMPLE_FILES_DIR = RESOURCES_FOLDER.resolve("SampleFiles");
+	private static final Path ACTUAL_RESULTS_DIR = RESOURCES_FOLDER.resolve("ActualResults");
+	private static final Path SAMPLE_XDP = SAMPLE_FILES_DIR.resolve("SampleForm.xdp");
+	private static final Path SAMPLE_DATA = SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
 
-	private static final String AEM_HOST_NAME_ENV = "formsfeeder.plugins.example.aem-host"; 
-	private static final String AEM_PORT_NAME_ENV = "formsfeeder.plugins.example.aem-port"; 
+	private static final String AEM_HOST_NAME_ENV = "formsfeeder.plugins.aemHost"; 
+	private static final String AEM_PORT_NAME_ENV = "formsfeeder.plugins.aemPort"; 
 	private static final String AEM_PORT_DEFAULT_VALUE = "4502";
 
 	private static final String TEMPLATE_PARAM_NAME = "template";
 	private static final String DATA_PARAM_NAME = "data";
 	private static final String INTERACTIVE_PARAM_NAME = "interactive";
 
+	private static final boolean SAVE_RESULTS = true;
+	static {
+		if (SAVE_RESULTS) {
+			try {
+				Files.createDirectories(ACTUAL_RESULTS_DIR);
+			} catch (IOException e) {
+				// eat it, we don't care.
+			}
+		}
+	}
+	
 	private ExamplePlugin.ExampleFeedConsumerExtension underTest = new ExamplePlugin.ExampleFeedConsumerExtension();;
 
-	@Disabled
-	void testAccept() throws Exception {
-		final String expectedAemHostName = "aemHost";
-		final String expectedAemPortNum = "55555";
+	private enum PdfScenario {
+		INTERACTIVE(true), NON_INTERACTIVE(false);
+		
+		private final boolean interactiveFlag;
+
+		/**
+		 * @param interactiveFlag
+		 */
+		private PdfScenario(boolean interactiveFlag) {
+			this.interactiveFlag = interactiveFlag;
+		}
+
+		public final boolean isInteractiveFlag() {
+			return interactiveFlag;
+		}
+	}
+	
+	@ParameterizedTest
+	@EnumSource
+	void testAccept_Pdf(PdfScenario scenario) throws Exception {
+		final String expectedAemHostName = "localhost";
+		final String expectedAemPortNum = "4502";
 		DataSourceList testData = DataSourceList.builder()
 												.add(TEMPLATE_PARAM_NAME, SAMPLE_XDP)
 												.add(DATA_PARAM_NAME, SAMPLE_DATA)
-												.add(INTERACTIVE_PARAM_NAME, "true")
+												.add(INTERACTIVE_PARAM_NAME, scenario.isInteractiveFlag())
 												.build();
 		underTest.accept(getMockEnvironment(expectedAemHostName, expectedAemPortNum));	// Set up the environment
 		DataSourceList result = underTest.accept(testData);
 		assertNotNull(result);
 		assertFalse(result.isEmpty());
+		assertEquals(1, result.list().size());
+		DataSource resultDs = result.list().get(0);
+		byte[] resultBytes = resultDs.inputStream().readAllBytes();
+		if (SAVE_RESULTS) {
+			try (var os = Files.newOutputStream(ACTUAL_RESULTS_DIR.resolve("testAccept_Pdf_" + scenario.toString() + ".pdf"))) {
+				os.write(resultBytes);;
+			}
+		}
+		assertEquals("application/pdf",resultDs.contentType().asString());
 	}
 
 	@Test
@@ -72,7 +115,7 @@ class ExamplePluginTest {
 													  .add(INTERACTIVE_PARAM_NAME, interactiveFlag)
 													  .build();
 		
-		ExampleParameters result = ExampleFeedConsumerExtension.ExampleParameters.from(dataSourceList, SimpleDocumentFactoryImpl.getFactory());
+		ExamplePluginInputParameters result = ExampleFeedConsumerExtension.ExamplePluginInputParameters.from(dataSourceList, SimpleDocumentFactoryImpl.getFactory());
 		assertArrayEquals(expectedTemplateData, result.getTemplate().getInlineData());
 		assertArrayEquals(expectedDataData, result.getData().getInlineData());
 		assertEquals(interactiveFlag, result.isInteractive());
@@ -129,7 +172,7 @@ class ExamplePluginTest {
 	@ParameterizedTest
 	@EnumSource
 	void testExampleParametersMissingParameters(ExampleParametersMissingParametersScenario scenario) {
-		FeedConsumerBadRequestException ex = assertThrows(FeedConsumerBadRequestException.class, ()->ExampleFeedConsumerExtension.ExampleParameters.from(scenario.getDsl(), SimpleDocumentFactoryImpl.getFactory()));
+		FeedConsumerBadRequestException ex = assertThrows(FeedConsumerBadRequestException.class, ()->ExampleFeedConsumerExtension.ExamplePluginInputParameters.from(scenario.getDsl(), SimpleDocumentFactoryImpl.getFactory()));
 		String msg = ex.getMessage();
 		assertNotNull(msg);
 		assertAll(
