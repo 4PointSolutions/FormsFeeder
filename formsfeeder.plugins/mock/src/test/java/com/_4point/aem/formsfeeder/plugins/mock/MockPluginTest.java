@@ -438,6 +438,7 @@ class MockPluginTest {
 			
 			@Override
 			public String getProperty(String key) {
+				assertEquals("formsfeeder.plugins.mock.configValue", key, "Expected the configuration key to be \"formsfeeder.plugins.mock.configValue\"");
 				return expectedConfigValue;
 			}
 			

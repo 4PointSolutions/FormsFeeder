@@ -108,7 +108,7 @@ public class MockPlugin extends Plugin {
 			{
 			case SCENARIO_RETURN_APPLICATION_CONTEXT_CONFIG_VALUE:
 				logger.debug("applicationContext is " + (this.getApplicationContext() == null ? "" : "not ") + "null.");
-				String ctxConfigValue = this.getApplicationContext().getBean(Environment.class).getProperty("formsfeeder.plugins.mock.configValue");
+				String ctxConfigValue = this.getApplicationContext().getBean(Environment.class).getProperty(FORMSFEEDER_PLUGINS_ENV_PARAM_PREFIX + "mock.configValue");
 				logger.debug("setting ConfigValue to '" + ctxConfigValue + "'.");
 				if (ctxConfigValue == null) {
 					ctxConfigValue = "substitutedValue";
@@ -117,7 +117,7 @@ public class MockPlugin extends Plugin {
 				break;
 			case SCENARIO_RETURN_CONFIG_VALUE:
 				logger.debug("environment is " + (this.getEnvironment() == null ? "" : "not ") + "null.");
-				String envConfigValue = this.getEnvironment().getProperty("formsfeeder.plugins.mock.configValue");
+				String envConfigValue = this.getEnvironment().getProperty(FORMSFEEDER_PLUGINS_ENV_PARAM_PREFIX + "mock.configValue");
 				logger.debug("setting ConfigValue to '" + envConfigValue + "'.");
 				if (envConfigValue == null) {
 					envConfigValue = "substitutedValue";
