@@ -1,6 +1,7 @@
 package com._4point.aem.formsfeeder.plugins.example;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -15,6 +16,7 @@ import com._4point.aem.docservices.rest_services.client.output.RestServicesOutpu
 import com._4point.aem.fluentforms.api.Document;
 import com._4point.aem.fluentforms.api.DocumentFactory;
 import com._4point.aem.fluentforms.api.forms.FormsService;
+import com._4point.aem.fluentforms.api.forms.FormsService.FormsServiceException;
 import com._4point.aem.fluentforms.api.output.OutputService;
 import com._4point.aem.fluentforms.api.output.OutputService.OutputServiceException;
 import com._4point.aem.fluentforms.impl.SimpleDocumentFactoryImpl;
@@ -59,9 +61,8 @@ public class ExamplePlugin extends Plugin {
 			try {
 				Document result;
 				if (params.isInteractive()) {
-//					formsService().renderPDFForm();
-//					result = null;
-					throw new UnsupportedOperationException("Interactive Rendering not supported yet!");
+					result = formsService().renderPDFForm()
+										   .executeOn(params.getTemplate(), params.getData());
 				} else {
 					result = outputService().generatePDFOutput()
 											.executeOn(params.getTemplate(), params.getData());
@@ -75,6 +76,8 @@ public class ExamplePlugin extends Plugin {
 				throw new FeedConsumerInternalErrorException("Error while generating PDF.", e);
 			} catch (IOException e) {
 				throw new FeedConsumerInternalErrorException("Error while reading generating PDF.", e);
+			} catch (FormsServiceException e) {
+				throw new FeedConsumerInternalErrorException("Error while rendering PDF.", e);
 			}
 		}
 
@@ -175,8 +178,8 @@ public class ExamplePlugin extends Plugin {
 			public static ExamplePluginInputParameters from(DataSourceList dataSourceList, DocumentFactory docFactory) throws FeedConsumerBadRequestException {
 				Deconstructor deconstructor = dataSourceList.deconstructor();
 				// Pull the parameters out of the DataSourceList and throw a BadRequestException if they're not there.
-				Document templateDoc = docFactory.create(deconstructor.getByteArrayByName(TEMPLATE_PARAM_NAME).orElseThrow(()->new FeedConsumerBadRequestException("'" + TEMPLATE_PARAM_NAME + "' Parameter must be supplied.")));
-				Document dataDoc = docFactory.create(deconstructor.getByteArrayByName(DATA_PARAM_NAME).orElseThrow(()->new FeedConsumerBadRequestException("'" + DATA_PARAM_NAME + "' Parameter must be supplied.")));
+				Document templateDoc = docFactory.create(Paths.get(deconstructor.getStringByName(TEMPLATE_PARAM_NAME).orElseThrow(()->new FeedConsumerBadRequestException("'" + TEMPLATE_PARAM_NAME + "' Parameter must be supplied."))));
+				Document dataDoc = docFactory.create(Paths.get(deconstructor.getStringByName(DATA_PARAM_NAME).orElseThrow(()->new FeedConsumerBadRequestException("'" + DATA_PARAM_NAME + "' Parameter must be supplied."))));
 				Boolean interactiveBool = deconstructor.getBooleanByName(INTERACTIVE_PARAM_NAME).orElseThrow(()->new FeedConsumerBadRequestException("'" + INTERACTIVE_PARAM_NAME + "' Parameter must be supplied."));
 				// Use what we've pulled out to construct the ExampleParameters object.
 				return new ExamplePluginInputParameters(templateDoc, dataDoc, interactiveBool);

@@ -80,8 +80,8 @@ class ExamplePluginTest {
 		final String expectedAemHostName = "localhost";
 		final String expectedAemPortNum = "4502";
 		DataSourceList testData = DataSourceList.builder()
-												.add(TEMPLATE_PARAM_NAME, SAMPLE_XDP)
-												.add(DATA_PARAM_NAME, SAMPLE_DATA)
+												.add(TEMPLATE_PARAM_NAME, SAMPLE_XDP.toString())	// Add as Strings so that the names are passed, not the contents.
+												.add(DATA_PARAM_NAME, SAMPLE_DATA.toString())
 												.add(INTERACTIVE_PARAM_NAME, scenario.isInteractiveFlag())
 												.build();
 		underTest.accept(getMockEnvironment(expectedAemHostName, expectedAemPortNum));	// Set up the environment
@@ -107,17 +107,17 @@ class ExamplePluginTest {
 	@ParameterizedTest
 	@ValueSource ( strings = {"true", "false"})
 	void testExampleParametersFrom(boolean interactiveFlag) throws Exception {
-		final byte[] expectedTemplateData = "Expected Tempate Data".getBytes();  
-		final byte[] expectedDataData = "Expected Data Data".getBytes();
+		final Path expectedTemplateData = SAMPLE_XDP;  
+		final Path expectedDataData = SAMPLE_DATA;
 		DataSourceList dataSourceList = DataSourceList.builder()
-													  .add(TEMPLATE_PARAM_NAME, expectedTemplateData)
-													  .add(DATA_PARAM_NAME, expectedDataData)
+													  .add(TEMPLATE_PARAM_NAME, expectedTemplateData.toString())
+													  .add(DATA_PARAM_NAME, expectedDataData.toString())
 													  .add(INTERACTIVE_PARAM_NAME, interactiveFlag)
 													  .build();
 		
 		ExamplePluginInputParameters result = ExampleFeedConsumerExtension.ExamplePluginInputParameters.from(dataSourceList, SimpleDocumentFactoryImpl.getFactory());
-		assertArrayEquals(expectedTemplateData, result.getTemplate().getInlineData());
-		assertArrayEquals(expectedDataData, result.getData().getInlineData());
+		assertArrayEquals(Files.newInputStream(expectedTemplateData).readAllBytes(), result.getTemplate().getInlineData());
+		assertArrayEquals(Files.newInputStream(expectedDataData).readAllBytes(), result.getData().getInlineData());
 		assertEquals(interactiveFlag, result.isInteractive());
 	}
 	
@@ -139,15 +139,15 @@ class ExamplePluginTest {
 			this.interactiveMissing = interactiveMissing;
 		}
 		
-		private DataSourceList getDsl() {
-			final byte[] expectedTemplateData = "Expected Tempate Data".getBytes();  
-			final byte[] expectedDataData = "Expected Data Data".getBytes();
+		private DataSourceList getDataSourceList() {
+			final Path expectedTemplateData = SAMPLE_XDP;  
+			final Path expectedDataData = SAMPLE_DATA;
 			Builder builder = DataSourceList.builder();
 			if (!templateMissing) {
-				builder.add(TEMPLATE_PARAM_NAME, expectedTemplateData);
+				builder.add(TEMPLATE_PARAM_NAME, expectedTemplateData.toString());
 			}
 			if (!dataMissing) {
-				builder.add(DATA_PARAM_NAME, expectedDataData);
+				builder.add(DATA_PARAM_NAME, expectedDataData.toString());
 			}
 			if (!interactiveMissing) {
 				builder.add(INTERACTIVE_PARAM_NAME, false);
@@ -172,7 +172,7 @@ class ExamplePluginTest {
 	@ParameterizedTest
 	@EnumSource
 	void testExampleParametersMissingParameters(ExampleParametersMissingParametersScenario scenario) {
-		FeedConsumerBadRequestException ex = assertThrows(FeedConsumerBadRequestException.class, ()->ExampleFeedConsumerExtension.ExamplePluginInputParameters.from(scenario.getDsl(), SimpleDocumentFactoryImpl.getFactory()));
+		FeedConsumerBadRequestException ex = assertThrows(FeedConsumerBadRequestException.class, ()->ExampleFeedConsumerExtension.ExamplePluginInputParameters.from(scenario.getDataSourceList(), SimpleDocumentFactoryImpl.getFactory()));
 		String msg = ex.getMessage();
 		assertNotNull(msg);
 		assertAll(
