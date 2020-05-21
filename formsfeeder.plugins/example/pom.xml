@@ -11,16 +11,13 @@
 	<name>Example Plug-in</name>
 	<description>Example Plugin that calls AEM Forms to render PDF.</description>
 
-	<!--
-	In order to build this project, you just need to always clean.  For some reason the plug-in that generates the extensions.idx
-	file that is required by the pf4j framework does not get executed when a clean is not performed (i.e. when classes are not compiled).
-	
-	Therefore this project should always be build with the following goals:
-	clean verify
-	 
-	There is no need to install because these plugins are not referenced as dependencies, so they do not need to be installed in the local
-	maven repository.
-	 -->
+	<!-- In order to build this project, you just need to always clean. For 
+		some reason the plug-in that generates the extensions.idx file that is required 
+		by the pf4j framework does not get executed when a clean is not performed 
+		(i.e. when classes are not compiled). Therefore this project should always 
+		be build with the following goals: clean verify There is no need to install 
+		because these plugins are not referenced as dependencies, so they do not 
+		need to be installed in the local maven repository. -->
 	<properties>
 		<!-- PF4J Plugin properties for this plugin -->
 		<plugin.id>com._4point.aem.formsfeeder.plugins.example</plugin.id>
@@ -29,6 +26,62 @@
 		<plugin.dependencies />
 		<plugin.description>Example Plug-in - Makes calls to AEM to render a form.</plugin.description>
 	</properties>
+
+	<build>
+		<plugins>
+			<!-- Maven Assembly Plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>3.2.3</version>
+				<configuration>
+					<!-- FluentForms uses the Jersey client to talk to AEM, so we need to -->
+					<!-- shade the JAX-RS & Jersey classes because they conflict with the -->
+					<!-- versions used by the server. -->
+					<relocations>
+						<relocation>
+							<pattern>javax.ws</pattern>
+							<shadedPattern>com._4point.shaded.javax.ws</shadedPattern>
+						</relocation>
+						<relocation>
+							<pattern>org.glassfish</pattern>
+							<shadedPattern>com._4point.shaded.org.glassfish</shadedPattern>
+						</relocation>
+					</relocations>
+					<transformers>
+						<transformer
+							implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
+					</transformers>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
+						</manifest>
+						<manifestEntries>
+							<Plugin-Class>${plugin.class}</Plugin-Class>
+							<Plugin-Id>${plugin.id}</Plugin-Id>
+							<Plugin-Version>${plugin.version}</Plugin-Version>
+							<Plugin-Requires>1.0.0</Plugin-Requires>
+							<Plugin-Dependencies>${plugin.dependencies}</Plugin-Dependencies>
+							<Plugin-Description>${plugin.description}</Plugin-Description>
+							<Plugin-Provider>4Point Solutions</Plugin-Provider>
+							<Plugin-License>Apache License 2.0</Plugin-License>
+						</manifestEntries>
+					</archive>
+				</configuration>
+				<executions>
+					<execution>
+						<id>shade-package</id>
+						<!-- bind to the packaging phase -->
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 
 	<dependencies>
 		<dependency>
@@ -58,7 +111,6 @@
 			<artifactId>rest-services.client</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
-		
 	</dependencies>
 
 </project>

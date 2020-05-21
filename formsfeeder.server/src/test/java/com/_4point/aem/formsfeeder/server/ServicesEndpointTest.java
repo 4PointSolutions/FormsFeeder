@@ -13,6 +13,9 @@ import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -31,12 +34,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.LocalServerPort;
 
-import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
@@ -48,10 +51,27 @@ class ServicesEndpointTest {
 	private static final String API_V1_PATH = "/api/v1";
 	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
 	private static final String MOCK_PLUGIN_PATH = API_V1_PATH + "/Mock";
-	
+	private static final String EXAMPLE_PLUGIN_PATH = API_V1_PATH + "/Example";
+
 	private static final String BODY_DS_NAME = "formsfeeder:BodyBytes";
 	private static final String MOCK_PLUGIN_SCENARIO_NAME = "scenario";
 	
+	private static final Path RESOURCES_FOLDER = Paths.get("src", "test", "resources");
+	private static final Path SAMPLE_FILES_DIR = RESOURCES_FOLDER.resolve("SampleFiles");
+	private static final Path ACTUAL_RESULTS_DIR = RESOURCES_FOLDER.resolve("ActualResults");
+	private static final Path SAMPLE_XDP = SAMPLE_FILES_DIR.resolve("SampleForm.xdp");
+	private static final Path SAMPLE_DATA = SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
+	private static final boolean SAVE_RESULTS = true;
+	static {
+		if (SAVE_RESULTS) {
+			try {
+				Files.createDirectories(ACTUAL_RESULTS_DIR);
+			} catch (IOException e) {
+				// eat it, we don't care.
+			}
+		}
+	}
+
 	@LocalServerPort
 	private int port;
 
@@ -795,7 +815,61 @@ class ServicesEndpointTest {
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 	}
 
+	private enum PdfScenario {
+		INTERACTIVE(true), NON_INTERACTIVE(false);
+		
+		private final boolean interactiveFlag;
 
+		/**
+		 * @param interactiveFlag
+		 */
+		private PdfScenario(boolean interactiveFlag) {
+			this.interactiveFlag = interactiveFlag;
+		}
+
+		public final boolean isInteractiveFlag() {
+			return interactiveFlag;
+		}
+	}
+	
+	@ParameterizedTest
+	@EnumSource()
+	void testInvokeExamplePlugin(PdfScenario scenario) throws Exception {
+		final String TEMPLATE_PARAM_NAME = "template";
+		final String DATA_PARAM_NAME = "data";
+		final String INTERACTIVE_PARAM_NAME = "interactive";
+
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(TEMPLATE_PARAM_NAME, SAMPLE_XDP.toString());
+		bodyData.field(DATA_PARAM_NAME, SAMPLE_DATA.toString());
+		bodyData.field(INTERACTIVE_PARAM_NAME, Boolean.toString(scenario.isInteractiveFlag()));
+
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(EXAMPLE_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + EXAMPLE_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(APPLICATION_PDF.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/pdf'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		assertTrue(response.hasEntity(), "Expected response to have entity");
+		byte[] resultBytes = ((InputStream)response.getEntity()).readAllBytes();
+		if (SAVE_RESULTS /* && USE_AEM */) {
+			try (var os = Files.newOutputStream(ACTUAL_RESULTS_DIR.resolve("testAccept_Pdf_" + scenario.toString() + ".pdf"))) {
+				os.write(resultBytes);;
+			}
+		}
+		PDDocument pdf = PDDocument.load(resultBytes);
+		PDDocumentCatalog catalog = pdf.getDocumentCatalog();
+		assertNotNull(pdf);
+		assertNotNull(catalog);
+
+	}
+
+
+	
 	private static URI getBaseUri(int port) throws URISyntaxException {
 		return new URI("http://localhost:" + port);
 	}
