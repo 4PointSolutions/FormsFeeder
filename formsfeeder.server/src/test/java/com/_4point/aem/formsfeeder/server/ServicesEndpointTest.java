@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -30,6 +31,7 @@ import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -39,14 +41,28 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.MutablePropertySources;
+import org.springframework.core.env.StandardEnvironment;
 
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.http.ResponseDefinition;
+import com.github.tomakehurst.wiremock.recording.SnapshotRecordResult;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
-class ServicesEndpointTest {
+class ServicesEndpointTest implements EnvironmentAware {
 
+	private static final String ENV_FORMSFEEDER_PLUGINS_AEM_PORT = "formsfeeder.plugins.aemPort";
+	private static final String ENV_FORMSFEEDER_PLUGINS_AEM_HOST = "formsfeeder.plugins.aemHost";
 	private static final MediaType APPLICATION_PDF = MediaType.valueOf("application/pdf");
 	private static final String API_V1_PATH = "/api/v1";
 	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
@@ -61,6 +77,8 @@ class ServicesEndpointTest {
 	private static final Path ACTUAL_RESULTS_DIR = RESOURCES_FOLDER.resolve("ActualResults");
 	private static final Path SAMPLE_XDP = SAMPLE_FILES_DIR.resolve("SampleForm.xdp");
 	private static final Path SAMPLE_DATA = SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
+	private static final boolean USE_WIREMOCK = true;
+	private static final boolean WIREMOCK_RECORDING = false;
 	private static final boolean SAVE_RESULTS = true;
 	static {
 		if (SAVE_RESULTS) {
@@ -76,10 +94,58 @@ class ServicesEndpointTest {
 	private int port;
 
 	private URI uri;
+	private WireMockServer wireMockServer;
+	private static Integer wiremockPort = null;
+	private Environment environment;
 
 	@BeforeEach
 	public void setUp() throws Exception {
 		uri = getBaseUri(port);
+		
+		if (USE_WIREMOCK) {
+			// Let wiremock choose the port for the first test, but re-use the same port for all subsequent tests.
+			wireMockServer = new WireMockServer(wiremockPort == null ? new WireMockConfiguration().dynamicPort() : new WireMockConfiguration().port(wiremockPort));
+	        wireMockServer.start();
+			System.out.println("Inside SetEnvironment wiremock block.");
+			if (WIREMOCK_RECORDING) {
+				String aemBaseUrl = "http://" + environment.getRequiredProperty(ENV_FORMSFEEDER_PLUGINS_AEM_HOST) + ":"
+						+ environment.getRequiredProperty(ENV_FORMSFEEDER_PLUGINS_AEM_PORT);
+				System.out.println("Wiremock recording of '" + aemBaseUrl + "'.");
+				wireMockServer.startRecording(aemBaseUrl);
+			}
+			if (wiremockPort == null) {	// Save the port for subsequent invocations. 
+				wiremockPort = wireMockServer.port();
+			}
+			if (environment instanceof ConfigurableEnvironment) {
+				ConfigurableEnvironment env1 = (ConfigurableEnvironment) environment;
+				MutablePropertySources propertySources = env1.getPropertySources();
+				Map<String, Object> myMap = new HashMap<>();
+				myMap.put(ENV_FORMSFEEDER_PLUGINS_AEM_HOST, "localhost");
+				myMap.put(ENV_FORMSFEEDER_PLUGINS_AEM_PORT, wiremockPort);
+				propertySources.addFirst(new MapPropertySource("WIREMOCK_MAP", myMap));
+			} else {
+				System.out.println("Unable to write to environment.");
+			}
+			System.out.println("Wiremock is up on port " + wiremockPort + " .");
+		}
+	}
+
+	@AfterEach
+	public void tearDown() throws Exception {
+		if (USE_WIREMOCK) {
+	        if (WIREMOCK_RECORDING) {
+	        	SnapshotRecordResult recordings = wireMockServer.stopRecording();
+	        	List<StubMapping> mappings = recordings.getStubMappings();
+	        	System.out.println("Found " + mappings.size() + " recordings.");
+	        	for (StubMapping mapping : mappings) {
+	        		ResponseDefinition response = mapping.getResponse();
+	        		JsonNode jsonBody = response.getJsonBody();
+	        		System.out.println(jsonBody == null ? "JsonBody is null" : jsonBody.toPrettyString());
+	        	}
+	        }
+	        wireMockServer.stop();
+			System.out.println("Wiremock is down.");
+		}
 	}
 	
 	@Test
@@ -890,6 +956,11 @@ class ServicesEndpointTest {
 		}
 	}
 
+	@Override
+	public void setEnvironment(Environment environment) {
+		System.out.println("Inside SetEnvironment.");
+		this.environment = environment;
+	}
 
 
 }
