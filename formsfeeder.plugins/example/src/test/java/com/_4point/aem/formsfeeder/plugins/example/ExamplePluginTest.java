@@ -21,7 +21,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.Profiles;
 
+import com._4point.aem.fluentforms.api.Document;
 import com._4point.aem.fluentforms.impl.SimpleDocumentFactoryImpl;
+import com._4point.aem.fluentforms.testing.forms.MockTraditionalFormsService;
+import com._4point.aem.fluentforms.testing.output.MockTraditionalOutputService;
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerBadRequestException;
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
@@ -44,7 +47,7 @@ class ExamplePluginTest {
 	private static final String DATA_PARAM_NAME = "data";
 	private static final String INTERACTIVE_PARAM_NAME = "interactive";
 
-	private static final boolean SAVE_RESULTS = true;
+	private static final boolean SAVE_RESULTS = false;
 	static {
 		if (SAVE_RESULTS) {
 			try {
@@ -54,8 +57,9 @@ class ExamplePluginTest {
 			}
 		}
 	}
+	private static final boolean USE_AEM = false;
 	
-	private ExamplePlugin.ExampleFeedConsumerExtension underTest = new ExamplePlugin.ExampleFeedConsumerExtension();;
+	private ExamplePlugin.ExampleFeedConsumerExtension underTest = new ExamplePlugin.ExampleFeedConsumerExtension();
 
 	private enum PdfScenario {
 		INTERACTIVE(true), NON_INTERACTIVE(false);
@@ -74,11 +78,26 @@ class ExamplePluginTest {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	@ParameterizedTest
 	@EnumSource
 	void testAccept_Pdf(PdfScenario scenario) throws Exception {
 		final String expectedAemHostName = "localhost";
 		final String expectedAemPortNum = "4502";
+		final byte[] expectedResponse = "Expected Response Data".getBytes();
+		String expectedContentType = "application/pdf";
+		final Document expectedResponseDoc = SimpleDocumentFactoryImpl.getFactory().create(expectedResponse);
+		expectedResponseDoc.setContentType(expectedContentType);
+	
+		if (!USE_AEM) {
+			if (scenario.isInteractiveFlag()) {
+				// Mock the REST Forms Client
+				underTest.tradFormsServiceSupplier(()->MockTraditionalFormsService.createRenderFormMock(expectedResponseDoc));
+			} else {
+				// Mock the REST Output Client
+				underTest.tradOutputServiceSupplier(()->MockTraditionalOutputService.createDocumentMock(expectedResponseDoc));
+			}
+		}
 		DataSourceList testData = DataSourceList.builder()
 												.add(TEMPLATE_PARAM_NAME, SAMPLE_XDP.toString())	// Add as Strings so that the names are passed, not the contents.
 												.add(DATA_PARAM_NAME, SAMPLE_DATA.toString())
@@ -91,12 +110,16 @@ class ExamplePluginTest {
 		assertEquals(1, result.list().size());
 		DataSource resultDs = result.list().get(0);
 		byte[] resultBytes = resultDs.inputStream().readAllBytes();
-		if (SAVE_RESULTS) {
+		if (SAVE_RESULTS && USE_AEM) {
 			try (var os = Files.newOutputStream(ACTUAL_RESULTS_DIR.resolve("testAccept_Pdf_" + scenario.toString() + ".pdf"))) {
 				os.write(resultBytes);;
 			}
 		}
-		assertEquals("application/pdf",resultDs.contentType().asString());
+		assertEquals(expectedContentType,resultDs.contentType().asString());
+		if (!USE_AEM) {
+			// Since we're not using AEM, we can verify the result bytes.
+			assertArrayEquals(expectedResponse, resultBytes, "Expected the result bytes to match the expected response we gave the mock object.");
+		}		
 	}
 
 	@Test

@@ -22,7 +22,9 @@ import com._4point.aem.fluentforms.api.output.OutputService.OutputServiceExcepti
 import com._4point.aem.fluentforms.impl.SimpleDocumentFactoryImpl;
 import com._4point.aem.fluentforms.impl.UsageContext;
 import com._4point.aem.fluentforms.impl.forms.FormsServiceImpl;
+import com._4point.aem.fluentforms.impl.forms.TraditionalFormsService;
 import com._4point.aem.fluentforms.impl.output.OutputServiceImpl;
+import com._4point.aem.fluentforms.impl.output.TraditionalOutputService;
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
@@ -51,6 +53,8 @@ public class ExamplePlugin extends Plugin {
 		private String aemPassword;
 		private FormsService formsService;
 		private OutputService outputService;
+		private Supplier<TraditionalFormsService> tradFormsServiceSupplier = this::createRestServicesTraditionalFormsService;		// Replaced for unit testing.
+		private Supplier<TraditionalOutputService> tradOutputServiceSupplier = this::createRestServicesTraditionalOutputService;	// Replaced for unit testing.
 
 		@Override
 		public DataSourceList accept(DataSourceList dataSources) throws FeedConsumerException {
@@ -97,29 +101,36 @@ public class ExamplePlugin extends Plugin {
 
 		private FormsService formsService() {
 			if (this.formsService == null) {
-				RestServicesFormsServiceAdapter formsAdapter = RestServicesFormsServiceAdapter.builder()
-							.machineName(aemHostName())
-							.port(aemHostPort())
-							.basicAuthentication(aemUsername(), aemPassword())
-							.useSsl(false)
-							.build();
-				this.formsService = new FormsServiceImpl(formsAdapter, UsageContext.CLIENT_SIDE);
+				this.formsService = new FormsServiceImpl(tradFormsServiceSupplier().get(), UsageContext.CLIENT_SIDE);
 			}
 			return this.formsService;
 		}
 
+		private TraditionalFormsService createRestServicesTraditionalFormsService() {
+			TraditionalFormsService formsAdapter = RestServicesFormsServiceAdapter.builder()
+						.machineName(aemHostName())
+						.port(aemHostPort())
+						.basicAuthentication(aemUsername(), aemPassword())
+						.useSsl(false)
+						.build();
+			return formsAdapter;
+		}
+
 		private OutputService outputService() {
 			if (this.outputService == null) {
-				RestServicesOutputServiceAdapter outputAdapter = RestServicesOutputServiceAdapter.builder()
-							.machineName(aemHostName())
-							.port(aemHostPort())
-							.basicAuthentication(aemUsername(), aemPassword())
-							.useSsl(false)
-							.build();
-					
-				this.outputService = new OutputServiceImpl(outputAdapter, UsageContext.CLIENT_SIDE);
+				this.outputService = new OutputServiceImpl(tradOutputServiceSupplier().get(), UsageContext.CLIENT_SIDE);
 			}
 			return this.outputService;
+		}
+
+		private TraditionalOutputService createRestServicesTraditionalOutputService() {
+			TraditionalOutputService outputAdapter = RestServicesOutputServiceAdapter.builder()
+						.machineName(aemHostName())
+						.port(aemHostPort())
+						.basicAuthentication(aemUsername(), aemPassword())
+						.useSsl(false)
+						.build();
+			return outputAdapter;
 		}
 		
 		private String aemUsername() {
@@ -134,6 +145,24 @@ public class ExamplePlugin extends Plugin {
 				this.aemPassword = "admin";		// Hardcoded for now, may change this later 
 			}
 			return this.aemPassword;
+		}
+
+		private final Supplier<TraditionalFormsService> tradFormsServiceSupplier() {
+			return tradFormsServiceSupplier;
+		}
+
+		// Used for unit testing
+		/* package */ final void tradFormsServiceSupplier(Supplier<TraditionalFormsService> tradFormsServiceSupplier) {
+			this.tradFormsServiceSupplier = tradFormsServiceSupplier;
+		}
+
+		private final Supplier<TraditionalOutputService> tradOutputServiceSupplier() {
+			return tradOutputServiceSupplier;
+		}
+
+		// Used for unit testing
+		/* package */ final void tradOutputServiceSupplier(Supplier<TraditionalOutputService> tradOutputServiceSupplier) {
+			this.tradOutputServiceSupplier = tradOutputServiceSupplier;
 		}
 
 		@Override
