@@ -31,31 +31,51 @@ import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
 import com._4point.aem.formsfeeder.core.datasource.MimeType;
 import com._4point.aem.formsfeeder.pf4j.spring.EnvironmentConsumer;
 
+/**
+ * This is an example plug-in that demonstrates how to call AEM from a plug-in.
+ *
+ */
 public class ExamplePlugin extends Plugin {
 
 	public ExamplePlugin(PluginWrapper wrapper) {
 		super(wrapper);
 	}
 
+	/**
+	 * This is the extension that is called by the FormsFeeder server.
+	 *
+	 */
+	/**
+	 * @author rob.mcdougall
+	 *
+	 */
 	@Extension
 	public static class ExampleFeedConsumerExtension implements NamedFeedConsumer, EnvironmentConsumer, ExtensionPoint {
 
 		private static final String FEED_CONSUMER_NAME = "Example";
-		private static final String AEM_HOST_NAME_ENV = "formsfeeder.plugins.example.aem-host"; 
-		private static final String AEM_PORT_NAME_ENV = "formsfeeder.plugins.example.aem-port"; 
 		
 		private static final Supplier<DocumentFactory> docFactorySupplier = SimpleDocumentFactoryImpl::getFactory; 
 		
 		private Environment environment;	// Initialized when the plugin is loaded by FeedConsumers.
-		private String aemHostName;
-		private Integer aemHostPort;
-		private String aemUsername;
-		private String aemPassword;
+		private String aemHostName;			// Pulled from the Environment
+		private Integer aemHostPort;		// Pulled from the Environment
+		private String aemUsername;			// Currently hard-coded to "admin"
+		private String aemPassword;			// Currently hard-coded to "admin"
+
+		// The services get created on first use and then cached here.
 		private FormsService formsService;
 		private OutputService outputService;
+		
+		// Creation of TraditionalxxxxxService is redirected through these lambdas so that we can replace them with mocks during unit testing.
 		private Supplier<TraditionalFormsService> tradFormsServiceSupplier = this::createRestServicesTraditionalFormsService;		// Replaced for unit testing.
 		private Supplier<TraditionalOutputService> tradOutputServiceSupplier = this::createRestServicesTraditionalOutputService;	// Replaced for unit testing.
 
+		/**
+		 *  Implementation of the NamedFeedConsumer accept() method.
+		 *  
+		 *  This is the main method called by the FormsFeeder server to invoke this plug-in. 
+		 *
+		 */
 		@Override
 		public DataSourceList accept(DataSourceList dataSources) throws FeedConsumerException {
 			// Parse out the arguments to this plug-in.
@@ -85,6 +105,11 @@ public class ExamplePlugin extends Plugin {
 			}
 		}
 
+		/**
+		 * Pull the Host name from the environment and cache it.
+		 * 
+		 * @return AEM Host Name
+		 */
 		private String aemHostName() {
 			if (this.aemHostName == null) {
 				this.aemHostName = Objects.requireNonNull(environment, "Plug-in's Environment has not been populated!").getRequiredProperty(EnvironmentConsumer.AEM_HOST_ENV_PARAM);
@@ -92,6 +117,11 @@ public class ExamplePlugin extends Plugin {
 			return this.aemHostName;
 		}
 
+		/**
+		 * Pull the Host port from the environment and cache it.
+		 * 
+		 * @return AEM Host Port
+		 */
 		private int aemHostPort() {
 			if (this.aemHostPort == null) {
 				this.aemHostPort = Integer.valueOf(Objects.requireNonNull(environment, "Plug-in's Environment has not been populated!").getProperty(EnvironmentConsumer.AEM_PORT_ENV_PARAM, "4502"));
@@ -99,6 +129,11 @@ public class ExamplePlugin extends Plugin {
 			return this.aemHostPort;
 		}
 
+		/**
+		 * Instantiate the AEM Forms FormsService and cache it.
+		 * 
+		 * @return AEM FormsService
+		 */
 		private FormsService formsService() {
 			if (this.formsService == null) {
 				this.formsService = new FormsServiceImpl(tradFormsServiceSupplier().get(), UsageContext.CLIENT_SIDE);
@@ -106,6 +141,13 @@ public class ExamplePlugin extends Plugin {
 			return this.formsService;
 		}
 
+		/**
+		 * Instantiate a rest-services.client RestServicesFormsServiceAdapter.
+		 * 
+		 * This is called via the tradFormsServiceSupplier member, if that member's value has not been overridden.
+		 * 
+		 * @return
+		 */
 		private TraditionalFormsService createRestServicesTraditionalFormsService() {
 			TraditionalFormsService formsAdapter = RestServicesFormsServiceAdapter.builder()
 						.machineName(aemHostName())
@@ -116,6 +158,11 @@ public class ExamplePlugin extends Plugin {
 			return formsAdapter;
 		}
 
+		/**
+		 * Instantiate the AEM Forms OutputService and cache it.
+		 * 
+		 * @return AEM OutputService
+		 */
 		private OutputService outputService() {
 			if (this.outputService == null) {
 				this.outputService = new OutputServiceImpl(tradOutputServiceSupplier().get(), UsageContext.CLIENT_SIDE);
@@ -123,6 +170,13 @@ public class ExamplePlugin extends Plugin {
 			return this.outputService;
 		}
 
+		/**
+		 * Instantiate a rest-services.client RestServicesOutputServiceAdapter.
+		 * 
+		 * This is called via the tradOutputServiceSupplier member, if that member's value has not been overridden.
+		 * 
+		 * @return
+		 */
 		private TraditionalOutputService createRestServicesTraditionalOutputService() {
 			TraditionalOutputService outputAdapter = RestServicesOutputServiceAdapter.builder()
 						.machineName(aemHostName())
@@ -133,6 +187,13 @@ public class ExamplePlugin extends Plugin {
 			return outputAdapter;
 		}
 		
+		/**
+		 * Pull the AEM user name we will use to call AEM.
+		 * 
+		 * This is currently hardcoded but could just as easily be pulled from the environment.
+		 * 
+		 * @return AEM Host Port
+		 */
 		private String aemUsername() {
 			if (this.aemUsername == null) {
 				this.aemUsername = "admin";		// Hardcoded for now, may change this later 
@@ -140,6 +201,14 @@ public class ExamplePlugin extends Plugin {
 			return this.aemUsername;
 		}
 		
+		/**
+		 * Pull the AEM user name we will use to call AEM.
+		 * 
+		 * This is currently hardcoded but could just as easily be pulled from the environment.  If pulled from the
+		 * environment it should probably be encrypted in the environment and decrypted here.
+		 * 
+		 * @return AEM Host Port
+		 */
 		private String aemPassword() {
 			if (this.aemPassword == null) {
 				this.aemPassword = "admin";		// Hardcoded for now, may change this later 
@@ -147,35 +216,72 @@ public class ExamplePlugin extends Plugin {
 			return this.aemPassword;
 		}
 
+		/**
+		 * Getter for tradFormsServiceSupplier function.
+		 * 
+		 * @return
+		 */
 		private final Supplier<TraditionalFormsService> tradFormsServiceSupplier() {
 			return tradFormsServiceSupplier;
 		}
 
-		// Used for unit testing
+		/**
+		 * Setter for tradFormsServiceSupplier lambda.
+		 * 
+		 * Used for unit testing to replace the call to REST services with a mock object.
+		 * 
+		 * @return
+		 */
 		/* package */ final void tradFormsServiceSupplier(Supplier<TraditionalFormsService> tradFormsServiceSupplier) {
 			this.tradFormsServiceSupplier = tradFormsServiceSupplier;
 		}
 
+		/**
+		 * Getter for tradOutputServiceSupplier function.
+		 * 
+		 * @return
+		 */
 		private final Supplier<TraditionalOutputService> tradOutputServiceSupplier() {
 			return tradOutputServiceSupplier;
 		}
 
-		// Used for unit testing
+		/**
+		 * Setter for tradOutputServiceSupplier lambda.
+		 * 
+		 * Used for unit testing to replace the call to REST services with a mock object.
+		 * 
+		 * @return
+		 */
 		/* package */ final void tradOutputServiceSupplier(Supplier<TraditionalOutputService> tradOutputServiceSupplier) {
 			this.tradOutputServiceSupplier = tradOutputServiceSupplier;
 		}
 
+		/**
+		 * Name Getter from NamedFeedConsumer, used to get the name of the Feed Consumer.
+		 * 
+		 * This name is matched to the URL of incoming requests.  If the URL matches this name, then this plug-in is called.
+		 */
 		@Override
 		public String name() {
 			return FEED_CONSUMER_NAME;
 		}
 
+		/**
+		 *  Implementation of the EnvironmentConsumer accept() method.
+		 *  
+		 *  This is called by the FormsFeeder server to provide the Spring Environment object. 
+		 *
+		 */
 		@Override
 		public void accept(Environment environment) {
 			this.environment = environment;
 		}
 
-		// Package visibility for testing.
+		/**
+		 * Internal object used for deconstructing the incoming DataSourceList into individual Java objects. 
+		 *
+		 * It has package visibility so that it can be unit tested separately.
+		 */
 		/* package */ static class ExamplePluginInputParameters {
 			private static final String TEMPLATE_PARAM_NAME = "template";
 			private static final String DATA_PARAM_NAME = "data";
