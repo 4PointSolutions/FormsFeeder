@@ -5,12 +5,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 
 /* package */ class ByteArrayDataSource extends AbstractDataSource implements DataSource {
 
 	private byte[] contents;
+	private Path filename = null;
 	
 	/* package */ ByteArrayDataSource() {
 		super();
@@ -54,6 +57,15 @@ import java.util.Map;
 	@Override
 	public OutputStream outputStream() {
 		return wrapOutputStream(()->new LocalByteArrayOutputStream(new ByteArrayOutputStream()));
+	}
+
+	@Override
+	public Optional<Path> filename() {
+		return Optional.ofNullable(filename);
+	}
+
+	final void filename(Path filename) {
+		this.filename = filename;
 	}
 
 	private class LocalByteArrayOutputStream extends OutputStream {

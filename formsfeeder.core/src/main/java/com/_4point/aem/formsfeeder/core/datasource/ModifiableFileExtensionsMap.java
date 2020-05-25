@@ -3,7 +3,6 @@ package com._4point.aem.formsfeeder.core.datasource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 public class ModifiableFileExtensionsMap extends AbstractFileExtensionsMap implements MimeTypeFileTypeMap {

@@ -226,6 +226,20 @@ public class DataSourceList {
 			return this;
 		}
 
+		public Builder add(String name, byte[] ba, Path p) {
+			ByteArrayDataSource ds = new ByteArrayDataSource(ba, Objects.requireNonNull(name, "Name cannot be null."));
+			ds.filename(p);
+			underConstruction.add(ds);
+			return this;
+		}
+
+		public Builder add(String name, byte[] ba, MimeType contentType, Path p) {
+			ByteArrayDataSource ds = new ByteArrayDataSource(ba, Objects.requireNonNull(name, "Name cannot be null."), contentType);
+			ds.filename(p);
+			underConstruction.add(ds);
+			return this;
+		}
+
 		public Builder add(String name, int i) {
 			underConstruction.add(new StringDataSource(Integer.toString(i), Objects.requireNonNull(name, "Name cannot be null.")));
 			return this;

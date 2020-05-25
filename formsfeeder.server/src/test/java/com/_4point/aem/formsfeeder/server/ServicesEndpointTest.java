@@ -23,14 +23,17 @@ import java.util.Map.Entry;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
+import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -46,7 +49,6 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
-import org.springframework.core.env.StandardEnvironment;
 
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -63,7 +65,8 @@ class ServicesEndpointTest implements EnvironmentAware {
 
 	private static final String ENV_FORMSFEEDER_PLUGINS_AEM_PORT = "formsfeeder.plugins.aemPort";
 	private static final String ENV_FORMSFEEDER_PLUGINS_AEM_HOST = "formsfeeder.plugins.aemHost";
-	private static final MediaType APPLICATION_PDF = MediaType.valueOf("application/pdf");
+	private static final MediaType APPLICATION_PDF = new MediaType("application", "pdf");
+	private static final MediaType APPLICATION_XDP = new MediaType("application", "vnd.adobe.xdp+xml");
 	private static final String API_V1_PATH = "/api/v1";
 	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
 	private static final String MOCK_PLUGIN_PATH = API_V1_PATH + "/Mock";
@@ -79,7 +82,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 	private static final Path SAMPLE_DATA = SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
 	private static final boolean USE_WIREMOCK = true;
 	private static final boolean WIREMOCK_RECORDING = false;
-	private static final boolean SAVE_RESULTS = true;
+	private static final boolean SAVE_RESULTS = false;
 	static {
 		if (SAVE_RESULTS) {
 			try {
@@ -294,7 +297,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 
 	
 	@Test
-	void testInvokePostNoQueryParamsOneBodyParamOctetStream() {
+	void testInvokePostNoQueryParamsEmptyBodyParamOctetStream() {
 		Response response = ClientBuilder.newClient()
 				 .target(uri)
 				 .path(DEBUG_PLUGIN_PATH)
@@ -307,6 +310,25 @@ class ServicesEndpointTest implements EnvironmentAware {
 		String responseBody = getResponseBody(response);
 		assertTrue(responseBody.contains(BODY_DS_NAME), "Expected response body to contain '" + BODY_DS_NAME + "', but was '" + responseBody + "'.");
 		assertTrue(responseBody.contains(MediaType.APPLICATION_OCTET_STREAM), "Expected response body to contain '" + MediaType.APPLICATION_OCTET_STREAM + "', but was '" + responseBody + "'.");
+	}
+
+	
+	@Test
+	void testInvokePostNoQueryParamsOneBodyParamXdpParam() throws Exception {
+		final Path testFile = SAMPLE_XDP;
+		final ContentDisposition cd = ContentDisposition.type("inline").fileName(testFile.getFileName().toString()).build();
+		Response response = ClientBuilder.newClient()
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .request()
+				 .header(HttpHeaders.CONTENT_DISPOSITION, cd.toString())
+				 .post(Entity.entity(testFile.toFile(), APPLICATION_XDP));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		String responseBody = getResponseBody(response);
+		assertTrue(responseBody.contains(testFile.getFileName().toString()), "Expected response body to contain '" + testFile.getFileName().toString() + "', but was '" + responseBody + "'.");
 	}
 
 	@Test
@@ -433,6 +455,47 @@ class ServicesEndpointTest implements EnvironmentAware {
 		String responseBody = getResponseBody(response);
 		assertTrue(responseBody.contains(expectedParamName), "Expected response body to contain '" + expectedParamName + "', but was '" + responseBody + "'.");
 		assertTrue(responseBody.contains(expectedParamValue), "Expected response body to contain '" + expectedParamValue + "', but was '" + responseBody + "'.");
+	}
+
+	@Test
+	void testInvokePostNoQueryParamsComplexParams() {
+		String expectedParamName1 = "BodyParam1";
+		String expectedParamName2 = "BodyParam2";
+		
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.bodyPart(new FileDataBodyPart(expectedParamName1, SAMPLE_XDP.toFile(), APPLICATION_XDP));	// One with a filename
+		bodyData.field(expectedParamName2, InputStream.nullInputStream(), MediaType.APPLICATION_OCTET_STREAM_TYPE);	// One without a filename
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		
+		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
+		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
+		int returnsCount = 0;
+		for (Entry<String, List<FormDataBodyPart>> field : fields.entrySet()) {
+			for (var body : field.getValue()) {
+				returnsCount++;
+				assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(body.getMediaType()), "Expected response media type (" + body.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+				String value = body.getEntityAs(String.class);
+				if (value.contains(expectedParamName1)) {
+					assertTrue(value.contains(APPLICATION_XDP.toString()), "Expected response body to contain '" + APPLICATION_XDP.toString() + "', but was '" + value + "'.");
+					assertTrue(value.contains(SAMPLE_XDP.getFileName().toString()), "Expected response body to contain '" + SAMPLE_XDP.getFileName().toString() + "', but was '" + value + "'.");
+				} else if (value.contains(expectedParamName2)) {
+					assertTrue(value.contains(MediaType.APPLICATION_OCTET_STREAM), "Expected response body to contain '" + MediaType.APPLICATION_OCTET_STREAM + "', but was '" + value + "'.");
+				} else {
+					fail("Unexpected response '" + value + "'.");
+				}
+			}
+		}
+		assertEquals(2, returnsCount);
 	}
 
 	@Test

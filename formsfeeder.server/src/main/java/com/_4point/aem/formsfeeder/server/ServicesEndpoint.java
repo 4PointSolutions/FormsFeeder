@@ -3,7 +3,10 @@ package com._4point.aem.formsfeeder.server;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.file.Paths;
+import java.text.ParseException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
@@ -22,6 +25,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.slf4j.Logger;
@@ -40,6 +44,10 @@ import com._4point.aem.formsfeeder.server.pf4j.FeedConsumers;
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com._4point.aem.formsfeeder.server.support.FfLoggerFactory;
 
+/**
+ * @author rob.mcdougall
+ *
+ */
 @Path(ServicesEndpoint.API_V1_PATH)
 public class ServicesEndpoint {
 	private final static Logger baseLogger = LoggerFactory.getLogger(ServicesEndpoint.class);
@@ -69,10 +77,18 @@ public class ServicesEndpoint {
 	 */
 	@Path(PLUGIN_NAME_REMAINDER_PATH)
 	@GET
-    public Response invokeNoBody(@PathParam("remainder") String remainder, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @Context UriInfo uriInfo) {
+    public Response invokeNoBody(@PathParam("remainder") String remainder, @Context HttpHeaders httpHeaders, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @Context UriInfo uriInfo) {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		logger.info("Recieved GET request to '" + API_V1_PATH + "/" + remainder + "'.");
+		if (logger.isDebugEnabled()) {
+			for( Entry<String, List<String>> headers : httpHeaders.getRequestHeaders().entrySet()) {
+				String key = headers.getKey();
+				for (String value : headers.getValue()) {
+					logger.debug("HttpHeader->'" + key + "'='" + value + "'.");
+				}
+			}
+		}
 		final DataSourceList dataSourceList1 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList2 = generateFormsFeederDataSourceList(correlationId);
 		return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2), logger, correlationId);
@@ -96,10 +112,18 @@ public class ServicesEndpoint {
 	@Path(PLUGIN_NAME_REMAINDER_PATH)
 	@Consumes(MediaType.MULTIPART_FORM_DATA)
 	@POST
-    public Response invokeWithMultipartFormDataBody(@PathParam("remainder") String remainder, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @Context UriInfo uriInfo, FormDataMultiPart formData) throws IOException {
+    public Response invokeWithMultipartFormDataBody(@PathParam("remainder") String remainder, @Context HttpHeaders httpHeaders, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @Context UriInfo uriInfo, FormDataMultiPart formData) throws IOException {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		logger.info("Received " + MediaType.MULTIPART_FORM_DATA + " POST request to '" + API_V1_PATH + "/" + remainder + "'.");
+		if (logger.isDebugEnabled()) {
+			for( Entry<String, List<String>> headers : httpHeaders.getRequestHeaders().entrySet()) {
+				String key = headers.getKey();
+				for (String value : headers.getValue()) {
+					logger.debug("HttpHeader->'" + key + "'='" + value + "'.");
+				}
+			}
+		}
 		final DataSourceList dataSourceList1 = convertMultipartFormDataToDataSourceList(formData, logger);
 		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
@@ -130,10 +154,26 @@ public class ServicesEndpoint {
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		MediaType mediaType = httpHeaders.getMediaType();
 		logger.info("Received '" + mediaType.toString() + "' POST request to '" + API_V1_PATH + "/" + remainder + "'.");
-		final DataSourceList dataSourceList1 = convertBodyToDataSourceList(in, mediaType, logger);
-		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
-		final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
-		return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId);
+		if (logger.isDebugEnabled()) {
+			for( Entry<String, List<String>> headers : httpHeaders.getRequestHeaders().entrySet()) {
+				String key = headers.getKey();
+				for (String value : headers.getValue()) {
+					logger.debug("HttpHeader->'" + key + "'='" + value + "'.");
+				}
+			}
+		}
+		try {
+			ContentDisposition contentDisposition = determineContentDisposition(httpHeaders);
+			final DataSourceList dataSourceList1 = convertBodyToDataSourceList(in, mediaType, contentDisposition, logger);
+			final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
+			final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
+			return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId);
+		} catch (ParseException e) {
+			// If we encounter Parse Errors while determinine ContentDisposition, it must be a BadRequest.
+			String msg = String.format("Parse Error. (%s)", e.getMessage());
+			logger.error(msg + " Returning \"Bad Request\" status code.", e);
+			return buildResponse(Response.status(Response.Status.BAD_REQUEST).entity(msg).type(MediaType.TEXT_PLAIN_TYPE), correlationId);
+		}
 	}
 
 	/**
@@ -201,7 +241,23 @@ public class ServicesEndpoint {
 	private static final String determineConsumerName(final String remainder) {
 		return remainder;
 	}
-	
+
+	/**
+	 * Determine the contentDisposition from the HTTP Headers of a single body request.
+	 * 
+	 * @param httpHeaders
+	 * @return
+	 * @throws ParseException
+	 */
+	private static ContentDisposition determineContentDisposition(HttpHeaders httpHeaders) throws ParseException {
+		List<String> contentDispositions = httpHeaders.getRequestHeader(HttpHeaders.CONTENT_DISPOSITION);
+		if (contentDispositions != null && !contentDispositions.isEmpty()) {
+			return new ContentDisposition(contentDispositions.get(0));
+		} else {
+			return null;
+		}
+	}
+
 	/**
 	 * Converts the incoming multipart/form-data into a DataSourceList so that they can be processed by a plug-in
 	 * 
@@ -219,9 +275,23 @@ public class ServicesEndpoint {
 					builder.add(name, part.getValue());
 				} else {
 					logger.debug("Found complex Form Data Part '" + name + "' (" + part.getName() + ").");
-					// TODO: Handle filenames in the parts.
+					ContentDisposition contentDisposition = part.getContentDisposition();
+					String fileName = contentDisposition.getFileName();
+					if (logger.isDebugEnabled()) {
+						Date creationDate = contentDisposition.getCreationDate();
+						Date modificationDate = contentDisposition.getModificationDate();
+						Date readDate = contentDisposition.getReadDate();
+						logger.debug("    Filename='" + fileName + "'.");
+						logger.debug("    CreationDate='" + (creationDate != null ? creationDate.toString() : "null") + "'.");
+						logger.debug("    ModificationDate='" + (modificationDate != null ? modificationDate : "null") + "'.");
+						logger.debug("    ReadDate='" + (readDate != null ? readDate : "null") + "'.");
+					}
 					// TODO: This is a naive implementation that just reads the whole InputStream into memory.  Should fix this.
-					builder.add(name, part.getEntityAs(InputStream.class).readAllBytes(), fromMediaType(part.getMediaType()));
+					if (fileName != null) {
+						builder.add(name, part.getEntityAs(InputStream.class).readAllBytes(), fromMediaType(part.getMediaType()), Paths.get(fileName));
+					} else {
+						builder.add(name, part.getEntityAs(InputStream.class).readAllBytes(), fromMediaType(part.getMediaType()));
+					}
 				}
 			}
 		}
@@ -241,10 +311,14 @@ public class ServicesEndpoint {
 	 * @return
 	 * @throws IOException
 	 */
-	private static final DataSourceList convertBodyToDataSourceList(final InputStream in, final MediaType contentType, final Logger logger) throws IOException {
-		// TODO: Handle filename in the POST headers
+	private static final DataSourceList convertBodyToDataSourceList(final InputStream in, final MediaType contentType, final ContentDisposition contentDisposition, final Logger logger) throws IOException {
 		logger.debug("Found Body Parameter of type '" + contentType.toString() + "'.");
-		return DataSourceList.builder().add(FORMSFEEDER_DS_NAME_PREFIX + "BodyBytes", in.readAllBytes(), fromMediaType(contentType)).build();
+		String filename = contentDisposition != null ? contentDisposition.getFileName() : null;
+		if (filename != null) {
+			return DataSourceList.builder().add(FORMSFEEDER_DS_NAME_PREFIX + "BodyBytes", in.readAllBytes(), fromMediaType(contentType), Paths.get(filename)).build();
+		} else {
+			return DataSourceList.builder().add(FORMSFEEDER_DS_NAME_PREFIX + "BodyBytes", in.readAllBytes(), fromMediaType(contentType)).build();
+		}
 	}
 
 	/**
@@ -286,6 +360,7 @@ public class ServicesEndpoint {
 			// Convert DataSourceList to MultipartFormData.
 	    	FormDataMultiPart responsesData = new FormDataMultiPart();
 	    	for(var dataSource : outputs.list()) {
+	    		// TODO:  Add filename to each part of the response
 	    		responsesData.field(dataSource.name(), dataSource.inputStream(), fromMimeType(dataSource.contentType()));
 	    	}
 	    	logger.debug("Returning multiple data sources.");
