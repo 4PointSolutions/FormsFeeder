@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.FileSystems;
@@ -58,7 +59,7 @@ public class MockPlugin extends Plugin {
 		private static final String SCENARIO_OTHER_FEED_CONSUMER_EXCEPTION = "OtherFeedConsumerException";
 		private static final String SCENARIO_RETURN_PDF = "ReturnPdf";
 		private static final String SCENARIO_RETURN_XML = "ReturnXml";
-		private static final String SCENARIO_RETURN_PDF_AND_XML = "ReturnPdfAndXml";
+		private static final String SCENARIO_RETURN_MANY_OUTPUTS = "ReturnManyOutputs";
 		private static final String SCENARIO_RETURN_CONFIG_VALUE = "ReturnConfigValue";
 		private static final String SCENARIO_RETURN_APPLICATION_CONTEXT_CONFIG_VALUE = "ReturnApplicationContextConfigValue";
 		private static final String SCENARIO_CALL_ANOTHER_PLUGIN = "CallAnotherPlugin";
@@ -149,15 +150,16 @@ public class MockPlugin extends Plugin {
 				}
 				builder.add("ConfigValue", envConfigValue);
 				break;
-			case SCENARIO_RETURN_PDF_AND_XML:
+			case SCENARIO_RETURN_MANY_OUTPUTS:
 				builder.add("PdfResult", getResourcePath("SampleForm.pdf"));
 				builder.add("XmlResult", getResourcePath("SampleForm_data.xml"));
+				builder.add("ByteArrayResult", "SampleData".getBytes(StandardCharsets.UTF_8));
 				break;
 			case SCENARIO_RETURN_XML:
 				builder.add("XmlResult", getResourcePath("SampleForm_data.xml"));
 				break;
 			case SCENARIO_RETURN_PDF:
-				builder.add("PdfResult", getResourcePath("SampleForm.pdf"));
+				builder.add("PdfResult", getResourcePath("SampleForm.pdf"), Map.of("formsfeeder:Content-Disposition", "attachment"));
 				break;
 			case SCENARIO_OTHER_FEED_CONSUMER_EXCEPTION:
 				throw new FeedConsumerException() {

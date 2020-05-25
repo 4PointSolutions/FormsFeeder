@@ -1,8 +1,10 @@
 package com._4point.aem.formsfeeder.server;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -80,6 +82,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 	private static final Path ACTUAL_RESULTS_DIR = RESOURCES_FOLDER.resolve("ActualResults");
 	private static final Path SAMPLE_XDP = SAMPLE_FILES_DIR.resolve("SampleForm.xdp");
 	private static final Path SAMPLE_DATA = SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
+	private static final Path SAMPLE_PDF = SAMPLE_FILES_DIR.resolve("SampleForm.pdf");
 	private static final boolean USE_WIREMOCK = true;
 	private static final boolean WIREMOCK_RECORDING = false;
 	private static final boolean SAVE_RESULTS = false;
@@ -499,6 +502,31 @@ class ServicesEndpointTest implements EnvironmentAware {
 	}
 
 	@Test
+	void testInvokePostNoQueryParamsOneBodyParamText_BadContentDisposition() {
+		String expectedBodyText = "This is some text.";
+		String badContentDisposition = "inline; foo bar whatever";
+
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .request()
+				 .header(HttpHeaders.CONTENT_DISPOSITION, badContentDisposition)	// Bad content Disposition
+				 .post(Entity.entity(new StringReader(expectedBodyText), MediaType.TEXT_PLAIN_TYPE));
+		
+		assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		String responseBody = getResponseBody(response);
+		assertNotNull(responseBody);
+		assertAll(
+				()->assertTrue(responseBody.contains("Error while parsing")),
+				()->assertTrue(responseBody.contains("Content-Disposition header")),
+				()->assertTrue(responseBody.contains(badContentDisposition))
+				);
+	}
+
+	@Test
 	void testInvokePostNoQueryParamsManyFormParams() {
 		String bodyParamString = "BodyParam";
 		String bodyValueString = "Value";
@@ -780,6 +808,12 @@ class ServicesEndpointTest implements EnvironmentAware {
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(APPLICATION_PDF.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		String cdHeader = response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION);
+		assertNotNull(cdHeader);
+		ContentDisposition contentDisposition = new ContentDisposition(cdHeader);
+		assertNotNull(contentDisposition.getFileName());
+		assertEquals(SAMPLE_PDF.getFileName().toString(), contentDisposition.getFileName());
+		assertEquals("attachment", contentDisposition.getType());
 		assertTrue(response.hasEntity(), "Expected response to have entity");
 		PDDocument pdf = PDDocument.load((InputStream)response.getEntity());
 		PDDocumentCatalog catalog = pdf.getDocumentCatalog();
@@ -803,16 +837,22 @@ class ServicesEndpointTest implements EnvironmentAware {
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.APPLICATION_XML_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/xml'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		String cdHeader = response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION);
+		assertNotNull(cdHeader);
+		ContentDisposition contentDisposition = new ContentDisposition(cdHeader);
+		assertNotNull(contentDisposition.getFileName());
+		assertEquals(SAMPLE_DATA.getFileName().toString(), contentDisposition.getFileName());
+		assertEquals("inline", contentDisposition.getType());
 		assertTrue(response.hasEntity(), "Expected response to have entity");
 		XML xml = new XMLDocument((InputStream)response.getEntity());
 		assertEquals(2, Integer.valueOf(xml.xpath("count(//form1/*)").get(0)));
 	}
 	
 	@Test
-	void testInvokePost_ReturnPdfAndXmlFromPlugin() throws Exception {
+	void testInvokePost_ReturnManyOutputsFromPlugin() throws Exception {
 		
 		FormDataMultiPart bodyData = new FormDataMultiPart();
-		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, "ReturnPdfAndXml");
+		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, "ReturnManyOutputs");
 		
 		Response response = ClientBuilder.newClient()
 				 .register(MultiPartFeature.class)
@@ -834,20 +874,29 @@ class ServicesEndpointTest implements EnvironmentAware {
 				
 				MediaType mediaType = body.getMediaType();
 				if (APPLICATION_PDF.isCompatible(mediaType)) {
+					ContentDisposition contentDisposition = body.getContentDisposition();
+					assertNotNull(contentDisposition);
+					assertEquals(SAMPLE_PDF.getFileName().toString(), contentDisposition.getFileName());
 					PDDocument pdf = PDDocument.load(body.getEntityAs(InputStream.class));
 					PDDocumentCatalog catalog = pdf.getDocumentCatalog();
 					assertNotNull(pdf);
 					assertNotNull(catalog);
 				} else if (MediaType.APPLICATION_XML_TYPE.isCompatible(mediaType)) {
+					ContentDisposition contentDisposition = body.getContentDisposition();
+					assertNotNull(contentDisposition);
+					assertEquals(SAMPLE_DATA.getFileName().toString(), contentDisposition.getFileName());
 					XML xml = new XMLDocument(body.getEntityAs(InputStream.class));
 					assertEquals(2, Integer.valueOf(xml.xpath("count(//form1/*)").get(0)));
-					
+				} else if (MediaType.APPLICATION_OCTET_STREAM_TYPE.isCompatible(mediaType)) {
+					ContentDisposition contentDisposition = body.getContentDisposition();
+					assertNull(contentDisposition.getFileName());
+					assertArrayEquals("SampleData".getBytes(StandardCharsets.UTF_8), body.getEntityAs(InputStream.class).readAllBytes());
 				} else {
 					fail("Found unexpected mediaType in response '" + mediaType.toString() + "'.");
 				}
 			}
 		}
-		assertEquals(2, returnsCount, "Expected 2 parts in the response.");
+		assertEquals(3, returnsCount, "Expected 2 parts in the response.");
 	}
 	
 	// There are a couple of ways to get an environment variable (through Environment or through ApplicationContext to get Environment bean).

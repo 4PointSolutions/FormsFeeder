@@ -1,6 +1,7 @@
 package com._4point.aem.formsfeeder.plugins.mock;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -8,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -85,7 +87,9 @@ class MockPluginTest {
 		assertAll(
 				()->assertEquals(StandardMimeTypes.APPLICATION_PDF_TYPE, pdfDataSource.contentType()),
 				()->assertEquals("SampleForm.pdf", pdfDataSource.filename().get().getFileName().toString()),
-				()->assertEquals("PdfResult", pdfDataSource.name())
+				()->assertEquals("PdfResult", pdfDataSource.name()),
+				()->assertEquals(1, pdfDataSource.attributes().size()),	// We add a content disposition for this test.
+				()->assertEquals("attachment", pdfDataSource.attributes().get("formsfeeder:Content-Disposition"))
 				);
 	}
 	
@@ -104,20 +108,25 @@ class MockPluginTest {
 	}
 	
 	@Test
-	void testScenario_ReturnPdfAndXml() throws Exception {
-		final String scenarioName = "ReturnPdfAndXml";
+	void testScenario_ReturnManyOutputs() throws Exception {
+		final String scenarioName = "ReturnManyOutputs";
 		DataSourceList result = underTest.accept(createBuilder(scenarioName).build());
 		assertNotNull(result);
-		assertEquals(2, result.list().size());
+		assertEquals(3, result.list().size());
 		DataSource pdfDataSource = result.list().get(0);
 		DataSource xmlDataSource = result.list().get(1);
+		DataSource baDataSource = result.list().get(2);
 		assertAll(
 				()->assertEquals(StandardMimeTypes.APPLICATION_PDF_TYPE, pdfDataSource.contentType()),
 				()->assertEquals("SampleForm.pdf", pdfDataSource.filename().get().getFileName().toString()),
 				()->assertEquals("PdfResult", pdfDataSource.name()),
 				()->assertEquals(StandardMimeTypes.APPLICATION_XML_TYPE, xmlDataSource.contentType()),
 				()->assertEquals("SampleForm_data.xml", xmlDataSource.filename().get().getFileName().toString()),
-				()->assertEquals("XmlResult", xmlDataSource.name())
+				()->assertEquals("XmlResult", xmlDataSource.name()),
+				()->assertEquals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE, baDataSource.contentType()),
+				()->assertTrue(baDataSource.filename().isEmpty()),
+				()->assertEquals("ByteArrayResult", baDataSource.name()),
+				()->assertArrayEquals("SampleData".getBytes(StandardCharsets.UTF_8), baDataSource.inputStream().readAllBytes())
 				);
 	}
 	

@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -265,6 +266,65 @@ public class DataSourceList {
 			return this;
 		}
 
+		public Builder add(String name, String s, Map<String, String> attributes) {
+			underConstruction.add(new StringDataSource(s, Objects.requireNonNull(name, "Name cannot be null."), attributes));
+			return this;
+		}
+		
+		public Builder add(String name, Path p, Map<String, String> attributes) {
+			underConstruction.add(new FileDataSource(p, Objects.requireNonNull(name, "Name cannot be null."), attributes));
+			return this;
+		}
+
+		public Builder add(String name, byte[] ba, Map<String, String> attributes) {
+			underConstruction.add(new ByteArrayDataSource(ba, Objects.requireNonNull(name, "Name cannot be null."), attributes));
+			return this;
+		}
+
+		public Builder add(String name, byte[] ba, MimeType contentType, Map<String, String> attributes) {
+			underConstruction.add(new ByteArrayDataSource(ba, Objects.requireNonNull(name, "Name cannot be null."), contentType, attributes));
+			return this;
+		}
+
+		public Builder add(String name, byte[] ba, Path p, Map<String, String> attributes) {
+			ByteArrayDataSource ds = new ByteArrayDataSource(ba, Objects.requireNonNull(name, "Name cannot be null."), attributes);
+			ds.filename(p);
+			underConstruction.add(ds);
+			return this;
+		}
+
+		public Builder add(String name, byte[] ba, MimeType contentType, Path p, Map<String, String> attributes) {
+			ByteArrayDataSource ds = new ByteArrayDataSource(ba, Objects.requireNonNull(name, "Name cannot be null."), contentType, attributes);
+			ds.filename(p);
+			underConstruction.add(ds);
+			return this;
+		}
+
+		public Builder add(String name, int i, Map<String, String> attributes) {
+			underConstruction.add(new StringDataSource(Integer.toString(i), Objects.requireNonNull(name, "Name cannot be null."), attributes));
+			return this;
+		}
+
+		public Builder add(String name, boolean b, Map<String, String> attributes) {
+			underConstruction.add(new StringDataSource(Boolean.toString(b), Objects.requireNonNull(name, "Name cannot be null."), attributes));
+			return this;
+		}
+
+		public Builder add(String name, float f, Map<String, String> attributes) {
+			underConstruction.add(new StringDataSource(Float.toString(f), Objects.requireNonNull(name, "Name cannot be null."), attributes));
+			return this;
+		}
+
+		public Builder add(String name, double d, Map<String, String> attributes) {
+			underConstruction.add(new StringDataSource(Double.toString(d), Objects.requireNonNull(name, "Name cannot be null."), attributes));
+			return this;
+		}
+
+		public Builder add(String name, long l, Map<String, String> attributes) {
+			underConstruction.add(new StringDataSource(Long.toString(l), Objects.requireNonNull(name, "Name cannot be null."), attributes));
+			return this;
+		}
+
 		public Builder addDataSources(List<DataSource> dsList) {
 			dsList.forEach(ds->underConstruction.add(ds));
 			return this;
@@ -312,6 +372,50 @@ public class DataSourceList {
 
 		public Builder addLongs(String name, List<Long> lList) {
 			lList.forEach(l->underConstruction.add(new StringDataSource(l.toString(), Objects.requireNonNull(name, "Name cannot be null."))));
+			return this;
+		}
+		public Builder addStrings(String name, List<String> sList, Map<String, String> attributes) {
+			sList.forEach(s->underConstruction.add(new StringDataSource(s, Objects.requireNonNull(name, "Name cannot be null."), attributes)));
+			return this;
+		}
+		
+		public Builder addPaths(String name, List<Path> pList, Map<String, String> attributes) {
+			pList.forEach(p->underConstruction.add(new FileDataSource(p, Objects.requireNonNull(name, "Name cannot be null."), attributes)));
+			return this;
+		}
+
+		public Builder addByteArrays(String name, List<byte[]> baList, Map<String, String> attributes) {
+			baList.forEach(ba->underConstruction.add(new ByteArrayDataSource(ba, Objects.requireNonNull(name, "Name cannot be null."), attributes)));
+			return this;
+		}
+
+		public Builder addByteArrays(String name, List<byte[]> baList, MimeType contentType, Map<String, String> attributes) {
+			baList.forEach(ba->underConstruction.add(new ByteArrayDataSource(ba, Objects.requireNonNull(name, "Name cannot be null."), contentType, attributes)));
+			return this;
+		}
+
+		public Builder addIntegers(String name, List<Integer> iList, Map<String, String> attributes) {
+			iList.forEach(i->underConstruction.add(new StringDataSource(i.toString(), Objects.requireNonNull(name, "Name cannot be null."), attributes)));
+			return this;
+		}
+
+		public Builder addBooleans(String name, List<Boolean> bList, Map<String, String> attributes) {
+			bList.forEach(b->underConstruction.add(new StringDataSource(b.toString(), Objects.requireNonNull(name, "Name cannot be null."), attributes)));
+			return this;
+		}
+
+		public Builder addFloats(String name, List<Float> fList, Map<String, String> attributes) {
+			fList.forEach(f->underConstruction.add(new StringDataSource(f.toString(), Objects.requireNonNull(name, "Name cannot be null."), attributes)));
+			return this;
+		}
+
+		public Builder addDoubles(String name, List<Double> dList, Map<String, String> attributes) {
+			dList.forEach(d->underConstruction.add(new StringDataSource(d.toString(), Objects.requireNonNull(name, "Name cannot be null."), attributes)));
+			return this;
+		}
+
+		public Builder addLongs(String name, List<Long> lList, Map<String, String> attributes) {
+			lList.forEach(l->underConstruction.add(new StringDataSource(l.toString(), Objects.requireNonNull(name, "Name cannot be null."), attributes)));
 			return this;
 		}
 	}
