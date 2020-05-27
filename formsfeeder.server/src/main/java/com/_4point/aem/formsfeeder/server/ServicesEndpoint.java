@@ -195,7 +195,11 @@ public class ServicesEndpoint {
 
 	/**
 	 * Determines if there is a plug-in associated with an Url provided and, if so, then invokes that plug-in.  Also
-	 * captures any exceptions that a plugin throws and converts it to a response. 
+	 * captures any exceptions that a plugin throws and converts it to a response.
+	 * 
+	 * We're intentionally sparse in the information about exceptions that we return to the client for security reasons.
+	 * We just pass back the exception message.  Full details (and a stack trace) are written to the log.  That's where
+	 * someone should go in order to get a fuller picture of what the issue is.
 	 * 
 	 * @param remainder
 	 * @param dataSourceList
