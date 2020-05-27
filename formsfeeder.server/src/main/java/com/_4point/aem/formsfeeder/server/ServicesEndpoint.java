@@ -46,15 +46,7 @@ import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com._4point.aem.formsfeeder.server.support.FfLoggerFactory;
 
 /**
- * @author rob.mcdougall
- *
- */
-/**
- * @author rob.mcdougall
- *
- */
-/**
- * @author rob.mcdougall
+ * Class that contains the code for handling plug-in services.
  *
  */
 @Path(ServicesEndpoint.API_V1_PATH)
