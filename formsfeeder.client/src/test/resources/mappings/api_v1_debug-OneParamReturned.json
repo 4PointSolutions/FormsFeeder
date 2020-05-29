@@ -1,0 +1,24 @@
+{
+  "id" : "d52791e7-2f22-46b6-aba5-2ed7f0135122",
+  "name" : "api_v1_debug",
+  "request" : {
+    "url" : "/api/v1/Debug",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "contains" : "Param1Value"
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "Found datasource: name='Param1' with value 'Param1Value' with contentType 'text/plain; charset=UTF-8'.",
+    "headers" : {
+      "x-correlation-id" : "{{request.headers.x-correlation-id}}",
+      "Content-Type" : "text/plain;charset=UTF-8",
+      "Date" : "Fri, 29 May 2020 20:42:11 GMT",
+      "Keep-Alive" : "timeout=60"
+    }
+  },
+  "uuid" : "d52791e7-2f22-46b6-aba5-2ed7f0135122",
+  "persistent" : true,
+  "insertionIndex" : 1
+}

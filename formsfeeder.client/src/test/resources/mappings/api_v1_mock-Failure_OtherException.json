@@ -1,0 +1,23 @@
+{
+  "id" : "48da052b-253d-4fbc-a566-1fa73e9bc847",
+  "name" : "api_v1_mock",
+  "request" : {
+    "url" : "/api/v1/Mock",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "contains" : "OtherFeedConsumerException"
+    } ]
+  },
+  "response" : {
+    "status" : 500,
+    "body" : "Plugin processor error. (Throwing anonymous FeedConsumerException because scenario was 'OtherFeedConsumerException'.)",
+    "headers" : {
+      "x-correlation-id" : "{{request.headers.x-correlation-id}}",
+      "Content-Type" : "text/plain",
+      "Date" : "Fri, 29 May 2020 20:45:00 GMT"
+    }
+  },
+  "uuid" : "48da052b-253d-4fbc-a566-1fa73e9bc847",
+  "persistent" : true,
+  "insertionIndex" : 9
+}

@@ -14,6 +14,7 @@
 	<properties>
 		<jersey.version>2.31</jersey.version>
 		<jaxb.version>2.3.3</jaxb.version>
+		<wiremock.version>2.26.3</wiremock.version>
 	</properties>
 
 	<dependencies>
@@ -90,5 +91,12 @@
 			<version>0.22.1</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock-jre8</artifactId>
+            <version>${wiremock.version}</version>
+            <scope>test</scope>
+        </dependency>
+		
 	</dependencies>
 </project>

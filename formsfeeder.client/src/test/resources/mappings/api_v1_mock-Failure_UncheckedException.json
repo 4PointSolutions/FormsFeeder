@@ -1,0 +1,23 @@
+{
+  "id" : "88ad6bab-1c29-42d4-9ebc-3194fc9baba0",
+  "name" : "api_v1_mock",
+  "request" : {
+    "url" : "/api/v1/Mock",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "contains" : "UncheckedException"
+    } ]
+  },
+  "response" : {
+    "status" : 500,
+    "body" : "Error within Plugin processor. (Throwing IllegalStateException because scenario was 'UncheckedException'.)",
+    "headers" : {
+      "x-correlation-id" : "{{request.headers.x-correlation-id}}",
+      "Content-Type" : "text/plain",
+      "Date" : "Fri, 29 May 2020 20:45:00 GMT"
+    }
+  },
+  "uuid" : "88ad6bab-1c29-42d4-9ebc-3194fc9baba0",
+  "persistent" : true,
+  "insertionIndex" : 8
+}

@@ -27,6 +27,8 @@ import javax.ws.rs.core.MediaType;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,6 +39,13 @@ import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.MimeType;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
+import com.github.tomakehurst.wiremock.http.ResponseDefinition;
+import com.github.tomakehurst.wiremock.recording.SnapshotRecordResult;
+import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
 
@@ -51,8 +60,8 @@ class FormsFeederClientTest {
 	private static final Path SAMPLE_PDF = SAMPLE_FILES_DIR.resolve("SampleForm.pdf");
 	private static final Path SAMPLE_DATA = SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
 
-	private static final String TEST_MACHINE_NAME = "localhost";
-	private static final int TEST_MACHINE_PORT = 8080;
+	private static final String FF_SERVER_MACHINE_NAME = "localhost";
+	private static final int FF_SERVER_MACHINE_PORT = 8080;
 
 	private static final MediaType APPLICATION_PDF = new MediaType("application", "pdf");
 
@@ -118,9 +127,57 @@ class FormsFeederClientTest {
 	private static final MimeType mimeType = StandardMimeTypes.APPLICATION_PDF_TYPE;
 
 	// TODO:  Add Wiremock code in to simulate the formsfeeder.server.
-	private static final boolean USE_WIREMOCK = false;
+	private static final boolean USE_WIREMOCK = true;
 	private static final boolean WIREMOCK_RECORDING = false;
 
+	private WireMockServer wireMockServer;
+	private static Integer wiremockPort = null;
+	
+	private static String formsfeederServerName;
+	private static int formsfeederServerPort;
+
+	@BeforeEach
+	public void setUp() throws Exception {
+		if (USE_WIREMOCK) {
+			// Let wiremock choose the port for the first test, but re-use the same port for all subsequent tests.
+			wireMockServer = new WireMockServer(wiremockPort == null ? new WireMockConfiguration().dynamicPort().extensions(new ResponseTemplateTransformer(true)) : new WireMockConfiguration().port(wiremockPort).extensions(new ResponseTemplateTransformer(true)));
+	        wireMockServer.start();
+			System.out.println("Inside SetEnvironment wiremock block.");
+			if (WIREMOCK_RECORDING) {
+				String aemBaseUrl = "http://" + FF_SERVER_MACHINE_NAME + ":"	+ FF_SERVER_MACHINE_PORT;
+				System.out.println("Wiremock recording of '" + aemBaseUrl + "'.");
+				wireMockServer.startRecording(aemBaseUrl);
+			}
+			if (wiremockPort == null) {	// Save the port for subsequent invocations. 
+				wiremockPort = wireMockServer.port();
+			}
+			formsfeederServerName = "localhost";
+			formsfeederServerPort = wiremockPort;
+
+			System.out.println("Wiremock is up on port " + wiremockPort + " .");
+		} else {
+			formsfeederServerName = FF_SERVER_MACHINE_NAME;
+			formsfeederServerPort = FF_SERVER_MACHINE_PORT;
+		}
+	}
+
+	@AfterEach
+	public void tearDown() throws Exception {
+		if (USE_WIREMOCK) {
+	        if (WIREMOCK_RECORDING) {
+	        	SnapshotRecordResult recordings = wireMockServer.stopRecording();
+	        	List<StubMapping> mappings = recordings.getStubMappings();
+	        	System.out.println("Found " + mappings.size() + " recordings.");
+	        	for (StubMapping mapping : mappings) {
+	        		ResponseDefinition response = mapping.getResponse();
+	        		JsonNode jsonBody = response.getJsonBody();
+	        		System.out.println(jsonBody == null ? "JsonBody is null" : jsonBody.toPrettyString());
+	        	}
+	        }
+	        wireMockServer.stop();
+			System.out.println("Wiremock is down.");
+		}
+	}
 	
 	@Test
 	void testAccept_OneParamReturned() throws Exception {
@@ -128,8 +185,8 @@ class FormsFeederClientTest {
 		String expectedParamValue = "Param1Value";
 
 		FormsFeederClient underTest = FormsFeederClient.builder()
-												  .machineName(TEST_MACHINE_NAME)
-												  .port(TEST_MACHINE_PORT)
+												  .machineName(formsfeederServerName)
+												  .port(formsfeederServerPort)
 												  .plugin("Debug")
 												  .build();	
 		DataSourceList result = underTest.accept(DataSourceList.builder().add(expectedParamName,expectedParamValue).build());
@@ -151,8 +208,8 @@ class FormsFeederClientTest {
 	void testAccept_ManyParamsReturned() throws Exception {
 		String expectedCorrelationId = "fake correlation id";
 		FormsFeederClient underTest = FormsFeederClient.builder()
-												  .machineName(TEST_MACHINE_NAME)
-												  .port(TEST_MACHINE_PORT)
+												  .machineName(formsfeederServerName)
+												  .port(formsfeederServerPort)
 												  .basicAuthentication(FORMSFEEDER_SERVER_USERNAME, FORMSFEEDER_SERVER_PASSWORD)
 												  .plugin("Debug")
 												  .correlationId(()->expectedCorrelationId)
@@ -207,8 +264,8 @@ class FormsFeederClientTest {
 	@Test
 	void testAccept_PdfReturned() throws Exception {
 		FormsFeederClient underTest = FormsFeederClient.builder()
-				  .machineName(TEST_MACHINE_NAME)
-				  .port(TEST_MACHINE_PORT)
+				  .machineName(formsfeederServerName)
+				  .port(formsfeederServerPort)
 				  .plugin("Mock")
 				  .build();	
 
@@ -230,8 +287,8 @@ class FormsFeederClientTest {
 	@Test
 	void testAccept_XmlReturned() throws Exception {
 		FormsFeederClient underTest = FormsFeederClient.builder()
-				  .machineName(TEST_MACHINE_NAME)
-				  .port(TEST_MACHINE_PORT)
+				  .machineName(formsfeederServerName)
+				  .port(formsfeederServerPort)
 				  .plugin("Mock")
 				  .build();	
 
@@ -251,8 +308,8 @@ class FormsFeederClientTest {
 	@Test
 	void testAccept_ManyOutputsReturned() throws Exception {
 		FormsFeederClient underTest = FormsFeederClient.builder()
-				  .machineName(TEST_MACHINE_NAME)
-				  .port(TEST_MACHINE_PORT)
+				  .machineName(formsfeederServerName)
+				  .port(formsfeederServerPort)
 				  .plugin("Mock")
 				  .build();	
 
@@ -288,22 +345,20 @@ class FormsFeederClientTest {
 	
 	
 	private enum PluginExceptionScenario {
-		BAD_REQUEST("BadRequestException", "statusCode='400'", "reason='Bad Request'", "Plugin processor detected Bad Request.", "Throwing FeedConsumerBadRequestException because scenario was 'BadRequestException'."), 
-		INTERNAL_ERROR("InternalErrorException", "statusCode='500'", "reason='Internal Server Error'", "Plugin processor experienced an Internal Server Error.", "Throwing FeedConsumerInternalErrorException because scenario was 'InternalErrorException'."), 
-		UNCHECKED("UncheckedException", "statusCode='500'", "reason='Internal Server Error'", "Error within Plugin processor.", "Throwing IllegalStateException because scenario was 'UncheckedException'."), 
-		OTHER("OtherFeedConsumerException", "statusCode='500'", "reason='Internal Server Error'", "Plugin processor error.", "Throwing anonymous FeedConsumerException because scenario was 'OtherFeedConsumerException'.");
+		BAD_REQUEST("BadRequestException", "statusCode='400'", "Plugin processor detected Bad Request.", "Throwing FeedConsumerBadRequestException because scenario was 'BadRequestException'."), 
+		INTERNAL_ERROR("InternalErrorException", "statusCode='500'", "Plugin processor experienced an Internal Server Error.", "Throwing FeedConsumerInternalErrorException because scenario was 'InternalErrorException'."), 
+		UNCHECKED("UncheckedException", "statusCode='500'", "Error within Plugin processor.", "Throwing IllegalStateException because scenario was 'UncheckedException'."), 
+		OTHER("OtherFeedConsumerException", "statusCode='500'", "Plugin processor error.", "Throwing anonymous FeedConsumerException because scenario was 'OtherFeedConsumerException'.");
 		
 		private final String scenarioName;
 		private final String statusCode;
-		private final String reason;
 		private final String frameworkMessage;
 		private final String pluginMessage;
 
-		private PluginExceptionScenario(String scenarioName, String statusCode, String reason, String frameworkMessage,
+		private PluginExceptionScenario(String scenarioName, String statusCode, String frameworkMessage,
 				String pluginMessage) {
 			this.scenarioName = scenarioName;
 			this.statusCode = statusCode;
-			this.reason = reason;
 			this.frameworkMessage = frameworkMessage;
 			this.pluginMessage = pluginMessage;
 		}
@@ -313,8 +368,8 @@ class FormsFeederClientTest {
 	@EnumSource
 	void testAccept_FailureReturnedFromServer(PluginExceptionScenario scenario) throws Exception {
 		FormsFeederClient underTest = FormsFeederClient.builder()
-				  .machineName(TEST_MACHINE_NAME)
-				  .port(TEST_MACHINE_PORT)
+				  .machineName(formsfeederServerName)
+				  .port(formsfeederServerPort)
 				  .plugin("Mock")
 				  .build();	
 
@@ -325,7 +380,6 @@ class FormsFeederClientTest {
 		assertNotNull(msg);
 		assertAll(
 				()->assertTrue(msg.contains(scenario.statusCode), "Expected '" + msg + "' to contain '" + scenario.statusCode + "'."),
-				()->assertTrue(msg.contains(scenario.reason), "Expected '" + msg + "' to contain '" + scenario.reason + "'."),
 				()->assertTrue(msg.contains(scenario.frameworkMessage), "Expected '" + msg + "' to contain '" + scenario.frameworkMessage + "'."),
 				()->assertTrue(msg.contains(scenario.pluginMessage), "Expected '" + msg + "' to contain '" + scenario.pluginMessage + "'.")
 				);
