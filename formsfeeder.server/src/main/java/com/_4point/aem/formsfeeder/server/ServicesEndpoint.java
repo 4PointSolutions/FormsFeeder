@@ -372,10 +372,7 @@ public class ServicesEndpoint {
 			return convertDataSourceToResponse(outputs.list().get(0), correlationId, logger);
 		} else { // More than one return.
 			// Convert DataSourceList to MultipartFormData.
-	    	FormDataMultiPart responsesData = new FormDataMultiPart();
-	    	for(var dataSource : outputs.list()) {
-				addFormDataPart(responsesData, dataSource);
-	    	}
+	    	FormDataMultiPart responsesData = toFormDataMultipart(outputs);
 	    	logger.debug("Returning multiple data sources.");
 			for (var bp : responsesData.getBodyParts()) {
 				logger.debug("Added {} -> {}", bp.getMediaType().toString(), bp.getContentDisposition());
@@ -466,6 +463,20 @@ public class ServicesEndpoint {
 	 */
 	private static final ContentDisposition contentDispositionFromFilename(String type, java.nio.file.Path filename) {
 		return ContentDisposition.type(type).fileName(filename.getFileName().toString()).build();
+	}
+
+	/**
+	 * Convert a DataSourceList to a FormDataMultipart object.
+	 * 
+	 * @param dataSourceList
+	 * @return
+	 */
+	private static FormDataMultiPart toFormDataMultipart(final DataSourceList dataSourceList) {
+		FormDataMultiPart responsesData = new FormDataMultiPart();
+		for(var dataSource : dataSourceList.list()) {
+			addFormDataPart(responsesData, dataSource);
+		}
+		return responsesData;
 	}
 
 	/**

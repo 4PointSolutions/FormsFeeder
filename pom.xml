@@ -19,6 +19,7 @@
 		<module>formsfeeder.server</module>
 		<module>formsfeeder.plugins</module>
 		<module>formsfeeder.pf4j-spring</module>
+		<module>formsfeeder.client</module>
 	</modules>
 
 	<properties>
@@ -34,6 +35,8 @@
         <pf4j.version>3.3.1</pf4j.version>
         <pf4j-spring.version>0.6.0</pf4j-spring.version>
         <slf4j.version>1.7.30</slf4j.version>
+        <mockito.version>3.3.3</mockito.version>
+        <jupiter.version>5.6.2</jupiter.version>
 	</properties>
 
 	<build>
@@ -56,13 +59,19 @@
 			<dependency>
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter</artifactId>
-				<version>5.6.2</version>
+				<version>${jupiter.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>org.mockito</groupId>
 				<artifactId>mockito-core</artifactId>
-				<version>3.3.3</version>
+				<version>${mockito.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mockito</groupId>
+				<artifactId>mockito-junit-jupiter</artifactId>
+				<version>${mockito.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
