@@ -142,7 +142,6 @@ class FormsFeederClientTest {
 			// Let wiremock choose the port for the first test, but re-use the same port for all subsequent tests.
 			wireMockServer = new WireMockServer(wiremockPort == null ? new WireMockConfiguration().dynamicPort().extensions(new ResponseTemplateTransformer(true)) : new WireMockConfiguration().port(wiremockPort).extensions(new ResponseTemplateTransformer(true)));
 	        wireMockServer.start();
-			System.out.println("Inside SetEnvironment wiremock block.");
 			if (WIREMOCK_RECORDING) {
 				String aemBaseUrl = "http://" + FF_SERVER_MACHINE_NAME + ":"	+ FF_SERVER_MACHINE_PORT;
 				System.out.println("Wiremock recording of '" + aemBaseUrl + "'.");
@@ -153,8 +152,6 @@ class FormsFeederClientTest {
 			}
 			formsfeederServerName = "localhost";
 			formsfeederServerPort = wiremockPort;
-
-			System.out.println("Wiremock is up on port " + wiremockPort + " .");
 		} else {
 			formsfeederServerName = FF_SERVER_MACHINE_NAME;
 			formsfeederServerPort = FF_SERVER_MACHINE_PORT;
@@ -175,7 +172,6 @@ class FormsFeederClientTest {
 	        	}
 	        }
 	        wireMockServer.stop();
-			System.out.println("Wiremock is down.");
 		}
 	}
 	
