@@ -20,6 +20,7 @@
 		<module>formsfeeder.plugins</module>
 		<module>formsfeeder.pf4j-spring</module>
 		<module>formsfeeder.client</module>
+		<module>formsfeeder.client-cli</module>
 	</modules>
 
 	<properties>
