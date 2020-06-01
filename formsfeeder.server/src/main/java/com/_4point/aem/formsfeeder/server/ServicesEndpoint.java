@@ -43,6 +43,7 @@ import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
 import com._4point.aem.formsfeeder.core.datasource.MimeType;
 import com._4point.aem.formsfeeder.server.pf4j.FeedConsumers;
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
+import com._4point.aem.formsfeeder.server.support.DataSourceListJaxRsUtils;
 import com._4point.aem.formsfeeder.server.support.FfLoggerFactory;
 
 /**
@@ -66,9 +67,6 @@ public class ServicesEndpoint {
 
 	// Data Source Name we use to pass in the bytes from a POST body that does not include name. 
 	private static final String FORMSFEEDER_BODY_BYTES_DS_NAME = FORMSFEEDER_PREFIX + "BodyBytes";
-	
-	// Attribute that is used for Content Disposition
-	private static final String FORMSFEEDER_CONTENT_DISPOSITION_ATTRIBUTE = FORMSFEEDER_PREFIX + "Content-Disposition"; 
 	
 	@Autowired
 	private FeedConsumers feedConsumers;
@@ -134,7 +132,7 @@ public class ServicesEndpoint {
 				}
 			}
 		}
-		final DataSourceList dataSourceList1 = convertMultipartFormDataToDataSourceList(formData, logger);
+		final DataSourceList dataSourceList1 = DataSourceListJaxRsUtils.asDataSourceList(formData, logger);
 		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
 		return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId);
@@ -174,7 +172,7 @@ public class ServicesEndpoint {
 		}
 		try {
 			final ContentDisposition contentDisposition = determineContentDisposition(httpHeaders);
-			final DataSourceList dataSourceList1 = convertBodyToDataSourceList(in, mediaType, contentDisposition, logger);
+			final DataSourceList dataSourceList1 = DataSourceListJaxRsUtils.asDataSourceList(in, mediaType, contentDisposition, FORMSFEEDER_BODY_BYTES_DS_NAME, logger);
 			final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 			final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
 			return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId);
@@ -277,69 +275,6 @@ public class ServicesEndpoint {
 	}
 
 	/**
-	 * Converts the incoming multipart/form-data into a DataSourceList so that they can be processed by a plug-in
-	 * 
-	 * @param formData
-	 * @return
-	 * @throws IOException 
-	 */
-	private static final DataSourceList convertMultipartFormDataToDataSourceList(final FormDataMultiPart formData, final Logger logger) throws IOException {
-		Builder builder = DataSourceList.builder();
-		for (Entry<String, List<FormDataBodyPart>> entry : formData.getFields().entrySet()) {
-			String name = entry.getKey();
-			for(FormDataBodyPart part : entry.getValue()) {
-				if (part.isSimple()) {
-					logger.debug("Found simple Form Data Part '" + name + "' (" + part.getName() + ").");
-					builder.add(name, part.getValue());
-				} else {
-					logger.debug("Found complex Form Data Part '" + name + "' (" + part.getName() + ").");
-					ContentDisposition contentDisposition = part.getContentDisposition();
-					String fileName = contentDisposition.getFileName();
-					if (logger.isDebugEnabled()) {
-						Date creationDate = contentDisposition.getCreationDate();
-						Date modificationDate = contentDisposition.getModificationDate();
-						Date readDate = contentDisposition.getReadDate();
-						logger.debug("    Filename='" + fileName + "'.");
-						logger.debug("    CreationDate='" + (creationDate != null ? creationDate.toString() : "null") + "'.");
-						logger.debug("    ModificationDate='" + (modificationDate != null ? modificationDate : "null") + "'.");
-						logger.debug("    ReadDate='" + (readDate != null ? readDate : "null") + "'.");
-					}
-					// TODO: This is a naive implementation that just reads the whole InputStream into memory.  Should fix this.
-					if (fileName != null) {
-						builder.add(name, part.getEntityAs(InputStream.class).readAllBytes(), fromMediaType(part.getMediaType()), Paths.get(fileName));
-					} else {
-						builder.add(name, part.getEntityAs(InputStream.class).readAllBytes(), fromMediaType(part.getMediaType()));
-					}
-				}
-			}
-		}
-		return builder.build();
-	}
-	
-	/**
-	 * This is a rather naive implementation.  It reads the incoming data into memory.
-	 * 
-	 * A better implementation would create a DataSource from the inputStream but that would require a little more
-	 * work, so I am postponing that until later.
-	 * 
-	 * TODO: Create a better implementation for this.
-	 * 
-	 * @param in
-	 * @param contentType
-	 * @return
-	 * @throws IOException
-	 */
-	private static final DataSourceList convertBodyToDataSourceList(final InputStream in, final MediaType contentType, final ContentDisposition contentDisposition, final Logger logger) throws IOException {
-		logger.debug("Found Body Parameter of type '" + contentType.toString() + "'.");
-		String filename = contentDisposition != null ? contentDisposition.getFileName() : null;
-		if (filename != null) {
-			return DataSourceList.builder().add(FORMSFEEDER_BODY_BYTES_DS_NAME, in.readAllBytes(), fromMediaType(contentType), Paths.get(filename)).build();
-		} else {
-			return DataSourceList.builder().add(FORMSFEEDER_BODY_BYTES_DS_NAME, in.readAllBytes(), fromMediaType(contentType)).build();
-		}
-	}
-
-	/**
 	 * Invokes a FeedConsumer provided by a plug-in.
 	 * 
 	 * @param inputs
@@ -369,10 +304,10 @@ public class ServicesEndpoint {
 			return buildResponse(Response.noContent(), correlationId);
 		} else if (dsList.size() == 1) {
 			// One data source, so return the contents in the body of the response.
-			return convertDataSourceToResponse(outputs.list().get(0), correlationId, logger);
+			return buildResponse(DataSourceListJaxRsUtils.asResponseBuilder(outputs.list().get(0), logger), correlationId);
 		} else { // More than one return.
 			// Convert DataSourceList to MultipartFormData.
-	    	FormDataMultiPart responsesData = toFormDataMultipart(outputs);
+	    	FormDataMultiPart responsesData = DataSourceListJaxRsUtils.asFormDataMultipart(outputs);
 	    	logger.debug("Returning multiple data sources.");
 			for (var bp : responsesData.getBodyParts()) {
 				logger.debug("Added {} -> {}", bp.getMediaType().toString(), bp.getContentDisposition());
@@ -395,31 +330,6 @@ public class ServicesEndpoint {
 	}
 	
 	/**
-	 * Converts a FormsFeeder core MimeType object into JAX-RS MediaType object.
-	 * 
-	 * @param mimeType
-	 * @return
-	 */
-	private static final MediaType fromMimeType(final MimeType mimeType) {
-		Charset charset = mimeType.charset();
-		if (charset != null) {
-			return new MediaType(mimeType.type(), mimeType.subtype(), charset.name());
-		} else {
-			return new MediaType(mimeType.type(), mimeType.subtype());
-		}
-	}
-	
-	/**
-	 * Converts a JAX-RS MediaType object into FormsFeeder core MimeType object.
-	 * 
-	 * @param mediaType
-	 * @return
-	 */
-	private static final MimeType fromMediaType(final MediaType mediaType) {
-		return MimeType.of(mediaType.toString());
-	}
-
-	/**
 	 * Generates a DataSourceList containing variables that are generated by the FormsFeeder server.
 	 * 
 	 * @param correlationId
@@ -431,73 +341,6 @@ public class ServicesEndpoint {
 				.build();
 	}
 	
-	/**
-	 * Convert a single DataSource into a Response object that will be returned to the user.
-	 * 
-	 * @param dataSource	The single DataSource object to be converted
-	 * @param correlationId	The current correlation id
-	 * @param logger		The current logger
-	 * @return				The response that will be returned to the user.
-	 */
-	private static Response convertDataSourceToResponse(DataSource dataSource, final String correlationId, final Logger logger) {
-		MediaType mediaType = fromMimeType(dataSource.contentType());
-		logger.debug("Returning one data source. mediatype='{}'.", mediaType.toString());
-		ResponseBuilder responseBuilder = Response.ok(dataSource.inputStream(), mediaType);
-		
-		// If a Content-Disposition attribute is present on the datasource, use it, otherwise default to "inline"
-		String contentDispositionType = Optional.ofNullable(dataSource.attributes().get(FORMSFEEDER_CONTENT_DISPOSITION_ATTRIBUTE)).orElse("inline");
-		
-		// If a filename is present, then add a Content-Disposition header to the response.
-		dataSource.filename()
-				  .map((f)->contentDispositionFromFilename(contentDispositionType, f))
-				  .ifPresent((cd)->responseBuilder.header(HttpHeaders.CONTENT_DISPOSITION, cd.toString()));
-		
-		return buildResponse(responseBuilder, correlationId);
-	}
-
-	/**
-	 * Map a filename into a Content-Disposition header.
-	 * 
-	 * @param filename
-	 * @return
-	 */
-	private static final ContentDisposition contentDispositionFromFilename(String type, java.nio.file.Path filename) {
-		return ContentDisposition.type(type).fileName(filename.getFileName().toString()).build();
-	}
-
-	/**
-	 * Convert a DataSourceList to a FormDataMultipart object.
-	 * 
-	 * @param dataSourceList
-	 * @return
-	 */
-	private static FormDataMultiPart toFormDataMultipart(final DataSourceList dataSourceList) {
-		FormDataMultiPart responsesData = new FormDataMultiPart();
-		for(var dataSource : dataSourceList.list()) {
-			addFormDataPart(responsesData, dataSource);
-		}
-		return responsesData;
-	}
-
-	/**
-	 * Add FormDataPart to the FormDataMultiPart response based on the DataSource.
-	 * 
-	 * @param responsesData
-	 * @param dataSource
-	 * @return
-	 */
-	private static final FormDataMultiPart addFormDataPart(FormDataMultiPart responsesData, DataSource dataSource) {
-		Optional<java.nio.file.Path> optFilename = dataSource.filename();
-		if (optFilename.isPresent()) {
-			java.nio.file.Path filename = optFilename.get();
-			FormDataContentDisposition cd = FormDataContentDisposition.name(dataSource.name()).fileName(filename.getFileName().toString()).build();
-			responsesData.bodyPart(new FormDataBodyPart(cd, dataSource.inputStream(), fromMimeType(dataSource.contentType())));
-		} else {
-			responsesData.field(dataSource.name(), dataSource.inputStream(), fromMimeType(dataSource.contentType()));
-		}
-		return responsesData;
-	}
-
 	/**
 	 * Exceptions that occur while performing ContentDisposition processing. 
 	 *

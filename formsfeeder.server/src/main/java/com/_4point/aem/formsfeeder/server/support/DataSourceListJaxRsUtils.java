@@ -1,4 +1,4 @@
-package formsfeeder.client.support;
+package com._4point.aem.formsfeeder.server.support;
 
 import java.io.IOException;
 import java.io.InputStream;
