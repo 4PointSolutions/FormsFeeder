@@ -16,7 +16,7 @@ class CommandLineClientTest {
 	//  - Many output DSes with selected name - Should write out to a file or stdout.
 	@Test
 	void testMain_OneDS() {
-		fail("Not yet implemented");
+		String[] args = { "-h", "http://localhost:8080/", "-d", "Param1=Param1Value" };
 	}
 
 }

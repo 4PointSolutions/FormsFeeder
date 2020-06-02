@@ -26,14 +26,22 @@ class CommandLineAppParametersTest {
 	private static final String VERBOSE_SHORT_OPTION = "-v";	
 	private static final String VERBOSE_LONG_OPTION = "--verbose";
 	
-	private static final String HOST_LOCATION_PARAM = "localhost:8080";
+	private static final String HOST_MACHINE_NAME = "localhost";
+	private static final String HOST_PORT = "8080";
+	private static final String HOST_LOCATION_PARAM = "http://" + HOST_MACHINE_NAME + ":" + HOST_PORT;
 	private static final String USER_CREDENTIALS_USERNAME = "username";
 	private static final String USER_CREDENTIALS_PASSWORD = "password";
 	private static final String USER_CREDENTIALS_PARAM = USER_CREDENTIALS_USERNAME + ":" + USER_CREDENTIALS_PASSWORD;
 	private static final String OUTPUT_LOCATION_PARAM = "output/output.txt";
-	private static final String DATA_SOURCE_1_PARAM = "textString1";
-	private static final String DATA_SOURCE_2_PARAM = "@data/data2.dat";
-	private static final String DATA_SOURCE_3_PARAM = "textString3";
+	private static final String DATA_SOURCE_1_NAME = "datasource1";
+	private static final String DATA_SOURCE_2_NAME = "datasource2";
+	private static final String DATA_SOURCE_3_NAME = "datasource3";
+	private static final String DATA_SOURCE_1_VALUE = "textString1";
+	private static final String DATA_SOURCE_2_VALUE = "@data/data2.dat";
+	private static final String DATA_SOURCE_3_VALUE = "textString3";
+	private static final String DATA_SOURCE_1_PARAM = DATA_SOURCE_1_NAME + "=" + DATA_SOURCE_1_VALUE;
+	private static final String DATA_SOURCE_2_PARAM = DATA_SOURCE_2_NAME + "=" + DATA_SOURCE_2_VALUE;
+	private static final String DATA_SOURCE_3_PARAM = DATA_SOURCE_3_NAME + "=" + DATA_SOURCE_3_VALUE;
  
 	private static final String VALID_HOST_LOCATION_SHORT_PAIR = HOST_LOCATION_SHORT_OPTION + " " + HOST_LOCATION_PARAM;
 	private static final String VALID_USER_CREDENTIALS_SHORT_PAIR = USER_CREDENTIALS_SHORT_OPTION + " " + USER_CREDENTIALS_PARAM;
@@ -104,13 +112,18 @@ class CommandLineAppParametersTest {
 		List<DataSourceInfo> dataSourceInfos = underTest.dataSourceInfos();
 		
 		assertAll(
-				()->assertEquals(HOST_LOCATION_PARAM , underTest.hostLocation()),
+				()->assertFalse(underTest.hostParameters().useSsl()),
+				()->assertEquals(HOST_MACHINE_NAME , underTest.hostParameters().hostName()),
+				()->assertEquals(Integer.valueOf(HOST_PORT), underTest.hostParameters().hostPort()),
 				()->assertEquals(Path.of(OUTPUT_LOCATION_PARAM).toString(), outputPath.toString()),
 				()->assertEquals(USER_CREDENTIALS_USERNAME, authParams.username()),
 				()->assertEquals(USER_CREDENTIALS_PASSWORD, authParams.password()),
-				()->assertEquals(DATA_SOURCE_1_PARAM, dataSourceInfos.get(0).value()),
-				()->assertEquals(Path.of(DATA_SOURCE_2_PARAM.substring(1)), dataSourceInfos.get(1).path()),
-				()->assertEquals(DATA_SOURCE_3_PARAM, dataSourceInfos.get(2).value()),
+				()->assertEquals(DATA_SOURCE_1_NAME, dataSourceInfos.get(0).name()),
+				()->assertEquals(DATA_SOURCE_1_VALUE, dataSourceInfos.get(0).value()),
+				()->assertEquals(DATA_SOURCE_2_NAME, dataSourceInfos.get(1).name()),
+				()->assertEquals(Path.of(DATA_SOURCE_2_VALUE.substring(1)), dataSourceInfos.get(1).path()),
+				()->assertEquals(DATA_SOURCE_3_NAME, dataSourceInfos.get(2).name()),
+				()->assertEquals(DATA_SOURCE_3_VALUE, dataSourceInfos.get(2).value()),
 				()->assertTrue(underTest.verbose())
 				);
 	}
@@ -124,7 +137,9 @@ class CommandLineAppParametersTest {
 		final AppParameters underTest = CommandLineAppParameters.parseArgs(args);
 
 		assertAll(
-				()->assertEquals(HOST_LOCATION_PARAM , underTest.hostLocation()),
+				()->assertFalse(underTest.hostParameters().useSsl()),
+				()->assertEquals(HOST_MACHINE_NAME , underTest.hostParameters().hostName()),
+				()->assertEquals(Integer.valueOf(HOST_PORT), underTest.hostParameters().hostPort()),
 				()->assertTrue(underTest.authParameters().isEmpty()),
 				()->assertEquals(0, underTest.dataSourceInfos().size()),
 				()->assertTrue(underTest.output().isEmpty()),

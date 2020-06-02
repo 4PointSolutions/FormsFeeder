@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public interface AppParameters {
 
-	public String hostLocation();
+	public HostParameters hostParameters();
 
 	public Optional<AuthParameters> authParameters();
 	

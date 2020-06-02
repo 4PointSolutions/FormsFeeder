@@ -5,6 +5,7 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +32,7 @@ public class CommandLineAppParameters implements AppParameters {
 	private static final String VERBOSE_SHORT_OPTION = "v";	
 	private static final String VERBOSE_LONG_OPTION = "verbose";
 
-	private final String hostLocation;
+	private final HostParameters hostParameters;
 	private final AuthParameters authParameters;
 	private final List<DataSourceInfo> dataSourceInfos;
 	private final Path outputPath;
@@ -43,9 +44,9 @@ public class CommandLineAppParameters implements AppParameters {
 	 * @param dataSourceInfos
 	 * @param verbose
 	 */
-	private CommandLineAppParameters(String hostLocation, AuthParameters authParameters, List<DataSourceInfo> dataSourceInfos, Path outputPath, boolean verbose) {
+	private CommandLineAppParameters(HostParameters hostLocation, AuthParameters authParameters, List<DataSourceInfo> dataSourceInfos, Path outputPath, boolean verbose) {
 		super();
-		this.hostLocation = hostLocation;
+		this.hostParameters = hostLocation;
 		this.authParameters = authParameters;
 		this.dataSourceInfos = dataSourceInfos;
 		this.outputPath = outputPath;
@@ -53,8 +54,8 @@ public class CommandLineAppParameters implements AppParameters {
 	}
 
 	@Override
-	public String hostLocation() {
-		return this.hostLocation;
+	public HostParameters hostParameters() {
+		return this.hostParameters;
 	}
 
 	@Override
@@ -85,7 +86,7 @@ public class CommandLineAppParameters implements AppParameters {
 		List<DataSourceInfo> dataSourceInfos = asDataSourceInfoList(cmd.getOptionValues(DATA_SOURCE_SHORT_OPTION));
 		Path outputPath = asPath(cmd.getOptionValue(OUTPUT_LOCATION_SHORT_OPTION));
 		boolean verbose = cmd.hasOption(VERBOSE_SHORT_OPTION);
-		return new CommandLineAppParameters(hostLocation, authParameters, dataSourceInfos, outputPath, verbose);
+		return new CommandLineAppParameters(HostParameters.from(hostLocation), authParameters, dataSourceInfos, outputPath, verbose);
 	}
 	
 	private static final AuthParameters asAuthParameters(String authParam) throws ParseException {
@@ -101,9 +102,19 @@ public class CommandLineAppParameters implements AppParameters {
 	private static final List<DataSourceInfo> asDataSourceInfoList(String[] dsParams) {
 		if (dsParams == null || dsParams.length == 0)
 			return null;
-		return Arrays.stream(dsParams)
-					 .map(DataSourceInfo::from)
-					 .collect(Collectors.toList());
+		return Arrays.stream(dsParams)							// String comes in as name=value
+					 .map(CommandLineAppParameters::asEntry)	// Split it into an Entry object name as the key and value as the value 
+					 .map((e)->DataSourceInfo.from(e.getKey(), e.getValue()))	// Create a DataSourceInfo object from it
+					 .collect(Collectors.toList());				// Collect into a List of DataSourceInfo objects.
+	}
+	
+	private static AbstractMap.SimpleEntry<String, String> asEntry(String dsParam) {
+		var index = dsParam.indexOf("=");
+		if (index < 0) {
+			return new AbstractMap.SimpleEntry<>(dsParam.strip(), "");
+		} else { 
+			return new AbstractMap.SimpleEntry<>(dsParam.substring(0, index).strip(), dsParam.substring(index+1).strip());
+		}
 	}
 	
 	private static final Path asPath(String path) {

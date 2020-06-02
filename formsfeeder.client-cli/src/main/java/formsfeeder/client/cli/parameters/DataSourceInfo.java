@@ -4,8 +4,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public abstract class DataSourceInfo {
+
+	private final String name;
 	
+	private DataSourceInfo(String name) {
+		super();
+		this.name = name;
+	}
+
 	public enum Type { PATH, STRING };
+
+	public String name() {
+		return this.name;
+	}
 
 	public abstract Type type();
 
@@ -13,11 +24,11 @@ public abstract class DataSourceInfo {
 	
 	public abstract String value();
 	
-	public static DataSourceInfo from(String param) {
+	public static DataSourceInfo from(String name, String param) {
 		if (param.startsWith("@")) {
-			return new PathDataSourceInfo(Paths.get(param.substring(1)));
+			return new PathDataSourceInfo(name, Paths.get(param.substring(1)));
 		} else {
-			return new StringDataSourceInfo(param);
+			return new StringDataSourceInfo(name, param);
 		}
 	}
 	
@@ -25,8 +36,8 @@ public abstract class DataSourceInfo {
 
 		private final Path path;
 		
-		private PathDataSourceInfo(Path path) {
-			super();
+		private PathDataSourceInfo(String name, Path path) {
+			super(name);
 			this.path = path;
 		}
 
@@ -49,8 +60,8 @@ public abstract class DataSourceInfo {
 	private static class StringDataSourceInfo extends DataSourceInfo {
 		private final String value;
 
-		private StringDataSourceInfo(String value) {
-			super();
+		private StringDataSourceInfo(String name, String value) {
+			super(name);
 			this.value = value;
 		}
 

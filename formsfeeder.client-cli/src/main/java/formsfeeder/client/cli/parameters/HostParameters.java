@@ -5,13 +5,13 @@ import org.apache.commons.cli.ParseException;
 public class HostParameters {
 
 	private final boolean useSsl;
-	private final String hostname;
+	private final String hostName;
 	private final int hostPort;
 
 	private HostParameters(boolean useSsl, String hostname, int hostPort) {
 		super();
 		this.useSsl = useSsl;
-		this.hostname = hostname;
+		this.hostName = hostname;
 		this.hostPort = hostPort;
 	}
 	
@@ -19,8 +19,8 @@ public class HostParameters {
 		return useSsl;
 	}
 
-	public final String hostname() {
-		return hostname;
+	public final String hostName() {
+		return hostName;
 	}
 
 	public final int hostPort() {
@@ -35,18 +35,34 @@ public class HostParameters {
 	 * @throws ParseException 
 	 */
 	public static HostParameters from(String hostString) throws ParseException {
+		
+		if (!hostString.startsWith("http")) {
+			throw new ParseException("Bad Protocol specified (" + hostString.substring(0, hostString.indexOf(":")) + ").  Only http/https is supported.");
+		}
 		boolean useSsl = hostString.startsWith("https");
 		
 		String[] hostParamStrings = splitHostnamePort(stripTrailingSlash(stripLeadingPrefix(hostString)));
 		
-		if (hostParamStrings.length > 2) {
+		if (hostParamStrings.length > 2 || hostParamStrings[0].isEmpty() || (hostParamStrings.length > 1 && hostParamStrings[1].isEmpty())) {
 			throw new ParseException("Error parsing host string '" + hostString + "'.");
 		} else if (hostParamStrings.length < 2) {
 			// No port was provided.
 			return new HostParameters(useSsl, hostParamStrings[0], 80);
 		} else {
 			// Hostname and port provided.
-			return new HostParameters(useSsl, hostParamStrings[0], Integer.parseInt(hostParamStrings[1]));
+			return new HostParameters(useSsl, hostParamStrings[0], parsePort(hostParamStrings[1]));
+		}
+	}
+
+	private static int parsePort(String portString) throws ParseException {
+		try {
+			int portNo = Integer.parseInt(portString);
+			if (portNo == 0) {
+				throw new ParseException("Port Number cannot be 0.");
+			}
+			return portNo;
+		} catch (NumberFormatException e) {
+			throw new ParseException("Unable to parse Port Number. (" + e.getMessage() + ").");
 		}
 	}
 

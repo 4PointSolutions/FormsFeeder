@@ -8,14 +8,16 @@ import org.junit.jupiter.api.Test;
 
 class DataSourceInfoTest {
 
+	private static final String TEST_NAME = "testname";
 	private static final String TEST_DATA = "foo.txt";
 
 	@Test
 	void testFromPath() {
-		DataSourceInfo underTest = DataSourceInfo.from("@" + TEST_DATA);
+		DataSourceInfo underTest = DataSourceInfo.from(TEST_NAME, "@" + TEST_DATA);
 		
 		// Should create a PathDataSourceList
 		assertAll(
+				()->assertEquals(TEST_NAME, underTest.name()),
 				()->assertEquals(DataSourceInfo.Type.PATH, underTest.type()),
 				()->assertThrows(UnsupportedOperationException.class, ()->underTest.value()),
 				()->assertEquals(TEST_DATA, underTest.path().toString())
@@ -25,10 +27,11 @@ class DataSourceInfoTest {
 
 	@Test
 	void testFromString() {
-		DataSourceInfo underTest = DataSourceInfo.from(TEST_DATA);
+		DataSourceInfo underTest = DataSourceInfo.from(TEST_NAME, TEST_DATA);
 
 		// Should create a PathDataSourceList
 		assertAll(
+				()->assertEquals(TEST_NAME, underTest.name()),
 				()->assertEquals(DataSourceInfo.Type.STRING, underTest.type()),
 				()->assertThrows(UnsupportedOperationException.class, ()->underTest.path()),
 				()->assertEquals(TEST_DATA, underTest.value())
