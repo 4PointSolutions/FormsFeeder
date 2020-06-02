@@ -29,5 +29,18 @@
 		    <artifactId>commons-cli</artifactId>
 		    <version>1.4</version>
 		</dependency>
+		<!-- Provide slf4j implementation for testing. -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>${slf4j.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<!-- In-memory File System for writing/reading during unit testing. -->
+		<dependency>
+			<groupId>com.google.jimfs</groupId>
+			<artifactId>jimfs</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>
