@@ -29,6 +29,8 @@ public class CommandLineAppParameters implements AppParameters {
 	private static final String DATA_SOURCE_LONG_OPTION = "data";	
 	private static final String OUTPUT_LOCATION_SHORT_OPTION = "o";
 	private static final String OUTPUT_LOCATION_LONG_OPTION = "output";
+	private static final String PLUGIN_SHORT_OPTION = "p";
+	private static final String PLUGIN_LONG_OPTION = "plugin";
 	private static final String VERBOSE_SHORT_OPTION = "v";	
 	private static final String VERBOSE_LONG_OPTION = "verbose";
 
@@ -37,19 +39,22 @@ public class CommandLineAppParameters implements AppParameters {
 	private final List<DataSourceInfo> dataSourceInfos;
 	private final Path outputPath;
 	private final boolean verbose;
+	private final String plugin;
 	
 	/**
 	 * @param hostLocation
 	 * @param authParameters
 	 * @param dataSourceInfos
 	 * @param verbose
+	 * @param plugin 
 	 */
-	private CommandLineAppParameters(HostParameters hostLocation, AuthParameters authParameters, List<DataSourceInfo> dataSourceInfos, Path outputPath, boolean verbose) {
+	private CommandLineAppParameters(HostParameters hostLocation, AuthParameters authParameters, List<DataSourceInfo> dataSourceInfos, Path outputPath, String plugin, boolean verbose) {
 		super();
 		this.hostParameters = hostLocation;
 		this.authParameters = authParameters;
 		this.dataSourceInfos = dataSourceInfos;
 		this.outputPath = outputPath;
+		this.plugin = plugin;
 		this.verbose = verbose;
 	}
 
@@ -74,6 +79,11 @@ public class CommandLineAppParameters implements AppParameters {
 	}
 
 	@Override
+	public String plugin() {
+		return this.plugin;
+	}
+
+	@Override
 	public boolean verbose() {
 		return this.verbose;
 	}
@@ -85,8 +95,9 @@ public class CommandLineAppParameters implements AppParameters {
 		AuthParameters authParameters = asAuthParameters(cmd.getOptionValue(USER_CREDENTIALS_SHORT_OPTION));
 		List<DataSourceInfo> dataSourceInfos = asDataSourceInfoList(cmd.getOptionValues(DATA_SOURCE_SHORT_OPTION));
 		Path outputPath = asPath(cmd.getOptionValue(OUTPUT_LOCATION_SHORT_OPTION));
+		String plugin = cmd.getOptionValue(PLUGIN_SHORT_OPTION);
 		boolean verbose = cmd.hasOption(VERBOSE_SHORT_OPTION);
-		return new CommandLineAppParameters(HostParameters.from(hostLocation), authParameters, dataSourceInfos, outputPath, verbose);
+		return new CommandLineAppParameters(HostParameters.from(hostLocation), authParameters, dataSourceInfos, outputPath, plugin, verbose);
 	}
 	
 	private static final AuthParameters asAuthParameters(String authParam) throws ParseException {
@@ -153,6 +164,12 @@ public class CommandLineAppParameters implements AppParameters {
 			      .hasArg(true)  
 			      .desc("Location of output PDF file.")  
 			      .build();  	   
+	   final Option plugin = Option.builder(PLUGIN_SHORT_OPTION)  
+			      .required(true)  
+			      .longOpt(PLUGIN_LONG_OPTION)  
+			      .hasArg(true)  
+			      .desc("Name of plug-in to be invoked.")  
+			      .build();  	   
 	   final Option verbose = Option.builder(VERBOSE_SHORT_OPTION)  
 			      .required(false)
 			      .longOpt(VERBOSE_LONG_OPTION)  			      
@@ -165,6 +182,7 @@ public class CommandLineAppParameters implements AppParameters {
 	   options.addOption(authParam);
 	   options.addOption(dataSource);
 	   options.addOption(outputLocation);
+	   options.addOption(plugin);
 	   options.addOption(verbose);
 	   return options;
 	}
@@ -241,5 +259,4 @@ public class CommandLineAppParameters implements AppParameters {
 		CommandLineAppParameters.printUsage(out);
 		return baos.toString();
 	}
-
 }
