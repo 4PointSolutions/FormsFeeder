@@ -190,7 +190,7 @@ class CommandLineAppParametersTest {
 	}
 	
 	@ParameterizedTest
-	@ValueSource(strings = { VALID_USER_CREDENTIALS_SHORT_PAIR })
+	@ValueSource(strings = { VALID_USER_CREDENTIALS_SHORT_PAIR + " " + VALID_HOST_LOCATION_SHORT_PAIR, VALID_PLUGIN_LONG_PAIR + " " + VALID_USER_CREDENTIALS_SHORT_PAIR })
 	void testMissingParameter(String cmdLine) {
 		final String[] args = breakSimpleString(cmdLine);
 		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class,()->CommandLineAppParameters.parseArgs(args));
