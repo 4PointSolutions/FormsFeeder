@@ -55,15 +55,12 @@ import formsfeeder.client.FormsFeederClient.FormsFeederClientException;
 class FormsFeederClientTest {
 	private static final Path RESOURCES_FOLDER = Paths.get("src", "test", "resources");
 	private static final Path SAMPLE_FILES_DIR = RESOURCES_FOLDER.resolve("SampleFiles");
-	private static final Path ACTUAL_RESULTS_DIR = RESOURCES_FOLDER.resolve("ActualResults");
 	private static final Path SAMPLE_XDP = SAMPLE_FILES_DIR.resolve("SampleForm.xdp");
 	private static final Path SAMPLE_PDF = SAMPLE_FILES_DIR.resolve("SampleForm.pdf");
 	private static final Path SAMPLE_DATA = SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
 
 	private static final String FF_SERVER_MACHINE_NAME = "localhost";
 	private static final int FF_SERVER_MACHINE_PORT = 8080;
-
-	private static final MediaType APPLICATION_PDF = new MediaType("application", "pdf");
 
 	private static final String FORMSFEEDER_SERVER_USERNAME = "username";
 	private static final String FORMSFEEDER_SERVER_PASSWORD = "password";
@@ -126,7 +123,6 @@ class FormsFeederClientTest {
 	private static final String stringData = "String Data";
 	private static final MimeType mimeType = StandardMimeTypes.APPLICATION_PDF_TYPE;
 
-	// TODO:  Add Wiremock code in to simulate the formsfeeder.server.
 	private static final boolean USE_WIREMOCK = true;
 	private static final boolean WIREMOCK_RECORDING = false;
 
