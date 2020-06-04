@@ -42,5 +42,12 @@
 			<artifactId>jimfs</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- XML LIbrary for testing -->
+		<dependency>
+			<groupId>com.jcabi</groupId>
+			<artifactId>jcabi-xml</artifactId>
+			<version>0.22.1</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

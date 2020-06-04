@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -55,14 +54,14 @@ public class CommandLineClient {
 				if (resultSize == 1) {
 					DataSource dataSource = result.list().get(0);
 					if ((output.isEmpty() && dataSource.filename().isEmpty()) ||						// No output was specified
-					    (output.isPresent() && output.get().getFileName().toString().equals("--"))) {	// output -- was specified
+					    (output.isPresent() && output.get().getFileName().toString().equals("---"))) {	// output --- was specified
 							// send the lone output to stdout.
 							dataSource.inputStream().transferTo(out);
 					} else {
 						// We'll be sending this to a filename
 						Path outputPath = output.isPresent() 
 								? destFileSystem.getPath(output.get().toString())	// Output parameter was found, so use that.
-								: dataSource.filename().get().getFileName();		// No output parameter, so use filename for output.
+								: destFileSystem.getPath(dataSource.filename().get().getFileName().toString());		// No output parameter, so use filename for output.
 						writeDataSourceToFile(dataSource, outputPath);
 					}
 				} else {
@@ -70,13 +69,13 @@ public class CommandLineClient {
 					if (output.isEmpty()) {
 						writeDataSourceListToZip(result, out);
 					} else {
-						writeDataSourceListToFile(result, output.get());
+						writeDataSourceListToFile(result, destFileSystem.getPath(output.get().toString()));
 					}
 				}
 			}
 			
 		} catch (FormsFeederClientException | ParseException | IllegalStateException | IOException e) {
-			System.err.println(e.getMessage());
+			err.println(e.getMessage());
 		}
 	}
 
@@ -113,13 +112,14 @@ public class CommandLineClient {
 				dslBuilder.add(dsInfo.name(), dsInfo.value());
 				break;
 			default:
+				// This should never happen.
 				throw new IllegalStateException("Internal error: Found DataSourceInfo object of unknown type (" + dsInfo.type().toString() + ").");
 			}
 		}
 		return dslBuilder.build();
 	}
 
-	protected static void writeDataSourceListToZip(DataSourceList dsl, OutputStream out) throws IOException {
+	private static void writeDataSourceListToZip(DataSourceList dsl, OutputStream out) throws IOException {
 		FilenameList filenameList = new FilenameList();
 		ZipOutputStream zipOutputStream = new ZipOutputStream(out);
 		zipOutputStream.setComment("DataSourceList output");
