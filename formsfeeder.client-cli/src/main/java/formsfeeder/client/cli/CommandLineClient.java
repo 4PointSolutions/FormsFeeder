@@ -5,9 +5,7 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.Optional;
 
 import org.apache.commons.cli.ParseException;
 

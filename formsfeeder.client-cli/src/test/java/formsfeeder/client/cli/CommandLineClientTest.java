@@ -203,6 +203,31 @@ class CommandLineClientTest {
 		assertEquals(expectedParamValues.length, count, "Expected to find the same number of ZipEntries as parameters.");
 	}
 
+	@Test
+	void testMain_OneDSNoValue_OneOutput_Stdout() throws Exception {
+		String expectedParamValue = "Param1Value";
+		String expectedParamName = "Param1";
+		String[] args = { "-h", FORMSFEED_SERVER_LOCATION, 
+						  "-d", expectedParamName,			// No value supplied, should result in an empty string in the output.
+						  "-p", "Debug"};
+		
+		var stdin = new ByteArrayInputStream(new byte[0]);
+		var stdout = new ByteArrayOutputStream();
+		var stderr = new ByteArrayOutputStream();
+		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
+		
+		String stdoutStr = new String(stdout.toByteArray(), StandardCharsets.UTF_8);
+		assertAll(
+				()->assertTrue(stdoutStr.contains(expectedParamName), "Expected '" + stdoutStr + "' to contain '" + expectedParamName + "', but didn't."),
+				()->assertTrue(stdoutStr.contains("''"), "Expected '" + stdoutStr + "' to contain '" + expectedParamValue + "', but didn't."),
+				()->assertTrue(stdoutStr.contains(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE.asString()), "Expected '" + stdoutStr + "' to contain '" + StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE.asString() + "', but didn't."),
+				()->assertEquals(0, getFileCount(fs), "Expected no files to be created.")
+				);
+	}
+
+
+	
 	// Test two cases - one with an output filename and one without.
 	// If an output filename is supplied, then that is used.
 	// If an output filename is not supplied, then the filename provided in the response is used.
@@ -358,6 +383,33 @@ class CommandLineClientTest {
 				()->assertEquals(0, getFileCount(fs), "Expected no files to be created.")
 				);
 	}	
+
+	@Test
+	void testMain_BadAuthParam() throws Exception {
+		String expectedParamName = "scenario";
+		String expectedParamValue = "BadRequestException";
+		String expectedOutputLocation = "testMain_BadAuthParam_result.txt";
+		String badAuthParam = "foobar";
+		String[] args = { "-h", FORMSFEED_SERVER_LOCATION, 
+				  "-d", expectedParamName + "=" + expectedParamValue,
+				  "-o", expectedOutputLocation,
+				  "-u", badAuthParam,
+				  "-p", "Mock"};
+		
+		var stdin = new ByteArrayInputStream(new byte[0]);
+		var stdout = new ByteArrayOutputStream();
+		var stderr = new ByteArrayOutputStream();
+		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
+		
+		// Make sure stderr contains the expected output.
+		String stderrStr = new String(stderr.toByteArray(), StandardCharsets.UTF_8);
+		assertAll(
+				()->assertTrue(stderrStr.contains("Can't parse auth parameter"), "Expected '" + stderrStr + "' to contain 'Can't parse auth parameter', but did not."),
+				()->assertTrue(stderrStr.contains(badAuthParam), "Expected '" + stderrStr + "' to contain '" + badAuthParam + "', but did not."),
+				()->assertEquals(0, getFileCount(fs), "Expected no files to be created.")
+				);
+	}
 
 	private static int getFileCount(FileSystem fs) throws IOException {
 		int fileCount = 0;

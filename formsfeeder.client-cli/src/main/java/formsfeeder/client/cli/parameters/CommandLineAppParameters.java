@@ -105,7 +105,7 @@ public class CommandLineAppParameters implements AppParameters {
 			return null;
 		String[] splitParam = authParam.strip().split(":");
 		if (splitParam.length != 2) {
-			throw new ParseException("");
+			throw new ParseException("Can't parse auth parameter(" + authParam + ").");
 		}
 		return new AuthParameters.BasicAuthParameters(splitParam[0], splitParam[1]);
 	}
