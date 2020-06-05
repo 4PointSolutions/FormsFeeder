@@ -1,0 +1,19 @@
+{
+  "id" : "b889b851-7874-4deb-8334-e5fc20e97bd6",
+  "name" : "api_v1_debug",
+  "request" : {
+    "url" : "/api/v1/Debug",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 204,
+    "headers" : {
+      "x-correlation-id" : "{{request.headers.x-correlation-id}}",
+      "Date" : "Fri, 05 Jun 2020 20:36:30 GMT",
+      "Keep-Alive" : "timeout=60"
+    }
+  },
+  "uuid" : "b889b851-7874-4deb-8334-e5fc20e97bd6",
+  "persistent" : true,
+  "insertionIndex" : 10
+}

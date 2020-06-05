@@ -254,6 +254,21 @@ class FormsFeederClientTest {
 	}
 
 	@Test
+	void testAccept_NoParamsReturned() throws Exception {
+		FormsFeederClient underTest = FormsFeederClient.builder()
+												  .machineName(formsfeederServerName)
+												  .port(formsfeederServerPort)
+												  .plugin("Debug")
+												  .build();	
+		DataSourceList result = underTest.accept(DataSourceList.emptyList());
+		
+		assertNotNull(underTest.returnedCorrelationId());
+		assertFalse(underTest.returnedCorrelationId().isBlank());
+		assertNotNull(result);
+		assertEquals(0, result.list().size());
+	}
+
+	@Test
 	void testAccept_PdfReturned() throws Exception {
 		FormsFeederClient underTest = FormsFeederClient.builder()
 				  .machineName(formsfeederServerName)

@@ -60,10 +60,12 @@ public class FormsFeederClient implements FeedConsumer {
 								 );
 				}
 			}
-			Response response = target.path("/api/v1/" + pluginName)
-									  .request()
-									  .header(CorrelationId.CORRELATION_ID_HDR, correlationIdSent)
-									  .post(asEntity(asFormDataMultipart(dataSources)));
+			var invocBuilder = target.path("/api/v1/" + pluginName)
+					.request()
+					.header(CorrelationId.CORRELATION_ID_HDR, correlationIdSent);
+			
+			// If the list is empty, send a GET instead of a POST
+			Response response = dataSources.list().isEmpty() ? invocBuilder.get() : invocBuilder.post(asEntity(asFormDataMultipart(dataSources)));
 			
 			
 			StatusType resultStatus = response.getStatusInfo();
@@ -75,28 +77,34 @@ public class FormsFeederClient implements FeedConsumer {
 				}
 				throw new FormsFeederClientException(message);
 			}
-			if (!response.hasEntity()) {
-				throw new FormsFeederClientException("Call to server succeeded but server failed to return document.  This should never happen.");
-			}
 
 			String correlationIdReceived = response.getHeaderString(CorrelationId.CORRELATION_ID_HDR);
 			if (correlationIdReceived == null || !correlationIdReceived.equals(correlationIdSent)) {
 				throw new FormsFeederClientException("Correlation ID sent (" + correlationIdSent + ") does not match Correlation ID recieved (" + correlationIdReceived + ").");
 			}
 			returnedCorrelationId = correlationIdReceived;	// Store it away in case the caller wants it.
-			DataSourceList returnedList = MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()) ?
-												asDataSourceList(response.readEntity(FormDataMultiPart.class), logger) : // Multiple DataSource Response.
-												asDataSourceList(response, FORMSFEEDERCLIENT_DATA_SOURCE_NAME, logger) ;// Single DataSource Response
-			logger.info("Formsfeeder server returned " + returnedList.list().size() + " DataSources.");
-			if (logger.isDebugEnabled()) {
-				for (var ds : returnedList.list()) {
-					logger.debug("  DataSource name='" + ds.name() + 
-							 "', content-type='" + ds.contentType().asString() + "'" +
-							 (ds.filename().isPresent() ? ", filename='" + ds.filename() + "'." : ".")
-							 );
+
+			if (!response.hasEntity()) {
+				if (!resultStatus.equals(Response.Status.NO_CONTENT)) {
+					throw new FormsFeederClientException("Response was empty but status code was not 'No Content' (statuscode=" + resultStatus.getStatusCode() + ").");
 				}
+				logger.info("Formsfeeder server returned 0 DataSources.");
+				return DataSourceList.emptyList();
+			} else {
+				DataSourceList returnedList = MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()) ?
+													asDataSourceList(response.readEntity(FormDataMultiPart.class), logger) : // Multiple DataSource Response.
+													asDataSourceList(response, FORMSFEEDERCLIENT_DATA_SOURCE_NAME, logger) ;// Single DataSource Response
+				logger.info("Formsfeeder server returned " + returnedList.list().size() + " DataSources.");
+				if (logger.isDebugEnabled()) {
+					for (var ds : returnedList.list()) {
+						logger.debug("  DataSource name='" + ds.name() + 
+								 "', content-type='" + ds.contentType().asString() + "'" +
+								 (ds.filename().isPresent() ? ", filename='" + ds.filename() + "'." : ".")
+								 );
+					}
+				}
+				return returnedList;
 			}
-			return returnedList;
 		} catch (IOException e) {
 			throw new FormsFeederClientException("Error while reading response from the server.", e);
 		} catch (ParseException e) {
