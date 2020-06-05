@@ -30,6 +30,7 @@ import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
 
 class CommandLineClientTest {
+	private static final String FORMSFEED_SERVER_LOCATION = "http://localhost:8080/";
 	private static final Path RESOURCES_FOLDER = Paths.get("src", "test", "resources");
 	private static final Path SAMPLE_FILES_DIR = RESOURCES_FOLDER.resolve("SampleFiles");
 	private static final Path SAMPLE_PDF = SAMPLE_FILES_DIR.resolve("SampleForm.pdf");
@@ -46,7 +47,7 @@ class CommandLineClientTest {
 	void testMain_OneDS_OneOutput_Stdout() throws Exception {
 		String expectedParamValue = "Param1Value";
 		String expectedParamName = "Param1";
-		String[] args = { "-h", "http://localhost:8080/", 
+		String[] args = { "-h", FORMSFEED_SERVER_LOCATION, 
 						  "-d", expectedParamName + "=" + expectedParamValue,
 						  "-p", "Debug"};
 		
@@ -70,7 +71,7 @@ class CommandLineClientTest {
 		String expectedParamValue = "Param1Value";
 		String expectedParamName = "Param1";
 		String expectedOutputLocation = "testMain_OneDS_OneOutput_File_result.txt";
-		String[] args = { "-h", "http://localhost:8080/", 
+		String[] args = { "-h", FORMSFEED_SERVER_LOCATION, 
 						  "-d", expectedParamName + "=" + expectedParamValue,
 						  "-p", "Debug", 
 						  "-o", expectedOutputLocation};
@@ -105,7 +106,7 @@ class CommandLineClientTest {
 	void testMain_ManyDS_ManyOutput_Stdout() throws Exception {
 		String[] expectedParamValues = { "Param1Value", "Param2Value", "Param3Value" }; 
 		String[] expectedParamNames = { "Param1", "Param2", "Param3" }; 
-		String[] args = { "-h", "http://localhost:8080/", 
+		String[] args = { "-h", FORMSFEED_SERVER_LOCATION, 
 						  "-d", expectedParamNames[0] + "=" + expectedParamValues[0], 
 						  "-d", expectedParamNames[1] + "=" + expectedParamValues[1], 
 						  "-d", expectedParamNames[2] + "=" + expectedParamValues[2], 
@@ -145,7 +146,7 @@ class CommandLineClientTest {
 		String[] expectedParamValues = { "Param1Value", "@" + samplePdfFilename, "Param3Value" }; // Two strings and a document parameter
 		String[] expectedParamNames = { "Param1", "Param2", "Param3" }; 
 		String expectedOutputLocation = "testMain_ManyDS_ManyOutput_File_result.zip";
-	String[] args = { "-h", "http://localhost:8080/", 
+	String[] args = { "-h", FORMSFEED_SERVER_LOCATION, 
 						  "-d", expectedParamNames[0] + "=" + expectedParamValues[0], 
 						  "-d", expectedParamNames[1] + "=" + expectedParamValues[1], 
 						  "-d", expectedParamNames[2] + "=" + expectedParamValues[2],
@@ -211,7 +212,7 @@ class CommandLineClientTest {
 	void testMain_XML_File(String providedOutputLocation) throws Exception {
 		String expectedParamName = "scenario";
 		String expectedParamValue = "ReturnXml";
-		String[] args = { "-h", "http://localhost:8080/", 
+		String[] args = { "-h", FORMSFEED_SERVER_LOCATION, 
 						  "-d", expectedParamName + "=" + expectedParamValue,
 						  "-p", "Mock"};
 
@@ -249,7 +250,7 @@ class CommandLineClientTest {
 	void testMain_XML_Stdout() throws Exception {
 		String expectedParamName = "scenario";
 		String expectedParamValue = "ReturnXml";
-		String[] args = { "-h", "http://localhost:8080/", 
+		String[] args = { "-h", FORMSFEED_SERVER_LOCATION, 
 						  "-d", expectedParamName + "=" + expectedParamValue,
 						  "-o", "---",	// Send to stdout
 						  "-p", "Mock"};
@@ -275,7 +276,7 @@ class CommandLineClientTest {
 		String expectedParamValue = "Param1Value";
 		String expectedParamName = "Param1";
 		String expectedOutputLocation = "testMain_OneOutput_CantWriteException_result.txt";
-		String[] args = { "-h", "http://localhost:8080/", 
+		String[] args = { "-h", FORMSFEED_SERVER_LOCATION, 
 						  "-d", expectedParamName + "=" + expectedParamValue,
 						  "-p", "Debug", 
 						  "-o", expectedOutputLocation};
@@ -305,7 +306,7 @@ class CommandLineClientTest {
 		String[] expectedParamValues = { "Param1Value", "@" + samplePdfFilename, "Param3Value" }; // Two strings and a document parameter
 		String[] expectedParamNames = { "Param1", "Param2", "Param3" }; 
 		String expectedOutputLocation = "testMain_ManyOutput_CantWriteException_result.zip";
-		String[] args = { "-h", "http://localhost:8080/", 
+		String[] args = { "-h", FORMSFEED_SERVER_LOCATION, 
 						  "-d", expectedParamNames[0] + "=" + expectedParamValues[0], 
 						  "-d", expectedParamNames[1] + "=" + expectedParamValues[1], 
 						  "-d", expectedParamNames[2] + "=" + expectedParamValues[2],
@@ -335,7 +336,7 @@ class CommandLineClientTest {
 		String expectedParamName = "scenario";
 		String expectedParamValue = "BadRequestException";
 		String expectedOutputLocation = "testMain_PluginException_result.txt";
-		String[] args = { "-h", "http://localhost:8080/", 
+		String[] args = { "-h", FORMSFEED_SERVER_LOCATION, 
 						  "-d", expectedParamName + "=" + expectedParamValue,
 						  "-o", expectedOutputLocation,
 						  "-p", "Mock"};
