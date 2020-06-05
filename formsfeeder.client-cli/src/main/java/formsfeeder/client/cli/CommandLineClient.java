@@ -6,8 +6,11 @@ import java.io.PrintStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.apache.commons.cli.ParseException;
+
 
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
@@ -28,6 +31,9 @@ public class CommandLineClient {
 	
 	public static void mainline(String[] args, InputStream in, PrintStream out, PrintStream err, FileSystem destFileSystem) {
 		try {
+			Logger clientLogger = Logger.getLogger("formsfeeder.client.FormsFeederClient");	// Turn off the INFO logging in FormsFeederClient.
+			clientLogger.setLevel(Level.WARNING);
+			
 			AppParameters cliParameters = CommandLineAppParameters.parseArgs(args);
 
 			HostParameters hostParams = cliParameters.hostParameters();
@@ -48,9 +54,13 @@ public class CommandLineClient {
 			switch (outputType.type()) {
 			case USE_FILENAME:
 				DataSourceListWriter.write(result, destFileSystem.getPath(outputType.filename()));
+				out.println("Result written to '" + outputType.filename() + "'.");	// If we're writing to a file, let the user know we've done it.
 				break;
 			case USE_STDOUT:
 				DataSourceListWriter.write(result, out);
+				if (System.console() != null) {
+					out.println();	// If we're writing to a console, then append a newline.
+				}
 				break;
 			default:
 				throw new IllegalStateException("Unexpected OutputType encountered (" + outputType.type().toString() + ").");
