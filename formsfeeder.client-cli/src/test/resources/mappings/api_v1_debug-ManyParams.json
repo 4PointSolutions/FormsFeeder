@@ -1,0 +1,26 @@
+{
+  "id" : "6f67f14d-f1c7-46b1-b2aa-8f1ac3d3bdfd",
+  "name" : "api_v1_debug",
+  "request" : {
+    "url" : "/api/v1/Debug",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "contains" : "Param1Value"
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "base64Body" : "LS1Cb3VuZGFyeV8zNF84NDc3MjI2MjNfMTU5MTM4MzQxNDYxOQ0KQ29udGVudC1UeXBlOiB0ZXh0L3BsYWluO2NoYXJzZXQ9VVRGLTgNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iTWVzc2FnZSINCg0KRm91bmQgZGF0YXNvdXJjZTogbmFtZT0nUGFyYW0zJyB3aXRoIHZhbHVlICdQYXJhbTNWYWx1ZScgd2l0aCBjb250ZW50VHlwZSAndGV4dC9wbGFpbjsgY2hhcnNldD1VVEYtOCcuDQotLUJvdW5kYXJ5XzM0Xzg0NzcyMjYyM18xNTkxMzgzNDE0NjE5DQpDb250ZW50LVR5cGU6IHRleHQvcGxhaW47Y2hhcnNldD1VVEYtOA0KQ29udGVudC1EaXNwb3NpdGlvbjogZm9ybS1kYXRhOyBuYW1lPSJNZXNzYWdlIg0KDQpGb3VuZCBkYXRhc291cmNlOiBuYW1lPSdQYXJhbTInIHdpdGggY29udGVudFR5cGUgJ2FwcGxpY2F0aW9uL3BkZicgd2l0aCBmaWxlbmFtZSAnU2FtcGxlRm9ybS5wZGYnLg0KLS1Cb3VuZGFyeV8zNF84NDc3MjI2MjNfMTU5MTM4MzQxNDYxOQ0KQ29udGVudC1UeXBlOiB0ZXh0L3BsYWluO2NoYXJzZXQ9VVRGLTgNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iTWVzc2FnZSINCg0KRm91bmQgZGF0YXNvdXJjZTogbmFtZT0nUGFyYW0xJyB3aXRoIHZhbHVlICdQYXJhbTFWYWx1ZScgd2l0aCBjb250ZW50VHlwZSAndGV4dC9wbGFpbjsgY2hhcnNldD1VVEYtOCcuDQotLUJvdW5kYXJ5XzM0Xzg0NzcyMjYyM18xNTkxMzgzNDE0NjE5LS0NCg==",
+    "headers" : {
+      "x-correlation-id" : "{{request.headers.x-correlation-id}}",
+      "MIME-Version" : "1.0",
+      "Content-Type" : "multipart/form-data; boundary=Boundary_34_847722623_1591383414619",
+      "Date" : "Fri, 05 Jun 2020 18:56:54 GMT",
+      "Keep-Alive" : "timeout=60"
+    },
+    "transformers" : [ "response-template" ]
+  },
+  "uuid" : "6f67f14d-f1c7-46b1-b2aa-8f1ac3d3bdfd",
+  "persistent" : true,
+  "insertionIndex" : 5
+}

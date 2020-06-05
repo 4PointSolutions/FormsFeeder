@@ -1,0 +1,24 @@
+{
+  "id" : "48625a96-05cf-49d8-940b-14b109b2d28e",
+  "name" : "api_v1_mock",
+  "request" : {
+    "url" : "/api/v1/Mock",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "contains" : "BadRequestException"
+    } ]
+  },
+  "response" : {
+    "status" : 400,
+    "body" : "Plugin processor detected Bad Request. (Throwing FeedConsumerBadRequestException because scenario was 'BadRequestException'.)",
+    "headers" : {
+      "x-correlation-id" : "{{request.headers.x-correlation-id}}",
+      "Content-Type" : "text/plain",
+      "Date" : "Fri, 05 Jun 2020 18:34:32 GMT"
+    },
+    "transformers" : [ "response-template" ]
+  },
+  "uuid" : "48625a96-05cf-49d8-940b-14b109b2d28e",
+  "persistent" : true,
+  "insertionIndex" : 1
+}

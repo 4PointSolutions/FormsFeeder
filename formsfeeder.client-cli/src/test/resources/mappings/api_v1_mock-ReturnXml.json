@@ -1,0 +1,26 @@
+{
+  "id" : "722bb278-1d16-4fb3-9427-2fd4fc33bd2f",
+  "name" : "api_v1_mock",
+  "request" : {
+    "url" : "/api/v1/Mock",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "contains" : "ReturnXml"
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<form1>\n\t<TextField1>Text Field1 Data</TextField1>\n\t<TextField2>Text Field2 Data</TextField2>\n</form1>",
+    "headers" : {
+      "Content-Disposition" : "inline; filename=\"SampleForm_data.xml\"",
+      "x-correlation-id" : "{{request.headers.x-correlation-id}}",
+      "Content-Type" : "application/xml",
+      "Date" : "Fri, 05 Jun 2020 18:34:32 GMT",
+      "Keep-Alive" : "timeout=60"
+    },
+    "transformers" : [ "response-template" ]
+  },
+  "uuid" : "722bb278-1d16-4fb3-9427-2fd4fc33bd2f",
+  "persistent" : true,
+  "insertionIndex" : 2
+}

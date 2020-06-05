@@ -1,0 +1,25 @@
+{
+  "id" : "b6167b6e-7739-4401-8955-b196d776f6aa",
+  "name" : "api_v1_debug",
+  "request" : {
+    "url" : "/api/v1/Debug",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "contains" : "ParamNoValue"
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "Found datasource: name='ParamNoValue' with value '' with contentType 'text/plain; charset=UTF-8'.",
+    "headers" : {
+      "x-correlation-id" : "{{request.headers.x-correlation-id}}",
+      "Content-Type" : "text/plain;charset=UTF-8",
+      "Date" : "Fri, 05 Jun 2020 18:34:32 GMT",
+      "Keep-Alive" : "timeout=60"
+    },
+    "transformers" : [ "response-template" ]
+  },
+  "uuid" : "b6167b6e-7739-4401-8955-b196d776f6aa",
+  "persistent" : true,
+  "insertionIndex" : 7
+}
