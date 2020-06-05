@@ -148,6 +148,7 @@ class CommandLineClientTest {
 				()->assertFalse(stdoutStr.contains(expectedParamName), "Expected '" + stdoutStr + "' to not contain '" + expectedParamName + "', but did."),
 				()->assertFalse(stdoutStr.contains(expectedParamValue), "Expected '" + stdoutStr + "' to not contain '" + expectedParamValue + "', but did."),
 				()->assertFalse(stdoutStr.contains(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE.asString()), "Expected '" + stdoutStr + "' to not contain '" + StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE.asString() + "', but did."),
+				()->assertTrue(stdoutStr.contains(expectedOutputLocation), "Expected '" + stdoutStr + "' to contain '" + expectedOutputLocation + "', but did not."),
 				()->assertEquals(1, getFileCount(fs), "Expected only one file to be created."),		// Verify that there's only one file created.
 				()->assertTrue(Files.exists(fs.getPath(expectedOutputLocation)))		// Verify that the expected file exists
 				);
@@ -239,6 +240,7 @@ class CommandLineClientTest {
 				()->assertFalse(stdoutStr.contains(expectedParamNames[2]), "Expected '" + stdoutStr + "' to not contain '" + expectedParamNames[2] + "', but did."),
 				()->assertFalse(stdoutStr.contains(expectedParamValues[2]), "Expected '" + stdoutStr + "' to not contain '" + expectedParamValues[2] + "', but did."),
 				()->assertFalse(stdoutStr.contains(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE.asString()), "Expected '" + stdoutStr + "' to not contain '" + StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE.asString() + "', but did."),
+				()->assertTrue(stdoutStr.contains(expectedOutputLocation), "Expected '" + stdoutStr + "' to contain '" + expectedOutputLocation + "', but did not."),
 				()->assertEquals(1, getFileCount(fs), "Expected only one file to be created."),		// Verify that only one file was created.
 				()->assertTrue(Files.exists(fs.getPath(expectedOutputLocation)))		// Verify that the expected file exists
 				);
@@ -333,6 +335,7 @@ class CommandLineClientTest {
 				()->assertFalse(stdoutStr.contains(expectedParamName), "Expected '" + stdoutStr + "' to not contain '" + expectedParamName + "', but did."),
 				()->assertFalse(stdoutStr.contains(expectedParamValue), "Expected '" + stdoutStr + "' to not contain '" + expectedParamValue + "', but did."),
 				()->assertFalse(stdoutStr.contains(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE.asString()), "Expected '" + stdoutStr + "' to not contain '" + StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE.asString() + "', but did."),
+				()->assertTrue(stdoutStr.contains(expectedOutputLocation), "Expected '" + stdoutStr + "' to contain '" + expectedOutputLocation + "', but did not."),
 				()->assertEquals(1, getFileCount(fs), "Expected only one file to be created."),		// Verify that there's only one file created.
 				()->assertTrue(Files.exists(fs.getPath(expectedOutputLocation)))		// Verify that the expected file exists
 				);
