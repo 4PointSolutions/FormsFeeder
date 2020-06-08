@@ -68,10 +68,8 @@
 			<artifactId>commons-cli</artifactId>
 			<version>${commons-cli.version}</version>
 		</dependency>
-		<!-- Guava is not actually required for this project however it is a common 
-			requirements for both -->
-		<!-- JimFS and WireMock, so we include it here to resolve conflicts between 
-			the two. -->
+		<!-- Guava is not actually required for this project however it is a common requirements for both -->
+		<!-- JimFS and WireMock, so we include it here to resolve conflicts between the two. -->
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>

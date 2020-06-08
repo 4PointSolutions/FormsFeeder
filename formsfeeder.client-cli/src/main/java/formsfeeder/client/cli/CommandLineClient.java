@@ -31,11 +31,14 @@ public class CommandLineClient {
 	
 	public static void mainline(String[] args, InputStream in, PrintStream out, PrintStream err, FileSystem destFileSystem) {
 		try {
-			Logger clientLogger = Logger.getLogger("formsfeeder.client.FormsFeederClient");	// Turn off the INFO logging in FormsFeederClient.
-			clientLogger.setLevel(Level.WARNING);
-			
 			AppParameters cliParameters = CommandLineAppParameters.parseArgs(args);
-
+			
+			if (!cliParameters.verbose()) {	// If not verbose, then disable the INFO messages from FormsFeederClient object.
+				Logger clientLogger = Logger.getLogger("formsfeeder.client.FormsFeederClient");	// Turn off the INFO logging in FormsFeederClient id .
+				clientLogger.setLevel(Level.WARNING);
+			}
+			
+			
 			HostParameters hostParams = cliParameters.hostParameters();
 			FormsFeederClient ffClient = FormsFeederClient.builder()
 					  .machineName(hostParams.hostName())
