@@ -11,6 +11,8 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
+
 public class AbstractFileExtensionsMap implements MimeTypeFileTypeMap {
 
 	protected final List<FileExtensionsEntry> entries;
@@ -26,16 +28,16 @@ public class AbstractFileExtensionsMap implements MimeTypeFileTypeMap {
 	}
 
 	protected AbstractFileExtensionsMap(FileExtensionsEntry[] entries) {
-		this.entries = List.of(entries);
-		this.byMimeType = Arrays.stream(entries).collect(Collectors.toUnmodifiableMap(FileExtensionsEntry::getMimeType, Function.identity()));
+		this.entries = Jdk8Utils.listOf(entries);
+		this.byMimeType = Arrays.stream(entries).collect(Jdk8Utils.toUnmodifiableMap(FileExtensionsEntry::getMimeType, Function.identity()));
 		this.byExtension = Arrays.stream(entries)
 				.flatMap(ExtensionRecord::from)
-				.collect(Collectors.toUnmodifiableMap((er)->er.extension, (er)->er.localEntry));
+				.collect(Jdk8Utils.toUnmodifiableMap((er)->er.extension, (er)->er.localEntry));
 	}
 
 	protected AbstractFileExtensionsMap(FileExtensionsEntry[] entries, Supplier<List<FileExtensionsEntry>> listSupplier, Supplier<Map<MimeType, FileExtensionsEntry>> mimeMapSupplier, Supplier<Map<String, FileExtensionsEntry>> extensionMapSupplier) {
 		this.entries = listSupplier.get();
-		this.entries.addAll(List.of(entries));
+		this.entries.addAll(Jdk8Utils.listOf(entries));
 		
 		this.byMimeType = Arrays.stream(entries).collect(Collectors.toMap(FileExtensionsEntry::getMimeType, Function.identity(), (e1, e2)->e1, mimeMapSupplier));
 		this.byExtension = Arrays.stream(entries)
@@ -69,7 +71,7 @@ public class AbstractFileExtensionsMap implements MimeTypeFileTypeMap {
 			super();
 			this.mimeType = mimeType;
 			this.defaultExtension = defaultExtension;
-			this.extensions = Set.copyOf(extensions);
+			this.extensions = Jdk8Utils.copyOfSet(extensions);
 		}
 
 		public MimeType getMimeType() {
@@ -85,10 +87,10 @@ public class AbstractFileExtensionsMap implements MimeTypeFileTypeMap {
 		}
 		
 		protected static FileExtensionsEntry of(MimeType mimeType, String[] extensions) {
-			return new FileExtensionsEntry(mimeType, extensions[0], Set.of(extensions));
+			return new FileExtensionsEntry(mimeType, extensions[0], Jdk8Utils.setOf(extensions));
 		}
 		protected static FileExtensionsEntry of(String mimeType, String[] extensions) {
-			return new FileExtensionsEntry(MimeType.of(mimeType), extensions[0], Set.of(extensions));
+			return new FileExtensionsEntry(MimeType.of(mimeType), extensions[0], Jdk8Utils.setOf(extensions));
 		}
 	}
 	

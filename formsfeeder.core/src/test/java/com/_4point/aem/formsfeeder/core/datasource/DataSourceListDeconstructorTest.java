@@ -9,13 +9,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
 class DataSourceListDeconstructorTest {
 
@@ -85,15 +85,15 @@ class DataSourceListDeconstructorTest {
 
 	// Construct a DataSourceList with one or more of each and every type
 	private static final DataSourceList sampleDataSource = DataSourceList.builder()
-			.addDataSources(List.of(dummyDS, dummyDS))
-			.addBooleans(BOOLEAN_DS_NAME, List.of(booleanData, booleanData, booleanData))
-			.addByteArrays(BYTE_ARRAY_DS_NAME, List.of(byteArrayData))
-			.addDoubles(DOUBLE_DS_NAME, List.of(doubleData, doubleData))
-			.addFloats(FLOAT_DS_NAME, List.of(floatData, floatData, floatData))
-			.addIntegers(INTEGER_DS_NAME, List.of(intData))
-			.addLongs(LONG_DS_NAME, List.of(longData, longData))
-			.addPaths(FILE_DS_NAME, List.of(pathData, pathData, pathData))
-			.addStrings(STRING_DS_NAME, List.of(stringData))
+			.addDataSources(Jdk8Utils.listOf(dummyDS, dummyDS))
+			.addBooleans(BOOLEAN_DS_NAME, Jdk8Utils.listOf(booleanData, booleanData, booleanData))
+			.addByteArrays(BYTE_ARRAY_DS_NAME, Jdk8Utils.listOf(byteArrayData))
+			.addDoubles(DOUBLE_DS_NAME, Jdk8Utils.listOf(doubleData, doubleData))
+			.addFloats(FLOAT_DS_NAME, Jdk8Utils.listOf(floatData, floatData, floatData))
+			.addIntegers(INTEGER_DS_NAME, Jdk8Utils.listOf(intData))
+			.addLongs(LONG_DS_NAME, Jdk8Utils.listOf(longData, longData))
+			.addPaths(FILE_DS_NAME, Jdk8Utils.listOf(pathData, pathData, pathData))
+			.addStrings(STRING_DS_NAME, Jdk8Utils.listOf(stringData))
 			.build();
 
 
@@ -122,14 +122,14 @@ class DataSourceListDeconstructorTest {
 	void testGetByNameEmptyList() {
 		Deconstructor underTest = DataSourceList.builder().build().deconstructor();
 		assertAll(
-				()->assertTrue(underTest.getDataSourceByName(DUMMY_DS_NAME).isEmpty()),
-				()->assertTrue(underTest.getBooleanByName(BOOLEAN_DS_NAME).isEmpty()),
-				()->assertTrue(underTest.getByteArrayByName(BYTE_ARRAY_DS_NAME).isEmpty()),
-				()->assertTrue(underTest.getDoubleByName(DOUBLE_DS_NAME).isEmpty()),
-				()->assertTrue(underTest.getFloatByName(FLOAT_DS_NAME).isEmpty()),
-				()->assertTrue(underTest.getIntegerByName(INTEGER_DS_NAME).isEmpty()),
-				()->assertTrue(underTest.getLongByName(LONG_DS_NAME).isEmpty()),
-				()->assertTrue(underTest.getStringByName(STRING_DS_NAME).isEmpty())
+				()->assertFalse(underTest.getDataSourceByName(DUMMY_DS_NAME).isPresent()),
+				()->assertFalse(underTest.getBooleanByName(BOOLEAN_DS_NAME).isPresent()),
+				()->assertFalse(underTest.getByteArrayByName(BYTE_ARRAY_DS_NAME).isPresent()),
+				()->assertFalse(underTest.getDoubleByName(DOUBLE_DS_NAME).isPresent()),
+				()->assertFalse(underTest.getFloatByName(FLOAT_DS_NAME).isPresent()),
+				()->assertFalse(underTest.getIntegerByName(INTEGER_DS_NAME).isPresent()),
+				()->assertFalse(underTest.getLongByName(LONG_DS_NAME).isPresent()),
+				()->assertFalse(underTest.getStringByName(STRING_DS_NAME).isPresent())
 				);
 	}
 
@@ -160,7 +160,7 @@ class DataSourceListDeconstructorTest {
 		// First DS with octet-stream type is the dummy DS
 		assertEquals(dummyDS, underTest.getDataSource(ds->ds.contentType().equals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE)).get());
 		// Test where nothing matches.
-		assertTrue(underTest.getDataSource(ds->false).isEmpty());
+		assertFalse(underTest.getDataSource(ds->false).isPresent());
 		
 		
 	}

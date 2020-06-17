@@ -2,6 +2,8 @@ package formsfeeder.client.support;
 
 import java.util.UUID;
 
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
+
 public class CorrelationId {
 	public final static String CORRELATION_ID_HDR = "x-correlation-id";
 
@@ -17,7 +19,7 @@ public class CorrelationId {
 	 * @return new or existing correlation id.
 	 */
 	public static String generate(String existingId) {
-		return existingId == null || existingId.isEmpty() || existingId.isBlank() ? generate() : existingId;
+		return existingId == null || existingId.isEmpty() || Jdk8Utils.isBlank(existingId) ? generate() : existingId;
 	}
 	
 	/**

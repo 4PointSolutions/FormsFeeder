@@ -2,12 +2,13 @@ package com._4point.aem.formsfeeder.core.datasource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
+
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
 class ByteArrayDataSourceTest {
 
@@ -16,7 +17,7 @@ class ByteArrayDataSourceTest {
 		ByteArrayDataSource underTest = new ByteArrayDataSource();
 		try (InputStream inputStream = underTest.inputStream()) {
 			assertAll(
-					()->assertEquals(0, inputStream.readAllBytes().length),
+					()->assertEquals(0, Jdk8Utils.readAllBytes(inputStream).length),
 					()->assertEquals("", underTest.name()),
 					()->assertEquals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE, underTest.contentType()),
 					()->assertEquals(0, underTest.attributes().size())
@@ -30,7 +31,7 @@ class ByteArrayDataSourceTest {
 		ByteArrayDataSource underTest = new ByteArrayDataSource(expectedBytes);
 		try (InputStream inputStream = underTest.inputStream()) {
 			assertAll(
-					()->assertArrayEquals(expectedBytes, inputStream.readAllBytes()),
+					()->assertArrayEquals(expectedBytes, Jdk8Utils.readAllBytes(inputStream)),
 					()->assertEquals("", underTest.name()),
 					()->assertEquals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE, underTest.contentType()),
 					()->assertEquals(0, underTest.attributes().size())
@@ -45,7 +46,7 @@ class ByteArrayDataSourceTest {
 		ByteArrayDataSource underTest = new ByteArrayDataSource(expectedBytes, expectedName);
 		try (InputStream inputStream = underTest.inputStream()) {
 			assertAll(
-					()->assertArrayEquals(expectedBytes, inputStream.readAllBytes()),
+					()->assertArrayEquals(expectedBytes, Jdk8Utils.readAllBytes(inputStream)),
 					()->assertEquals(expectedName, underTest.name()),
 					()->assertEquals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE, underTest.contentType()),
 					()->assertEquals(0, underTest.attributes().size())
@@ -57,12 +58,12 @@ class ByteArrayDataSourceTest {
 	void testByteArrayDataSourceByteArrayStringMapOfStringString() throws Exception {
 		byte[] expectedBytes = "Test Data".getBytes();
 		String expectedName = "DataSource Test Name";
-		Map<String, String> expectedAttributes = Map.of("TestAttribute1", "TestAttributeValue1","TestAttribute2", "TestAttributeValue2");
+		Map<String, String> expectedAttributes = Jdk8Utils.mapOf("TestAttribute1", "TestAttributeValue1","TestAttribute2", "TestAttributeValue2");
 		ByteArrayDataSource underTest = new ByteArrayDataSource(expectedBytes, expectedName, expectedAttributes);
 		try (InputStream inputStream = underTest.inputStream()) {
 			Map<String, String> attributes = underTest.attributes();
 			assertAll(
-					()->assertArrayEquals(expectedBytes, inputStream.readAllBytes()),
+					()->assertArrayEquals(expectedBytes, Jdk8Utils.readAllBytes(inputStream)),
 					()->assertEquals(expectedName, underTest.name()),
 					()->assertEquals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE, underTest.contentType()),
 					()->assertTrue(attributes.keySet().containsAll(expectedAttributes.keySet()), "Expected all the keys to be returned."),
@@ -81,7 +82,7 @@ class ByteArrayDataSourceTest {
 		ByteArrayDataSource underTest = new ByteArrayDataSource(expectedBytes, expectedName, expectedMimeType);
 		try (InputStream inputStream = underTest.inputStream()) {
 			assertAll(
-					()->assertArrayEquals(expectedBytes, inputStream.readAllBytes()),
+					()->assertArrayEquals(expectedBytes, Jdk8Utils.readAllBytes(inputStream)),
 					()->assertEquals(expectedName, underTest.name()),
 					()->assertEquals(expectedMimeType, underTest.contentType()),
 					()->assertEquals(0, underTest.attributes().size())
@@ -94,12 +95,12 @@ class ByteArrayDataSourceTest {
 		byte[] expectedBytes = "Test Data".getBytes();
 		String expectedName = "DataSource Test Name";
 		MimeType expectedMimeType = StandardMimeTypes.APPLICATION_VND_ADOBE_CENTRAL_FNF_TYPE;
-		Map<String, String> expectedAttributes = Map.of("Test Attribute 1", "Test Attribute Value 1","Test Attribute 2", "Test Attribute Value 2");
+		Map<String, String> expectedAttributes = Jdk8Utils.mapOf("Test Attribute 1", "Test Attribute Value 1","Test Attribute 2", "Test Attribute Value 2");
 		ByteArrayDataSource underTest = new ByteArrayDataSource(expectedBytes, expectedName, expectedMimeType, expectedAttributes);
 		try (InputStream inputStream = underTest.inputStream()) {
 			Map<String, String> attributes = underTest.attributes();
 			assertAll(
-					()->assertArrayEquals(expectedBytes, inputStream.readAllBytes()),
+					()->assertArrayEquals(expectedBytes, Jdk8Utils.readAllBytes(inputStream)),
 					()->assertEquals(expectedName, underTest.name()),
 					()->assertEquals(expectedMimeType, underTest.contentType()),
 					()->assertTrue(attributes.keySet().containsAll(expectedAttributes.keySet()), "Expected all the keys to be returned."),
@@ -124,7 +125,7 @@ class ByteArrayDataSourceTest {
 			outputStream.write(expectedBytes);
 		}
 		try (InputStream inputStream = underTest.inputStream()) {
-			assertArrayEquals(expectedBytes, inputStream.readAllBytes());
+			assertArrayEquals(expectedBytes, Jdk8Utils.readAllBytes(inputStream));
 		}
 	}
 	

@@ -75,7 +75,7 @@ public class CommandLineClient {
 
 	private static DataSourceList asDataSourceList(List<DataSourceInfo> list) {
 		Builder dslBuilder = DataSourceList.builder();
-		for(var dsInfo : list) {
+		for(DataSourceInfo dsInfo : list) {
 			switch(dsInfo.type()) {
 			case PATH:
 				dslBuilder.add(dsInfo.name(), dsInfo.path());

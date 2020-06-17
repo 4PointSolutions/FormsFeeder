@@ -12,6 +12,11 @@
 	<description>This library used by clients to communicate with the Forms Feeder server.</description>
 
 	<properties>
+		<!--  Client applications may be in Java 8, so compile for that. -->
+		<maven.compiler.source>8</maven.compiler.source>
+		<maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.release>8</maven.compiler.release>
+
 		<jersey.version>2.31</jersey.version>
 		<jaxb.version>2.3.3</jaxb.version>
 		<wiremock.version>2.26.3</wiremock.version>

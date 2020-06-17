@@ -12,6 +12,7 @@ import java.util.zip.ZipOutputStream;
 
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
 /**
  * Utility class for writing DataSourceLists out.
@@ -36,7 +37,7 @@ public class DataSourceListWriter {
 	public static void write(DataSourceList dsl, OutputStream out) throws IOException {
 		int size = dsl.list().size();
 		if (size == 1) {
-			dsl.list().get(0).inputStream().transferTo(out);
+			Jdk8Utils.transfer(dsl.list().get(0).inputStream(), out);
 		} else if (size > 1) {
 			writeDataSourceListToZip(dsl, out);
 		}
@@ -68,12 +69,12 @@ public class DataSourceListWriter {
 		ZipOutputStream zipOutputStream = new ZipOutputStream(out);
 		zipOutputStream.setComment("DataSourceList output");
 		try {
-			for(var ds : dsl.list()) {
+			for(DataSource ds : dsl.list()) {
 				String filename = determineFilename(ds, filenameList);
 				ZipEntry zipEntry = new ZipEntry(filename);
 				
 				zipOutputStream.putNextEntry(zipEntry);
-				ds.inputStream().transferTo(zipOutputStream);
+				Jdk8Utils.transfer(ds.inputStream(), zipOutputStream);
 			}
 		} finally {
 			zipOutputStream.finish();

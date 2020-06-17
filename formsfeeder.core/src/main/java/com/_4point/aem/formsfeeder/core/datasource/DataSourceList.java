@@ -14,6 +14,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
+
 /**
  * Wraps a list of DataSource objects and provides common functions for operating on that list.
  *
@@ -36,7 +38,7 @@ public class DataSourceList {
 	 * @param list
 	 */
 	private DataSourceList(List<DataSource> list) {
-		this.list = List.copyOf(list);
+		this.list = Jdk8Utils.copyOfList(list);
 	}
 
 	/**
@@ -120,7 +122,7 @@ public class DataSourceList {
 				found.add(ds);
 			}
 		}
-		return List.copyOf(found);
+		return Jdk8Utils.copyOfList(found);
 	}
 
 	/**
@@ -146,7 +148,7 @@ public class DataSourceList {
 	 */
 	public static DataSourceList from(DataSourceList... srcLists) {
 		List<DataSource> accumulator = new ArrayList<>();
-		for(var srcList : srcLists) {
+		for(DataSourceList srcList : srcLists) {
 			accumulator.addAll(srcList.list());
 		}
 		return new DataSourceList(accumulator);
@@ -504,7 +506,7 @@ public class DataSourceList {
 				return ((StringDataSource) ds).contents();
 			}
 			try (InputStream inputStream = ds.inputStream()) {
-				return new String(inputStream.readAllBytes(), cs);
+				return new String(Jdk8Utils.readAllBytes(inputStream), cs);
 			} catch (IOException e) {
 				throw new IllegalStateException("Error while converting DataSource to String", e);
 			}
@@ -536,7 +538,7 @@ public class DataSourceList {
 				return ((ByteArrayDataSource) ds).getContents();
 			}
 			try (InputStream inputStream = ds.inputStream()) {
-				return inputStream.readAllBytes();
+				return Jdk8Utils.readAllBytes(inputStream);
 			} catch (IOException e) {
 				throw new IllegalStateException("Error while converting DataSource to ByteArray", e);
 			}

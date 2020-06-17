@@ -15,6 +15,11 @@
 	In order to build this project, you just need to use the standard build procedure with a 'package' goal.
 	 -->
 	<properties>
+		<!--  Client applications may be in Java 8, so compile for that. -->
+		<maven.compiler.source>8</maven.compiler.source>
+		<maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.release>8</maven.compiler.release>
+
 		<commons-cli.version>1.4</commons-cli.version>
 		<jcabi-xml.version>0.22.1</jcabi-xml.version>
 		<wiremock.version>2.26.3</wiremock.version>

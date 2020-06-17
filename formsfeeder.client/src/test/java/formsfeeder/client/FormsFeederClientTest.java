@@ -39,6 +39,7 @@ import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.MimeType;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -184,11 +185,11 @@ class FormsFeederClientTest {
 		DataSourceList result = underTest.accept(DataSourceList.builder().add(expectedParamName,expectedParamValue).build());
 		
 		assertNotNull(underTest.returnedCorrelationId());
-		assertFalse(underTest.returnedCorrelationId().isBlank());
+		assertFalse(Jdk8Utils.isBlank(underTest.returnedCorrelationId()));
 		assertNotNull(result);
 		assertEquals(1, result.list().size());
 		Optional<String> optString = result.deconstructor().getStringByName(FormsFeederClient.FORMSFEEDERCLIENT_DATA_SOURCE_NAME);
-		assertFalse(optString.isEmpty(), "Expected to find string with name '" + FormsFeederClient.FORMSFEEDERCLIENT_DATA_SOURCE_NAME + "'.");
+		assertTrue(optString.isPresent(), "Expected to find string with name '" + FormsFeederClient.FORMSFEEDERCLIENT_DATA_SOURCE_NAME + "'.");
 		String resultString = optString.get();
 		assertAll(
 				()->assertTrue(resultString.contains(expectedParamName)),
@@ -263,7 +264,7 @@ class FormsFeederClientTest {
 		DataSourceList result = underTest.accept(DataSourceList.emptyList());
 		
 		assertNotNull(underTest.returnedCorrelationId());
-		assertFalse(underTest.returnedCorrelationId().isBlank());
+		assertFalse(Jdk8Utils.isBlank(underTest.returnedCorrelationId()));
 		assertNotNull(result);
 		assertEquals(0, result.list().size());
 	}
@@ -343,7 +344,7 @@ class FormsFeederClientTest {
 
 			} else if (StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE.equals(contentType)) {
 				assertFalse(resultDs.filename().isPresent());
-				assertArrayEquals("SampleData".getBytes(StandardCharsets.UTF_8),resultDs.inputStream().readAllBytes());
+				assertArrayEquals("SampleData".getBytes(StandardCharsets.UTF_8),Jdk8Utils.readAllBytes(resultDs.inputStream()));
 			} else {
 				fail("Found unexpected contentType in response '" + contentType.asString() + "'.");
 			}
@@ -405,7 +406,7 @@ class FormsFeederClientTest {
 
 	private static String toString(DataSource ds) {
 		try {
-			return new String(ds.inputStream().readAllBytes(), StandardCharsets.UTF_8);
+			return new String(Jdk8Utils.readAllBytes(ds.inputStream()), StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			throw new IllegalStateException("Exception while converting DataSource content to String", e);
 		}

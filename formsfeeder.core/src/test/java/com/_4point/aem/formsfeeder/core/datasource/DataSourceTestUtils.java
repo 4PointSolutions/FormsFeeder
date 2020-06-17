@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
+
 public class DataSourceTestUtils {
 
 	// Prevent this from being instantiated.
@@ -45,7 +47,7 @@ public class DataSourceTestUtils {
 			outputStream.write(expectedBytes);
 		}
 		try (InputStream resultInputStream = underTest.inputStream()) {
-			assertArrayEquals(expectedBytes, resultInputStream.readAllBytes());
+			assertArrayEquals(expectedBytes, Jdk8Utils.readAllBytes(resultInputStream));
 		}
 	}
 

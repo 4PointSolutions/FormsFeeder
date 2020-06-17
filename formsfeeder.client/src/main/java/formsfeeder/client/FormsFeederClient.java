@@ -23,7 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com._4point.aem.formsfeeder.core.api.FeedConsumer;
+import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
 import formsfeeder.client.support.BuilderImpl;
 import formsfeeder.client.support.CorrelationId;
@@ -53,16 +55,16 @@ public class FormsFeederClient implements FeedConsumer {
 			final Logger logger = FfLoggerFactory.wrap(correlationIdSent, baseLogger);
 			logger.info("Sending " + dataSources.list().size() + " DataSource to plugin '" + pluginName + "' at '" + target.getUri().toString() + "'.");
 			if (logger.isDebugEnabled()) {
-				for (var ds : dataSources.list()) {
+				for (DataSource ds : dataSources.list()) {
 					logger.debug("  DataSource name='" + ds.name() + 
 								 "', content-type='" + ds.contentType().asString() + "'" +
 								 (ds.filename().isPresent() ? ", filename='" + ds.filename() + "'." : ".")
 								 );
 				}
 			}
-			var invocBuilder = target.path("/api/v1/" + pluginName)
-					.request()
-					.header(CorrelationId.CORRELATION_ID_HDR, correlationIdSent);
+			javax.ws.rs.client.Invocation.Builder invocBuilder = target.path("/api/v1/" + pluginName)
+																	   .request()
+																	   .header(CorrelationId.CORRELATION_ID_HDR, correlationIdSent);
 			
 			// If the list is empty, send a GET instead of a POST
 			Response response = dataSources.list().isEmpty() ? invocBuilder.get() : invocBuilder.post(asEntity(asFormDataMultipart(dataSources)));
@@ -73,7 +75,7 @@ public class FormsFeederClient implements FeedConsumer {
 				String message = "Call to server failed, statusCode='" + resultStatus.getStatusCode() + "', reason='" + resultStatus.getReasonPhrase() + "'.";
 				if (response.hasEntity()) {
 					InputStream entityStream = (InputStream) response.getEntity();
-					message += "\n" + new String(entityStream.readAllBytes(), StandardCharsets.UTF_8.name());
+					message += "\n" + new String(Jdk8Utils.readAllBytes(entityStream), StandardCharsets.UTF_8.name());
 				}
 				throw new FormsFeederClientException(message);
 			}
@@ -96,7 +98,7 @@ public class FormsFeederClient implements FeedConsumer {
 													asDataSourceList(response, FORMSFEEDERCLIENT_DATA_SOURCE_NAME, logger) ;// Single DataSource Response
 				logger.info("Formsfeeder server returned " + returnedList.list().size() + " DataSources.");
 				if (logger.isDebugEnabled()) {
-					for (var ds : returnedList.list()) {
+					for (DataSource ds : returnedList.list()) {
 						logger.debug("  DataSource name='" + ds.name() + 
 								 "', content-type='" + ds.contentType().asString() + "'" +
 								 (ds.filename().isPresent() ? ", filename='" + ds.filename() + "'." : ".")

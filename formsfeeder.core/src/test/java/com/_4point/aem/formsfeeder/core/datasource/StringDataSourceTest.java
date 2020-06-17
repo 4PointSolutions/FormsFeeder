@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
+
 class StringDataSourceTest {
 
 	@Test
@@ -15,7 +17,7 @@ class StringDataSourceTest {
 		StringDataSource underTest = new StringDataSource();
 		try (InputStream inputStream = underTest.inputStream()) {
 			assertAll(
-					()->assertEquals(0, inputStream.readAllBytes().length),
+					()->assertEquals(0, Jdk8Utils.readAllBytes(inputStream).length),
 					()->assertEquals("", underTest.name()),
 					()->assertEquals(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE, underTest.contentType()),
 					()->assertEquals(0, underTest.attributes().size())
@@ -29,7 +31,7 @@ class StringDataSourceTest {
 		StringDataSource underTest = new StringDataSource(expectedString);
 		try (InputStream inputStream = underTest.inputStream()) {
 			assertAll(
-					()->assertArrayEquals(expectedString.getBytes(StringDataSource.ENCODING), inputStream.readAllBytes()),
+					()->assertArrayEquals(expectedString.getBytes(StringDataSource.ENCODING), Jdk8Utils.readAllBytes(inputStream)),
 					()->assertEquals("", underTest.name()),
 					()->assertEquals(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE, underTest.contentType()),
 					()->assertEquals(0, underTest.attributes().size())
@@ -44,7 +46,7 @@ class StringDataSourceTest {
 		StringDataSource underTest = new StringDataSource(expectedString, expectedName);
 		try (InputStream inputStream = underTest.inputStream()) {
 			assertAll(
-					()->assertArrayEquals(expectedString.getBytes(StringDataSource.ENCODING), inputStream.readAllBytes()),
+					()->assertArrayEquals(expectedString.getBytes(StringDataSource.ENCODING), Jdk8Utils.readAllBytes(inputStream)),
 					()->assertEquals(expectedName, underTest.name()),
 					()->assertEquals(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE, underTest.contentType()),
 					()->assertEquals(0, underTest.attributes().size())
@@ -56,12 +58,12 @@ class StringDataSourceTest {
 	void testStringDataSourceStringStringMapOfStringString() throws Exception {
 		String expectedString = "Test Data";
 		String expectedName = "TestName";
-		Map<String, String> expectedAttributes = Map.of("TestAttribute1", "TestAttributeValue1","TestAttribute2", "TestAttributeValue2");
+		Map<String, String> expectedAttributes = Jdk8Utils.mapOf("TestAttribute1", "TestAttributeValue1","TestAttribute2", "TestAttributeValue2");
 		StringDataSource underTest = new StringDataSource(expectedString, expectedName, expectedAttributes);
 		try (InputStream inputStream = underTest.inputStream()) {
 			Map<String, String> attributes = underTest.attributes();
 			assertAll(
-					()->assertArrayEquals(expectedString.getBytes(StringDataSource.ENCODING), inputStream.readAllBytes()),
+					()->assertArrayEquals(expectedString.getBytes(StringDataSource.ENCODING), Jdk8Utils.readAllBytes(inputStream)),
 					()->assertEquals(expectedName, underTest.name()),
 					()->assertEquals(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE, underTest.contentType()),
 					()->assertTrue(attributes.keySet().containsAll(expectedAttributes.keySet()), "Expected all the keys to be returned."),

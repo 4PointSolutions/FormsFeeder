@@ -3,6 +3,8 @@ package com._4point.aem.formsfeeder.core.datasource;
 import java.util.List;
 import java.util.Map;
 
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
+
 public class UnmodifiableFileExtensionsMap extends AbstractFileExtensionsMap implements MimeTypeFileTypeMap {
 	
 	public static final UnmodifiableFileExtensionsMap DEFAULT_MAP = 
@@ -23,7 +25,7 @@ public class UnmodifiableFileExtensionsMap extends AbstractFileExtensionsMap imp
 			} );
 	
 	private UnmodifiableFileExtensionsMap(AbstractFileExtensionsMap map) {
-		super(List.copyOf(map.entries), Map.copyOf(map.byMimeType), Map.copyOf(map.byExtension));
+		super(Jdk8Utils.copyOfList(map.entries), Jdk8Utils.copyOfMap(map.byMimeType), Jdk8Utils.copyOfMap(map.byExtension));
 	}
 
 	private UnmodifiableFileExtensionsMap(List<FileExtensionsEntry> entries,

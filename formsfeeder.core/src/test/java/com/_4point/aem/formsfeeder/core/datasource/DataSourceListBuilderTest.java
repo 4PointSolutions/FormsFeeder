@@ -14,6 +14,8 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
+
 class DataSourceListBuilderTest {
 
 	// DataSource Names
@@ -97,7 +99,7 @@ class DataSourceListBuilderTest {
 				()->assertEquals(BOOLEAN_DS_NAME, resultList.get(1).name()),
 				()->assertEquals(Boolean.toString(booleanData), readIntoString(resultList.get(1).inputStream())),
 				()->assertEquals(BYTE_ARRAY_DS_NAME, resultList.get(2).name()),
-				()->assertArrayEquals(byteArrayData, resultList.get(2).inputStream().readAllBytes()),
+				()->assertArrayEquals(byteArrayData, Jdk8Utils.readAllBytes(resultList.get(2).inputStream())),
 				()->assertEquals(DOUBLE_DS_NAME, resultList.get(3).name()),
 				()->assertEquals(Double.toString(doubleData), readIntoString(resultList.get(3).inputStream())),
 				()->assertEquals(FLOAT_DS_NAME, resultList.get(4).name()),
@@ -111,7 +113,7 @@ class DataSourceListBuilderTest {
 				()->assertEquals(STRING_DS_NAME, resultList.get(8).name()),
 				()->assertEquals(stringData, readIntoString(resultList.get(8).inputStream())),
 				()->assertEquals(BYTE_ARRAY_W_CT_DS_NAME, resultList.get(9).name()),
-				()->assertArrayEquals(byteArrayData, resultList.get(9).inputStream().readAllBytes()),
+				()->assertArrayEquals(byteArrayData, Jdk8Utils.readAllBytes(resultList.get(9).inputStream())),
 				()->assertEquals(mimeType, resultList.get(9).contentType())
 				);
 	}
@@ -125,15 +127,15 @@ class DataSourceListBuilderTest {
 	@Test
 	void testBuildAllLists() throws Exception{
 		// Construct a DataSourceList with one or more of each and every type
-		List<DataSource> dsList = List.of(dummyDS, dummyDS);
-		List<Boolean> bList = List.of(booleanData, booleanData, booleanData);
-		List<byte[]> baList = List.of(byteArrayData);
-		List<Double> dList = List.of(doubleData, doubleData);
-		List<Float> fList = List.of(floatData, floatData, floatData);
-		List<Integer> iList = List.of(intData);
-		List<Long> lList = List.of(longData, longData);
-		List<Path> pList = List.of(pathData, pathData, pathData);
-		List<String> sList = List.of(stringData);
+		List<DataSource> dsList = Jdk8Utils.listOf(dummyDS, dummyDS);
+		List<Boolean> bList = Jdk8Utils.listOf(booleanData, booleanData, booleanData);
+		List<byte[]> baList = Jdk8Utils.listOf(byteArrayData);
+		List<Double> dList = Jdk8Utils.listOf(doubleData, doubleData);
+		List<Float> fList = Jdk8Utils.listOf(floatData, floatData, floatData);
+		List<Integer> iList = Jdk8Utils.listOf(intData);
+		List<Long> lList = Jdk8Utils.listOf(longData, longData);
+		List<Path> pList = Jdk8Utils.listOf(pathData, pathData, pathData);
+		List<String> sList = Jdk8Utils.listOf(stringData);
 		int expectedSize = dsList.size() + bList.size() + baList.size() + dList.size() + fList.size() + iList.size() + lList.size() + pList.size() + sList.size() + baList.size();
 		
 		DataSourceList result = DataSourceList.builder()
@@ -162,7 +164,7 @@ class DataSourceListBuilderTest {
 				()->assertEquals(BOOLEAN_DS_NAME, resultList.get(4).name()),
 				()->assertEquals(Boolean.toString(booleanData), readIntoString(resultList.get(4).inputStream())),
 				()->assertEquals(BYTE_ARRAY_DS_NAME, resultList.get(5).name()),
-				()->assertArrayEquals(byteArrayData, resultList.get(5).inputStream().readAllBytes()),
+				()->assertArrayEquals(byteArrayData, Jdk8Utils.readAllBytes(resultList.get(5).inputStream())),
 				()->assertEquals(DOUBLE_DS_NAME, resultList.get(6).name()),
 				()->assertEquals(Double.toString(doubleData), readIntoString(resultList.get(6).inputStream())),
 				()->assertEquals(DOUBLE_DS_NAME, resultList.get(7).name()),
@@ -188,7 +190,7 @@ class DataSourceListBuilderTest {
 				()->assertEquals(STRING_DS_NAME, resultList.get(17).name()),
 				()->assertEquals(stringData, readIntoString(resultList.get(17).inputStream())),
 				()->assertEquals(BYTE_ARRAY_W_CT_DS_NAME, resultList.get(18).name()),
-				()->assertArrayEquals(byteArrayData, resultList.get(18).inputStream().readAllBytes()),
+				()->assertArrayEquals(byteArrayData, Jdk8Utils.readAllBytes(resultList.get(18).inputStream())),
 				()->assertEquals(mimeType, resultList.get(18).contentType())
 				);
 	}
@@ -211,6 +213,6 @@ class DataSourceListBuilderTest {
 	}
 
 	private static String readIntoString(InputStream is) throws IOException {
-		return new String(is.readAllBytes());
+		return new String(Jdk8Utils.readAllBytes(is));
 	}
 }

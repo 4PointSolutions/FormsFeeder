@@ -12,6 +12,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
+
 /**
  * Abstract Data Source, provides a default implementation for handling attributes.
  *
@@ -79,7 +81,7 @@ public abstract class AbstractDataSource implements DataSource {
 	@Override
 	public Map<String, String> attributes() {
 		// Return a defensive copy
-		return Map.copyOf(attributes);
+		return Jdk8Utils.copyOfMap(attributes);
 	}
 
 	protected Map<String, String> attributeMap() {
@@ -147,21 +149,23 @@ public abstract class AbstractDataSource implements DataSource {
 			return is.toString();
 		}
 
-		@Override
-		public byte[] readAllBytes() throws IOException {
-			return is.readAllBytes();
-		}
-
-		@Override
-		public byte[] readNBytes(int len) throws IOException {
-			return is.readNBytes(len);
-		}
-
-		@Override
-		public int readNBytes(byte[] b, int off, int len) throws IOException {
-			return is.readNBytes(b, off, len);
-		}
-
+//		Java 11 methods removed for now in order to support Java 8
+//		
+//		@Override
+//		public byte[] readAllBytes() throws IOException {
+//			return is.readAllBytes();
+//		}
+//
+//		@Override
+//		public byte[] readNBytes(int len) throws IOException {
+//			return is.readNBytes(len);
+//		}
+//
+//		@Override
+//		public int readNBytes(byte[] b, int off, int len) throws IOException {
+//			return is.readNBytes(b, off, len);
+//		}
+//
 		@Override
 		public long skip(long n) throws IOException {
 			return is.skip(n);
@@ -193,10 +197,12 @@ public abstract class AbstractDataSource implements DataSource {
 			return is.markSupported();
 		}
 
-		@Override
-		public long transferTo(OutputStream out) throws IOException {
-			return is.transferTo(out);
-		}
+//		Java 11 methods removed for now in order to support Java 8
+//		
+//		@Override
+//		public long transferTo(OutputStream out) throws IOException {
+//			return is.transferTo(out);
+//		}
 
 	}
 	

@@ -2,6 +2,7 @@ package com._4point.aem.formsfeeder.core.datasource;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -68,8 +69,12 @@ class AbstractFileExtensionsMapTest {
 	@ParameterizedTest
 	@MethodSource("mapProvider")
 	void testGetMimeType(TestFileExtensionsMap underTest) {
+		MimeType actual = underTest.mimeType(Paths.get("TestDir", "TestFile." + PDF_EXTENSION)).get();
 		assertAll(
-				()->assertEquals(APPLICATION_PDF_MIMETYPE, underTest.mimeType(Paths.get("TestDir", "TestFile." + PDF_EXTENSION)).get()),
+				()->{
+					
+					assertEquals(APPLICATION_PDF_MIMETYPE, actual);
+				},
 				()->assertEquals(APPLICATION_VND_MS_WORD_MIMETYPE, underTest.mimeType(Paths.get("TestDir", "TestFile." + DOC_EXTENSION)).get())
 				);
 	}
@@ -100,7 +105,7 @@ class AbstractFileExtensionsMapTest {
 	@MethodSource("mapProvider")
 	void testGetMimeType_NonexistentExtension(TestFileExtensionsMap underTest) {
 		Path testPath = Paths.get("TestDir", "TestFile.xxx");
-		assertTrue(underTest.mimeType(testPath).isEmpty());
+		assertFalse(underTest.mimeType(testPath).isPresent());
 	}
 
 }

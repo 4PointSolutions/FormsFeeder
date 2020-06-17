@@ -103,7 +103,7 @@ public class CommandLineAppParameters implements AppParameters {
 	private static final AuthParameters asAuthParameters(String authParam) throws ParseException {
 		if (authParam == null)
 			return null;
-		String[] splitParam = authParam.strip().split(":");
+		String[] splitParam = authParam.trim().split(":");	// Ideally this would be a strip() instead of trim() under JDK 11
 		if (splitParam.length != 2) {
 			throw new ParseException("Can't parse auth parameter(" + authParam + ").");
 		}
@@ -120,11 +120,11 @@ public class CommandLineAppParameters implements AppParameters {
 	}
 	
 	private static AbstractMap.SimpleEntry<String, String> asEntry(String dsParam) {
-		var index = dsParam.indexOf("=");
+		int index = dsParam.indexOf("=");
 		if (index < 0) {
-			return new AbstractMap.SimpleEntry<>(dsParam.strip(), "");
+			return new AbstractMap.SimpleEntry<>(dsParam.trim(), "");	// Ideally this would be a strip() instead of trim() under JDK 11
 		} else { 
-			return new AbstractMap.SimpleEntry<>(dsParam.substring(0, index).strip(), dsParam.substring(index+1).strip());
+			return new AbstractMap.SimpleEntry<>(dsParam.substring(0, index).trim(), dsParam.substring(index+1).trim());
 		}
 	}
 	

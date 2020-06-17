@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -124,13 +125,13 @@ class CommandLineAppParametersTest {
 				()->assertFalse(underTest.hostParameters().useSsl()),
 				()->assertEquals(HOST_MACHINE_NAME , underTest.hostParameters().hostName()),
 				()->assertEquals(Integer.valueOf(HOST_PORT), underTest.hostParameters().hostPort()),
-				()->assertEquals(Path.of(OUTPUT_LOCATION_PARAM).toString(), outputPath.toString()),
+				()->assertEquals(Paths.get(OUTPUT_LOCATION_PARAM).toString(), outputPath.toString()),
 				()->assertEquals(USER_CREDENTIALS_USERNAME, authParams.username()),
 				()->assertEquals(USER_CREDENTIALS_PASSWORD, authParams.password()),
 				()->assertEquals(DATA_SOURCE_1_NAME, dataSourceInfos.get(0).name()),
 				()->assertEquals(DATA_SOURCE_1_VALUE, dataSourceInfos.get(0).value()),
 				()->assertEquals(DATA_SOURCE_2_NAME, dataSourceInfos.get(1).name()),
-				()->assertEquals(Path.of(DATA_SOURCE_2_VALUE.substring(1)), dataSourceInfos.get(1).path()),
+				()->assertEquals(Paths.get(DATA_SOURCE_2_VALUE.substring(1)), dataSourceInfos.get(1).path()),
 				()->assertEquals(DATA_SOURCE_3_NAME, dataSourceInfos.get(2).name()),
 				()->assertEquals(DATA_SOURCE_3_VALUE, dataSourceInfos.get(2).value()),
 				()->assertEquals(PLUGIN_PARAM, underTest.plugin()),
@@ -150,9 +151,9 @@ class CommandLineAppParametersTest {
 				()->assertFalse(underTest.hostParameters().useSsl()),
 				()->assertEquals(HOST_MACHINE_NAME , underTest.hostParameters().hostName()),
 				()->assertEquals(Integer.valueOf(HOST_PORT), underTest.hostParameters().hostPort()),
-				()->assertTrue(underTest.authParameters().isEmpty()),
+				()->assertFalse(underTest.authParameters().isPresent()),
 				()->assertEquals(0, underTest.dataSourceInfos().size()),
-				()->assertTrue(underTest.output().isEmpty()),
+				()->assertFalse(underTest.output().isPresent()),
 				()->assertFalse(underTest.verbose())
 				);
 	}

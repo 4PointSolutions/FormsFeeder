@@ -11,6 +11,12 @@
 	<name>AEM Forms Feeder Core Classes</name>
 	<description>Project containing common classes that are used by other Forms Feeder projects.</description>
 
+	<properties>
+		<!--  Client applications may be in Java 8, so compile for that. -->
+		<maven.compiler.source>8</maven.compiler.source>
+		<maven.compiler.target>8</maven.compiler.target>
+        <maven.compiler.release>8</maven.compiler.release>
+	</properties>
 	<!--
 	In order to build this project, you just need to use the standard build procedure.  One of the two following options:
 	install

@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.MimeType;
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
 
 /**
@@ -85,9 +86,9 @@ public class DataSourceListJaxRsUtils {
 					}
 					// TODO: This is a naive implementation that just reads the whole InputStream into memory.  Should fix this.
 					if (fileName != null) {
-						builder.add(name, part.getEntityAs(InputStream.class).readAllBytes(), asMimeType(part.getMediaType()), Paths.get(fileName));
+						builder.add(name, Jdk8Utils.readAllBytes(part.getEntityAs(InputStream.class)), asMimeType(part.getMediaType()), Paths.get(fileName));
 					} else {
-						builder.add(name, part.getEntityAs(InputStream.class).readAllBytes(), asMimeType(part.getMediaType()));
+						builder.add(name, Jdk8Utils.readAllBytes(part.getEntityAs(InputStream.class)), asMimeType(part.getMediaType()));
 					}
 				}
 			}
@@ -128,7 +129,7 @@ public class DataSourceListJaxRsUtils {
 	 */
 	public static FormDataMultiPart asFormDataMultipart(final DataSourceList dataSourceList) {
 		FormDataMultiPart responsesData = new FormDataMultiPart();
-		for(var dataSource : dataSourceList.list()) {
+		for(DataSource dataSource : dataSourceList.list()) {
 			addFormDataPart(responsesData, dataSource);
 		}
 		return responsesData;
@@ -170,9 +171,9 @@ public class DataSourceListJaxRsUtils {
 		logger.debug("Found Body Parameter of type '" + contentType.toString() + "'.");
 		String filename = contentDisposition != null ? contentDisposition.getFileName() : null;
 		if (filename != null) {
-			return DataSourceList.builder().add(dataSourceName, in.readAllBytes(), asMimeType(contentType), Paths.get(filename)).build();
+			return DataSourceList.builder().add(dataSourceName, Jdk8Utils.readAllBytes(in), asMimeType(contentType), Paths.get(filename)).build();
 		} else {
-			return DataSourceList.builder().add(dataSourceName, in.readAllBytes(), asMimeType(contentType)).build();
+			return DataSourceList.builder().add(dataSourceName, Jdk8Utils.readAllBytes(in), asMimeType(contentType)).build();
 		}
 	}
 
@@ -188,7 +189,7 @@ public class DataSourceListJaxRsUtils {
 	 */
 	public static final DataSourceList asDataSourceList(Response response, final String dataSourceName, final Logger logger) throws IOException, ParseException {
 		String headerString = response.getHeaderString(HttpHeaders.CONTENT_DISPOSITION);
-		var contentDisposition = headerString != null ? new ContentDisposition(headerString) : null;
+		ContentDisposition contentDisposition = headerString != null ? new ContentDisposition(headerString) : null;
 		return asDataSourceList((InputStream)response.getEntity(), response.getMediaType(), contentDisposition, dataSourceName, logger);
 	}
 

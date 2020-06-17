@@ -2,15 +2,15 @@ package com._4point.aem.formsfeeder.core.datasource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
 class ModifiableFileExtensionsMapTest {
 
@@ -40,10 +40,10 @@ class ModifiableFileExtensionsMapTest {
 		MimeType testMimeType = MimeType.of("application", "x-totally-fake-mime-type");
 		String testExtension1 = "xxx";
 		String testExtension2 = "xx1";
-		underTest.putMapping(testMimeType, List.of(testExtension1, testExtension2));
+		underTest.putMapping(testMimeType, Jdk8Utils.listOf(testExtension1, testExtension2));
 		assertAll(
-				()->assertEquals(testMimeType, underTest.mimeType(Path.of("TestFile." + testExtension1 )).get(), "Extension '" + testExtension1 + "didn't return '" + testMimeType + "'."),
-				()->assertEquals(testMimeType, underTest.mimeType(Path.of("TestFile." + testExtension2 )).get(), "Extension '" + testExtension2 + "didn't return '" + testMimeType + "'."),
+				()->assertEquals(testMimeType, underTest.mimeType(Paths.get("TestFile." + testExtension1 )).get(), "Extension '" + testExtension1 + "didn't return '" + testMimeType + "'."),
+				()->assertEquals(testMimeType, underTest.mimeType(Paths.get("TestFile." + testExtension2 )).get(), "Extension '" + testExtension2 + "didn't return '" + testMimeType + "'."),
 				()->assertEquals(testExtension1, underTest.fileDefaultExtension(testMimeType).get(), "TestMimeType '" + testMimeType + "didn't return extension of '" + testExtension1 + "'.")
 				);
 	}
@@ -54,10 +54,10 @@ class ModifiableFileExtensionsMapTest {
 		MimeType testMimeType = MimeType.of("application", "pdf");
 		String testExtension1 = "xxx";
 		String testExtension2 = "xx1";
-		underTest.putMapping(testMimeType, List.of(testExtension1, testExtension2));
+		underTest.putMapping(testMimeType, Jdk8Utils.listOf(testExtension1, testExtension2));
 		assertAll(
-				()->assertEquals(testMimeType, underTest.mimeType(Path.of("TestFile." + testExtension1 )).get(), "Extension '" + testExtension1 + "didn't return '" + testMimeType + "'."),
-				()->assertEquals(testMimeType, underTest.mimeType(Path.of("TestFile." + testExtension2 )).get(), "Extension '" + testExtension2 + "didn't return '" + testMimeType + "'."),
+				()->assertEquals(testMimeType, underTest.mimeType(Paths.get("TestFile." + testExtension1 )).get(), "Extension '" + testExtension1 + "didn't return '" + testMimeType + "'."),
+				()->assertEquals(testMimeType, underTest.mimeType(Paths.get("TestFile." + testExtension2 )).get(), "Extension '" + testExtension2 + "didn't return '" + testMimeType + "'."),
 				()->assertEquals(testExtension1, underTest.fileDefaultExtension(testMimeType).get(), "TestMimeType '" + testMimeType + "didn't return extension of '" + testExtension1 + "'.")
 				);
 	}
@@ -68,10 +68,10 @@ class ModifiableFileExtensionsMapTest {
 		MimeType testMimeType = MimeType.of("application", "pdf");
 		String testExtension1 = "pdf";
 		String testExtension2 = "xx1";
-		underTest.putMapping(testMimeType, List.of(testExtension1, testExtension2));
+		underTest.putMapping(testMimeType, Jdk8Utils.listOf(testExtension1, testExtension2));
 		assertAll(
-				()->assertEquals(testMimeType, underTest.mimeType(Path.of("TestFile." + testExtension1 )).get(), "Extension '" + testExtension1 + "didn't return '" + testMimeType + "'."),
-				()->assertEquals(testMimeType, underTest.mimeType(Path.of("TestFile." + testExtension2 )).get(), "Extension '" + testExtension2 + "didn't return '" + testMimeType + "'."),
+				()->assertEquals(testMimeType, underTest.mimeType(Paths.get("TestFile." + testExtension1 )).get(), "Extension '" + testExtension1 + "didn't return '" + testMimeType + "'."),
+				()->assertEquals(testMimeType, underTest.mimeType(Paths.get("TestFile." + testExtension2 )).get(), "Extension '" + testExtension2 + "didn't return '" + testMimeType + "'."),
 				()->assertEquals(testExtension1, underTest.fileDefaultExtension(testMimeType).get(), "TestMimeType '" + testMimeType + "didn't return extension of '" + testExtension1 + "'.")
 				);
 	}
@@ -99,7 +99,7 @@ class ModifiableFileExtensionsMapTest {
 	@Test
 	void testAddMappingInvalid_DuplicateExtensionEntry() {
 		ModifiableFileExtensionsMap underTest = TestScenario.EXISTING_MAP_CONSTRUCTOR.getMapSupplier().get();
-		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, ()->underTest.putMapping(MimeType.of("text", "javascript"), List.of("pdf")));
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, ()->underTest.putMapping(MimeType.of("text", "javascript"), Jdk8Utils.listOf("pdf")));
 		String msg = ex.getMessage();
 		assertNotNull(msg);
 		assertTrue(msg.contains("duplicate"), "Expected the exception message to contain 'duplicate'. (" + msg + ")." );

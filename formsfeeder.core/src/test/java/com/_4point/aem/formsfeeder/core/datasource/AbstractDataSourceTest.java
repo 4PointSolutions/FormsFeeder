@@ -8,11 +8,13 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
+
 class AbstractDataSourceTest {
 
 	@Test
 	void testAbstractDataSource() {
-		var underTest = new TestDataSource();
+		TestDataSource underTest = new TestDataSource();
 		
 		basicChecks(underTest);
 		
@@ -20,13 +22,13 @@ class AbstractDataSourceTest {
 		assertTrue(underTest.name().isEmpty());
 		assertEquals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE, underTest.contentType());
 		assertTrue(underTest.attributes().isEmpty(), "Expected attributes to be empty.");
-		assertTrue(underTest.filename().isEmpty(), "Expected filename to be empty.");
+		assertFalse(underTest.filename().isPresent(), "Expected filename to be empty.");
 	}
 
 	@Test
 	void testAbstractDataSourceString() {
 		String expectedName = "expectedName";
-		var underTest = new TestDataSource(expectedName);
+		TestDataSource underTest = new TestDataSource(expectedName);
 		
 		basicChecks(underTest);
 		
@@ -34,14 +36,14 @@ class AbstractDataSourceTest {
 		assertEquals(expectedName, underTest.name());
 		assertEquals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE, underTest.contentType());
 		assertTrue(underTest.attributes().isEmpty(), "Expected attributes to be empty.");
-		assertTrue(underTest.filename().isEmpty(), "Expected filename to be empty.");
+		assertFalse(underTest.filename().isPresent(), "Expected filename to be empty.");
 	}
 
 	@Test
 	void testAbstractDataSourceStringMapOfStringString() {
 		String expectedName = "expectedName";
-		Map<String, String> expectedAttributes = Map.of("Key1", "Value1", "Key2", "Value2");
-		var underTest = new TestDataSource(expectedName, expectedAttributes);
+		Map<String, String> expectedAttributes = Jdk8Utils.mapOf("Key1", "Value1", "Key2", "Value2");
+		TestDataSource underTest = new TestDataSource(expectedName, expectedAttributes);
 		
 		basicChecks(underTest);
 		
@@ -49,14 +51,14 @@ class AbstractDataSourceTest {
 		assertEquals(expectedName, underTest.name());
 		assertEquals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE, underTest.contentType());
 		assertEquals(expectedAttributes, underTest.attributes(), "Expected attributes match the expected attributes.");
-		assertTrue(underTest.filename().isEmpty(), "Expected filename to be empty.");
+		assertFalse(underTest.filename().isPresent(), "Expected filename to be empty.");
 	}
 
 	@Test
 	void testAbstractDataSourceStringMimeType() {
 		String expectedName = "expectedName";
 		MimeType expectedMimeType = MimeType.of("application/x-fake-mime-type");
-		var underTest = new TestDataSource(expectedName, expectedMimeType);
+		TestDataSource underTest = new TestDataSource(expectedName, expectedMimeType);
 		
 		basicChecks(underTest);
 		
@@ -64,15 +66,15 @@ class AbstractDataSourceTest {
 		assertEquals(expectedName, underTest.name());
 		assertEquals(expectedMimeType, underTest.contentType());
 		assertTrue(underTest.attributes().isEmpty(), "Expected attributes to be empty.");
-		assertTrue(underTest.filename().isEmpty(), "Expected filename to be empty.");
+		assertFalse(underTest.filename().isPresent(), "Expected filename to be empty.");
 	}
 
 	@Test
 	void testAbstractDataSourceStringMimeTypeMapOfStringString() {
 		String expectedName = "expectedName";
 		MimeType expectedMimeType = MimeType.of("application/x-fake-mime-type");
-		Map<String, String> expectedAttributes = Map.of("Key1", "Value1", "Key2", "Value2");
-		var underTest = new TestDataSource(expectedName, expectedMimeType, expectedAttributes);
+		Map<String, String> expectedAttributes = Jdk8Utils.mapOf("Key1", "Value1", "Key2", "Value2");
+		TestDataSource underTest = new TestDataSource(expectedName, expectedMimeType, expectedAttributes);
 		
 		basicChecks(underTest);
 		
@@ -80,15 +82,15 @@ class AbstractDataSourceTest {
 		assertEquals(expectedName, underTest.name());
 		assertEquals(expectedMimeType, underTest.contentType());
 		assertEquals(expectedAttributes, underTest.attributes(), "Expected attributes match the expected attributes.");
-		assertTrue(underTest.filename().isEmpty(), "Expected filename to be empty.");
+		assertFalse(underTest.filename().isPresent(), "Expected filename to be empty.");
 	}
 
 	@Test
 	void testSetters() {
 		String expectedName = "expectedName";
 		MimeType expectedMimeType = MimeType.of("application/x-fake-mime-type");
-		Map<String, String> expectedAttributes = Map.of("Key1", "Value1", "Key2", "Value2");
-		var underTest = new TestDataSource(expectedName, expectedMimeType, expectedAttributes);
+		Map<String, String> expectedAttributes = Jdk8Utils.mapOf("Key1", "Value1", "Key2", "Value2");
+		TestDataSource underTest = new TestDataSource(expectedName, expectedMimeType, expectedAttributes);
 
 		underTest.callSetters();
 

@@ -7,11 +7,11 @@ import java.io.OutputStream;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 import com.google.common.jimfs.Configuration;
 import com.google.common.jimfs.Jimfs;
 
@@ -48,7 +48,7 @@ class FileDataSourceTest {
 	void testFileDataSourcePathStringMapOfStringString() throws Exception {
 		Path expectedFilePath = fs.getPath("ConstructorTests", "testFileDataSourcePathStringMapOfStringString.dat");
 		String expectedName = "DataSource Name";
-		Map<String, String> expectedAttributes = Map.of("TestAttribute1", "TestAttributeValue1","TestAttribute2", "TestAttributeValue2");
+		Map<String, String> expectedAttributes = Jdk8Utils.mapOf("TestAttribute1", "TestAttributeValue1","TestAttribute2", "TestAttributeValue2");
 
 		FileDataSource underTest = new FileDataSource(expectedFilePath, expectedName, expectedAttributes);
 
@@ -70,7 +70,7 @@ class FileDataSourceTest {
 		final String extension = "htm";
 		Path expectedFilePath = fs.getPath("ConstructorTests", "testFileDataSourcePath." + extension);
 		ModifiableFileExtensionsMap map = new ModifiableFileExtensionsMap();
-		map.putMapping(expectedMimeType, List.of("html",extension));
+		map.putMapping(expectedMimeType, Jdk8Utils.listOf("html",extension));
 		FileDataSource underTest = new FileDataSource(expectedFilePath, map);
 		assertAll(
 				()->assertEquals(expectedFilePath, underTest.filename().get()),
@@ -86,8 +86,8 @@ class FileDataSourceTest {
 		final String extension = "foo";
 		Path expectedFilePath = fs.getPath("ConstructorTests", "testFileDataSourcePathString." + extension);
 		ModifiableFileExtensionsMap map = new ModifiableFileExtensionsMap();
-		map.putMapping(StandardMimeTypes.APPLICATION_MSWORD_TYPE, List.of("doc"));	// Dummy entry just so that we're not the first in the list.
-		map.putMapping(expectedMimeType, List.of(extension));
+		map.putMapping(StandardMimeTypes.APPLICATION_MSWORD_TYPE, Jdk8Utils.listOf("doc"));	// Dummy entry just so that we're not the first in the list.
+		map.putMapping(expectedMimeType, Jdk8Utils.listOf(extension));
 		String expectedName = "DataSource Name";
 		FileDataSource underTest = new FileDataSource(expectedFilePath, expectedName, map);
 		assertAll(
@@ -102,11 +102,11 @@ class FileDataSourceTest {
 	void testFileDataSourcePathStringMapOfStringStringMimeTypeFileTypeMap() throws Exception {
 		Path expectedFilePath = fs.getPath("ConstructorTests", "testFileDataSourcePathStringMapOfStringString.html");
 		String expectedName = "DataSource Name";
-		Map<String, String> expectedAttributes = Map.of("TestAttribute1", "TestAttributeValue1","TestAttribute2", "TestAttributeValue2");
+		Map<String, String> expectedAttributes = Jdk8Utils.mapOf("TestAttribute1", "TestAttributeValue1","TestAttribute2", "TestAttributeValue2");
 		// In this test case we're passing in a map that doesn't contain the extension we are using (with the expectation we get octet-stream as the resulting contentType).
 		ModifiableFileExtensionsMap map = new ModifiableFileExtensionsMap();
-		map.putMapping(StandardMimeTypes.APPLICATION_MSWORD_TYPE, List.of("doc"));	// Dummy entry just so that we're not the first in the list.
-		map.putMapping(StandardMimeTypes.APPLICATION_VND_ADOBE_CENTRAL_FNF_TYPE, List.of("foo"));
+		map.putMapping(StandardMimeTypes.APPLICATION_MSWORD_TYPE, Jdk8Utils.listOf("doc"));	// Dummy entry just so that we're not the first in the list.
+		map.putMapping(StandardMimeTypes.APPLICATION_VND_ADOBE_CENTRAL_FNF_TYPE, Jdk8Utils.listOf("foo"));
 
 		FileDataSource underTest = new FileDataSource(expectedFilePath, expectedName, expectedAttributes, map);
 
@@ -154,7 +154,7 @@ class FileDataSourceTest {
 		Path expectedFilePath = fs.getPath("ConstructorTests", "testFileDataSourcePathStringMimeTypeMapOfStringString.docx");
 		String expectedName = "DataSource Name";
 		MimeType expectedMimeType = StandardMimeTypes.TEXT_HTML_TYPE;	// different than the extensions default mime-type
-		Map<String, String> expectedAttributes = Map.of("TestAttribute1", "TestAttributeValue1","TestAttribute2", "TestAttributeValue2");
+		Map<String, String> expectedAttributes = Jdk8Utils.mapOf("TestAttribute1", "TestAttributeValue1","TestAttribute2", "TestAttributeValue2");
 
 		FileDataSource underTest = new FileDataSource(expectedFilePath, expectedName, expectedMimeType, expectedAttributes);
 
@@ -182,7 +182,7 @@ class FileDataSourceTest {
 		FileDataSource underTest = new FileDataSource(expectedFilePath);
 		
 		try (InputStream is = underTest.inputStream()) {
-			assertArrayEquals(expectedBytes, is.readAllBytes());
+			assertArrayEquals(expectedBytes, Jdk8Utils.readAllBytes(is));
 		}
 	}
 
@@ -212,7 +212,7 @@ class FileDataSourceTest {
 			outputStream.write(expectedBytes);
 		}
 		try (InputStream inputStream = underTest.inputStream()) {
-			assertArrayEquals(expectedBytes, inputStream.readAllBytes());
+			assertArrayEquals(expectedBytes, Jdk8Utils.readAllBytes(inputStream));
 		}
 	}
 

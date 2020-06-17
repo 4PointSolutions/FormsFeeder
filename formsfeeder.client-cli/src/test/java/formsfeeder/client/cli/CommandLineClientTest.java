@@ -27,6 +27,7 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -58,6 +59,10 @@ class CommandLineClientTest {
 	
 	private String formsfeederServerName;
 	private int formsfeederServerPort;
+
+	private final ByteArrayInputStream stdin = new ByteArrayInputStream(new byte[0]);
+	private final ByteArrayOutputStream stdout = new ByteArrayOutputStream();
+	private final ByteArrayOutputStream stderr = new ByteArrayOutputStream();
 
 	@BeforeEach
 	public void setUp() throws Exception {
@@ -109,9 +114,6 @@ class CommandLineClientTest {
 						  "-d", expectedParamName + "=" + expectedParamValue,
 						  "-p", "Debug"};
 		
-		var stdin = new ByteArrayInputStream(new byte[0]);
-		var stdout = new ByteArrayOutputStream();
-		var stderr = new ByteArrayOutputStream();
 		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
 		
@@ -136,9 +138,6 @@ class CommandLineClientTest {
 						  "-o", expectedOutputLocation};
 		
 		
-		var stdin = new ByteArrayInputStream(new byte[0]);
-		var stdout = new ByteArrayOutputStream();
-		var stderr = new ByteArrayOutputStream();
 		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
 		
@@ -154,7 +153,7 @@ class CommandLineClientTest {
 				);
 		
 		// Make sure the file *does* contain the expected output.
-		String outputContents = Files.readString(fs.getPath(expectedOutputLocation));
+		String outputContents = new String(Jdk8Utils.readAllBytes(Files.newInputStream(fs.getPath(expectedOutputLocation))), StandardCharsets.UTF_8);
 		assertAll(
 				()->assertTrue(outputContents.contains(expectedParamName), "Expected '" + outputContents + "' to contain '" + expectedParamName + "', but didn't."),
 				()->assertTrue(outputContents.contains(expectedParamValue), "Expected '" + outputContents + "' to contain '" + expectedParamValue + "', but didn't."),
@@ -174,9 +173,6 @@ class CommandLineClientTest {
 						  "-d", expectedParamNames[2] + "=" + expectedParamValues[2], 
 						  "-p", "Debug"};
 		
-		var stdin = new ByteArrayInputStream(new byte[0]);
-		var stdout = new ByteArrayOutputStream();
-		var stderr = new ByteArrayOutputStream();
 		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
 		
@@ -186,7 +182,7 @@ class CommandLineClientTest {
 		while((ze = zis.getNextEntry()) != null) {
 //			System.out.println("Found ZipEntry '" + ze.getName() + "' of size '" + ze.getSize() + "'.");
 			
-			String zipStr = new String(zis.readAllBytes(), StandardCharsets.UTF_8);
+			String zipStr = new String(Jdk8Utils.readAllBytes(zis), StandardCharsets.UTF_8);
 			final int myCount = expectedParamValues.length - (count + 1);
 			if (myCount >= 0) {	// Skip this section rather than generating out of bounds exceptions.  We'll catch the problem below.
 				if (myCount != 1) {	// String Parameters
@@ -224,9 +220,6 @@ class CommandLineClientTest {
 						  "-o", expectedOutputLocation,
 						  "-p", "Debug"};
 		
-		var stdin = new ByteArrayInputStream(new byte[0]);
-		var stdout = new ByteArrayOutputStream();
-		var stderr = new ByteArrayOutputStream();
 		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
 
@@ -253,7 +246,7 @@ class CommandLineClientTest {
 		while((ze = zis.getNextEntry()) != null) {
 //			System.out.println("Found ZipEntry '" + ze.getName() + "' of size '" + ze.getSize() + "'.");
 			
-			String zipStr = new String(zis.readAllBytes(), StandardCharsets.UTF_8);
+			String zipStr = new String(Jdk8Utils.readAllBytes(zis), StandardCharsets.UTF_8);
 			final int myCount = expectedParamValues.length - (count + 1);
 			if (myCount >= 0) {	// Skip this section rather than generating out of bounds exceptions.  We'll catch the problem below.
 				if (myCount != 1) {	// String Parameters
@@ -283,9 +276,6 @@ class CommandLineClientTest {
 						  "-d", expectedParamName,			// No value supplied, should result in an empty string in the output.
 						  "-p", "Debug"};
 		
-		var stdin = new ByteArrayInputStream(new byte[0]);
-		var stdout = new ByteArrayOutputStream();
-		var stderr = new ByteArrayOutputStream();
 		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
 		
@@ -323,9 +313,6 @@ class CommandLineClientTest {
 		
 		final String expectedOutputLocation = providedOutputLocation != null ? providedOutputLocation : "SampleForm_data.xml"; 
 		
-		var stdin = new ByteArrayInputStream(new byte[0]);
-		var stdout = new ByteArrayOutputStream();
-		var stderr = new ByteArrayOutputStream();
 		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
 		
@@ -356,9 +343,6 @@ class CommandLineClientTest {
 						  "-p", "Mock"};
 
 		
-		var stdin = new ByteArrayInputStream(new byte[0]);
-		var stdout = new ByteArrayOutputStream();
-		var stderr = new ByteArrayOutputStream();
 		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
 		
@@ -383,9 +367,6 @@ class CommandLineClientTest {
 						  "-o", expectedOutputLocation};
 		
 		
-		var stdin = new ByteArrayInputStream(new byte[0]);
-		var stdout = new ByteArrayOutputStream();
-		var stderr = new ByteArrayOutputStream();
 		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 		Path expectedPath = fs.getPath(expectedOutputLocation);
 		Files.createDirectory(expectedPath);
@@ -415,9 +396,6 @@ class CommandLineClientTest {
 						  "-o", expectedOutputLocation,
 						  "-p", "Debug"};
 		
-		var stdin = new ByteArrayInputStream(new byte[0]);
-		var stdout = new ByteArrayOutputStream();
-		var stderr = new ByteArrayOutputStream();
 		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 		Path expectedPath = fs.getPath(expectedOutputLocation);
 		Files.createDirectory(expectedPath);
@@ -445,9 +423,6 @@ class CommandLineClientTest {
 						  "-p", "Mock"};
 
 		
-		var stdin = new ByteArrayInputStream(new byte[0]);
-		var stdout = new ByteArrayOutputStream();
-		var stderr = new ByteArrayOutputStream();
 		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
 		
@@ -474,9 +449,6 @@ class CommandLineClientTest {
 				  "-u", badAuthParam,
 				  "-p", "Mock"};
 		
-		var stdin = new ByteArrayInputStream(new byte[0]);
-		var stdout = new ByteArrayOutputStream();
-		var stderr = new ByteArrayOutputStream();
 		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
 		

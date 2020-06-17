@@ -3,7 +3,9 @@ package com._4point.aem.formsfeeder.core.datasource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+
+
+import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
 public class ModifiableFileExtensionsMap extends AbstractFileExtensionsMap implements MimeTypeFileTypeMap {
 	
@@ -29,7 +31,7 @@ public class ModifiableFileExtensionsMap extends AbstractFileExtensionsMap imple
 		if (extensions == null || extensions.isEmpty()) {
 			throw new IllegalArgumentException("List of extensions cannot be null or empty.");
 		}
-		FileExtensionsEntry newEntry = new FileExtensionsEntry(mimeType, extensions.get(0), Set.copyOf(extensions));
+		FileExtensionsEntry newEntry = new FileExtensionsEntry(mimeType, extensions.get(0), Jdk8Utils.copyOfSet(extensions));
 		FileExtensionsEntry oldEntry = validate(mimeType, extensions);
 		if (oldEntry != null) {
 			removeEntry(oldEntry);
