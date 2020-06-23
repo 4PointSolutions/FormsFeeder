@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -40,12 +41,15 @@ public class FormsFeederClient implements FeedConsumer {
 	private final WebTarget target;
 	private final Supplier<String> correlationIdFn;
 	private final String pluginName;
+	private final Supplier<Map.Entry<String,String>> apikeyAuthenticationFn;
 	String returnedCorrelationId = null;
 	
-	private FormsFeederClient(WebTarget target, Supplier<String> correlationIdFn, String pluginName) {
+	private FormsFeederClient(WebTarget target, Supplier<String> correlationIdFn, String pluginName,
+                              Supplier<Map.Entry<String,String>> apikeyAuthenticationFn) {
 		this.target = target;
 		this.correlationIdFn = correlationIdFn;
 		this.pluginName = pluginName;
+		this.apikeyAuthenticationFn = apikeyAuthenticationFn;
 	}
 
 	@Override
@@ -62,10 +66,14 @@ public class FormsFeederClient implements FeedConsumer {
 								 );
 				}
 			}
-			javax.ws.rs.client.Invocation.Builder invocBuilder = target.path("/api/v1/" + pluginName)
+			javax.ws.rs.client.Invocation.Builder invocBuilder = target.path(pluginName )
 																	   .request()
 																	   .header(CorrelationId.CORRELATION_ID_HDR, correlationIdSent);
-			
+
+			if(apikeyAuthenticationFn!=null ) {
+				invocBuilder.header(apikeyAuthenticationFn.get().getKey(),apikeyAuthenticationFn.get().getValue());
+			}
+
 			// If the list is empty, send a GET instead of a POST
 			Response response = dataSources.list().isEmpty() ? invocBuilder.get() : invocBuilder.post(asEntity(asFormDataMultipart(dataSources)));
 			
@@ -153,6 +161,12 @@ public class FormsFeederClient implements FeedConsumer {
 		}
 
 		@Override
+		public Builder contextRoot(String contextRoot) {
+			builder.contextRoot(contextRoot);
+			return this;
+		}
+
+		@Override
 		public Builder clientFactory(Supplier<Client> clientFactory) {
 			builder.clientFactory(clientFactory);
 			return this;
@@ -163,6 +177,15 @@ public class FormsFeederClient implements FeedConsumer {
 			builder.basicAuthentication(username, password);
 			return this;
 		}
+
+		@Override
+        public Builder apikeyAuthentication(String apikeyHeader, String apikeyValue) {
+			builder.apikeyAuthentication(apikeyHeader,apikeyValue);
+		    return this;
+        }
+
+        @Override
+		public Supplier<Map.Entry<String,String>> getApikeyAuthenticationFn() { return builder.getApikeyAuthenticationFn();}
 
 		@Override
 		public Builder correlationId(Supplier<String> correlationIdFn) {
@@ -188,8 +211,8 @@ public class FormsFeederClient implements FeedConsumer {
 		public FormsFeederClient build() {
 			return new FormsFeederClient(builder.createLocalTarget(), 
 										 builder.getCorrelationIdFn(), 
-										 Objects.requireNonNull(this.pluginName, "Plug-in name must be supplied using plugin() method before build() is called.")
-										 );
+										 Objects.requireNonNull(this.pluginName, "Plug-in name must be supplied using plugin() method before build() is called."),
+                                         builder.getApikeyAuthenticationFn());
 		}
 	}
 	

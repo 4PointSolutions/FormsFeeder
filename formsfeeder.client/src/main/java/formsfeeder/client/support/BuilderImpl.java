@@ -1,5 +1,8 @@
 package formsfeeder.client.support;
 
+import java.util.Collections;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Supplier;
 
 import javax.ws.rs.client.Client;
@@ -24,7 +27,9 @@ public class BuilderImpl implements Builder {
 	private String machineName = "localhost";
 	private int port = 4502;
 	private HttpAuthenticationFeature authFeature = null;
+	private Supplier<Map.Entry<String,String>> apikeyAuthenticationFn;
 	private boolean useSsl = false;
+	private String contextRoot = "/api/v1/";
 	private Supplier<Client> clientFactory = defaultClientFactory;
 	private Supplier<String> correlationIdFn = null;
 
@@ -51,6 +56,12 @@ public class BuilderImpl implements Builder {
 	}
 
 	@Override
+	public BuilderImpl contextRoot(String contextRoot) {
+		this.contextRoot = contextRoot;
+		return this;
+	}
+
+	@Override
 	public BuilderImpl clientFactory(Supplier<Client> clientFactory) {
 		this.clientFactory = clientFactory;
 		return this;
@@ -61,6 +72,15 @@ public class BuilderImpl implements Builder {
 		this.authFeature = HttpAuthenticationFeature.basic(username, password);
 		return this;
 	}
+
+	@Override
+    public BuilderImpl apikeyAuthentication(String apikeyHeader, String apikeyValue) {
+	    this.apikeyAuthenticationFn = () -> {return Collections.singletonMap(apikeyHeader,apikeyValue).entrySet().iterator().next();};
+	    return this;
+    }
+
+    @Override
+    public Supplier<Map.Entry<String,String>> getApikeyAuthenticationFn() {return this.apikeyAuthenticationFn; }
 
 	@Override
 	public BuilderImpl correlationId(Supplier<String> correlationIdFn) {
@@ -80,7 +100,7 @@ public class BuilderImpl implements Builder {
 		if (this.authFeature != null) {
 			client.register(authFeature);
 		}
-		WebTarget localTarget = client.target("http" + (useSsl ? "s" : "") + "://" + machineName + ":" + Integer.toString(port));
+		WebTarget localTarget = client.target("http" + (useSsl ? "s" : "") + "://" + machineName + ":" + Integer.toString(port) + contextRoot);
 		return localTarget;
 	}
 
