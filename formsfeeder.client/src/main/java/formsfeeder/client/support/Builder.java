@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
 
+
 /**
  * This interface is is for a Builder object that assists in building a JAX-RS client.  It is shared between the following projects:
  * fluentforms/rest-services.client
@@ -28,13 +29,11 @@ public interface Builder {
 
 	public Builder basicAuthentication(String username, String password);
 
-	public Builder apikeyAuthentication(String apikeyHeader, String apikeyValue);
-
-	public Supplier<Map.Entry<String,String>> getApikeyAuthenticationFn();
-
 	public Builder correlationId(Supplier<String> correlationIdFn);
 
-	public Supplier<String> getCorrelationIdFn();
+	public Builder addHeader(String header, Supplier<String> value);
+
+	public Map<String, Supplier<String>> getHeaderMap();
 
 	public WebTarget createLocalTarget();
 

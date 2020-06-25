@@ -1,13 +1,13 @@
 package formsfeeder.client.support;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.function.Supplier;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+
 
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -27,7 +27,7 @@ public class BuilderImpl implements Builder {
 	private String machineName = "localhost";
 	private int port = 4502;
 	private HttpAuthenticationFeature authFeature = null;
-	private Supplier<Map.Entry<String,String>> apikeyAuthenticationFn;
+	private Map<String, Supplier<String>> headerMap = new HashMap<>();
 	private boolean useSsl = false;
 	private String contextRoot = "/api/v1/";
 	private Supplier<Client> clientFactory = defaultClientFactory;
@@ -74,23 +74,19 @@ public class BuilderImpl implements Builder {
 	}
 
 	@Override
-    public BuilderImpl apikeyAuthentication(String apikeyHeader, String apikeyValue) {
-	    this.apikeyAuthenticationFn = () -> {return Collections.singletonMap(apikeyHeader,apikeyValue).entrySet().iterator().next();};
-	    return this;
-    }
-
-    @Override
-    public Supplier<Map.Entry<String,String>> getApikeyAuthenticationFn() {return this.apikeyAuthenticationFn; }
+	public BuilderImpl correlationId(Supplier<String> correlationIdFn) {
+		return this.addHeader(CorrelationId.CORRELATION_ID_HDR,correlationIdFn);
+	}
 
 	@Override
-	public BuilderImpl correlationId(Supplier<String> correlationIdFn) {
-		this.correlationIdFn = correlationIdFn;
+	public BuilderImpl addHeader(String header, Supplier<String> value) {
+		this.headerMap.put(header, value);
 		return this;
 	}
 
 	@Override
-	public Supplier<String> getCorrelationIdFn() {
-		return this.correlationIdFn;
+	public Map getHeaderMap() {
+		return this.headerMap;
 	}
 
 	@Override
