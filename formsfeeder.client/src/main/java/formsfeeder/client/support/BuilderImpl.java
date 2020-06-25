@@ -8,7 +8,6 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
-
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 
@@ -75,7 +74,13 @@ public class BuilderImpl implements Builder {
 
 	@Override
 	public BuilderImpl correlationId(Supplier<String> correlationIdFn) {
-		return this.addHeader(CorrelationId.CORRELATION_ID_HDR,correlationIdFn);
+		this.correlationIdFn = correlationIdFn;
+		return this;
+	}
+
+	@Override
+	public Supplier<String> getCorrelationIdFn() {
+		return this.correlationIdFn;
 	}
 
 	@Override

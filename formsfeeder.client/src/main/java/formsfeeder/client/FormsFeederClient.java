@@ -39,13 +39,15 @@ public class FormsFeederClient implements FeedConsumer {
 	private final Logger baseLogger = LoggerFactory.getLogger(this.getClass());
 	
 	private final WebTarget target;
+	private final Supplier<String> correlationIdFn;
 	private final String pluginName;
 	private final Map<String,Supplier<String>> headerMap;
 	String returnedCorrelationId = null;
 	
-	private FormsFeederClient(WebTarget target, String pluginName,
+	private FormsFeederClient(WebTarget target, Supplier<String> correlationIdFn, String pluginName,
 							  Map<String, Supplier<String>> headerMap) {
 		this.target = target;
+		this.correlationIdFn = correlationIdFn;
 		this.pluginName = pluginName;
 		this.headerMap = headerMap;
 	}
@@ -53,15 +55,7 @@ public class FormsFeederClient implements FeedConsumer {
 	@Override
 	public DataSourceList accept(DataSourceList dataSources) throws FormsFeederClientException {
 		try {
-            String correlationIdSent;
-            if(headerMap.containsKey(CorrelationId.CORRELATION_ID_HDR)) {
-                correlationIdSent = CorrelationId.generate(headerMap.get(CorrelationId.CORRELATION_ID_HDR).get());
-                headerMap.replace(CorrelationId.CORRELATION_ID_HDR, ()-> correlationIdSent);
-            } else {
-                correlationIdSent = CorrelationId.generate();
-                headerMap.put(CorrelationId.CORRELATION_ID_HDR, ()-> correlationIdSent);
-            }
-
+			String correlationIdSent = correlationIdFn != null ? CorrelationId.generate(correlationIdFn.get()) : CorrelationId.generate();
 			final Logger logger = FfLoggerFactory.wrap(correlationIdSent, baseLogger);
 			logger.info("Sending " + dataSources.list().size() + " DataSource to plugin '" + pluginName + "' at '" + target.getUri().toString() + "'.");
 			if (logger.isDebugEnabled()) {
@@ -73,8 +67,8 @@ public class FormsFeederClient implements FeedConsumer {
 				}
 			}
 			javax.ws.rs.client.Invocation.Builder invocBuilder = target.path(pluginName )
-																	   .request();
-
+																	   .request()
+																	   .header(CorrelationId.CORRELATION_ID_HDR, correlationIdSent);
 			if(headerMap!=null && !headerMap.isEmpty()) {
 				headerMap.keySet().stream().forEach(header -> invocBuilder.header(header, headerMap.get(header).get()));
 			}
@@ -185,7 +179,7 @@ public class FormsFeederClient implements FeedConsumer {
 
 		@Override
 		public Builder correlationId(Supplier<String> correlationIdFn) {
-		    builder.addHeader(CorrelationId.CORRELATION_ID_HDR, correlationIdFn);
+			builder.correlationId(correlationIdFn);
 			return this;
 		}
 
@@ -198,6 +192,11 @@ public class FormsFeederClient implements FeedConsumer {
 		@Override
 		public Map<String, Supplier<String>> getHeaderMap() {
 			return builder.getHeaderMap();
+		}
+		
+		@Override
+		public Supplier<String> getCorrelationIdFn() {
+			return builder.getCorrelationIdFn();
 		}
 
 		@Override
@@ -212,8 +211,9 @@ public class FormsFeederClient implements FeedConsumer {
 		
 		public FormsFeederClient build() {
 			return new FormsFeederClient(builder.createLocalTarget(),
-					Objects.requireNonNull(this.pluginName, "Plug-in name must be supplied using plugin() method before build() is called."),
-					builder.getHeaderMap()
+										 builder.getCorrelationIdFn(), 
+										 Objects.requireNonNull(this.pluginName, "Plug-in name must be supplied using plugin() method before build() is called."),
+										 builder.getHeaderMap()
 			);
 		}
 	}
