@@ -1,0 +1,19 @@
+{
+  "id" : "e7f35fe0-1076-40c4-a304-b51ac999efb9",
+  "name" : "custom_Debug",
+  "request" : {
+    "url" : "/custom/context/root/Debug",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 204,
+    "headers" : {
+      "x-correlation-id" : "{{request.headers.x-correlation-id}}",
+      "Date" : "Fri, 05 Jun 2020 20:36:30 GMT",
+      "Keep-Alive" : "timeout=60"
+    }
+  },
+  "uuid" : "e7f35fe0-1076-40c4-a304-b51ac999efb9",
+  "persistent" : true,
+  "insertionIndex" : 12
+}
