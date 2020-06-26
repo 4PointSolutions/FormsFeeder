@@ -83,7 +83,19 @@ class ServicesEndpointTest implements EnvironmentAware {
 	private static final Path SAMPLE_XDP = SAMPLE_FILES_DIR.resolve("SampleForm.xdp");
 	private static final Path SAMPLE_DATA = SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
 	private static final Path SAMPLE_PDF = SAMPLE_FILES_DIR.resolve("SampleForm.pdf");
+
+	/*
+	 * Wiremock is used for unit testing.  It is not used for integration testing with a real AEM instance.
+	 * Set USE_WIREMOCK to false to perform integration testing with a real Forms Feeder instance running on
+	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and 
+	 * formsfeeder.plugins.aemHost settings. 
+	 */
 	private static final boolean USE_WIREMOCK = true;
+	/*
+	 * Set WIREMOCK_RECORDING to true in order to record the interaction with a real FormsFeeder instance running on
+	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and
+	 * formsfeeder.plugins.aemHost settings.  This is useful for recreating the Wiremock Mapping files. 
+	 */
 	private static final boolean WIREMOCK_RECORDING = false;
 	private static final boolean SAVE_RESULTS = false;
 	static {
