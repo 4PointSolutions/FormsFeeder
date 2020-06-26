@@ -179,41 +179,44 @@ class FormsFeederClientTest {
 
 	@Test
 	void testAccept_HeadersAdded() throws Exception {
-		String correlationId = "correlationId";
-		String headerName1 = "headerName1";
-		String headerValue1= "headerValue1";
-		String headerName2 = "headerName2";
-		String headerValue2= "headerValue2";
+		if (USE_WIREMOCK) {    // Perform this test when doing unit testing (using wiremock), but skip this test when doing integration testing
+			String correlationId = "correlationId";
+			String headerName1 = "headerName1";
+			String headerValue1 = "headerValue1";
+			String headerName2 = "headerName2";
+			String headerValue2 = "headerValue2";
 
-		FormsFeederClient underTest = FormsFeederClient.builder()
-				.machineName(formsfeederServerName)
-				.port(formsfeederServerPort)
-				.plugin("Debug")
-				.correlationId(()->correlationId)
-				.addHeader(headerName1,()->headerValue1)
-				.addHeader(headerName2,()->headerValue2)
-				.build();
-		DataSourceList result = underTest.accept(DataSourceList.emptyList());
+			FormsFeederClient underTest = FormsFeederClient.builder()
+					.machineName(formsfeederServerName)
+					.port(formsfeederServerPort)
+					.plugin("Debug")
+					.correlationId(() -> correlationId)
+					.addHeader(headerName1, () -> headerValue1)
+					.addHeader(headerName2, () -> headerValue2)
+					.build();
+			DataSourceList result = underTest.accept(DataSourceList.emptyList());
 
-		wireMockServer.verify(getRequestedFor(urlMatching("/api/v1/Debug"))
-				.withHeader(headerName1,matching(headerValue1))
-				.withHeader(headerName2,matching(headerValue2))
-				.withHeader(CorrelationId.CORRELATION_ID_HDR,matching(correlationId)));
+			wireMockServer.verify(getRequestedFor(urlMatching("/api/v1/Debug"))
+					.withHeader(headerName1, matching(headerValue1))
+					.withHeader(headerName2, matching(headerValue2))
+					.withHeader(CorrelationId.CORRELATION_ID_HDR, matching(correlationId)));
+		}
 	}
 
 	@Test
 	void testAccept_CustomContextRoot() throws Exception {
-		FormsFeederClient underTest = FormsFeederClient.builder()
-				.machineName(formsfeederServerName)
-				.port(formsfeederServerPort)
-				.plugin("Debug")
-				.contextRoot("/custom/context/root/")
-				.build();
-		DataSourceList result = underTest.accept(DataSourceList.emptyList());
+		if (USE_WIREMOCK) {    // Perform this test when doing unit testing (using wiremock), but skip this test when doing integration testing
+			FormsFeederClient underTest = FormsFeederClient.builder()
+					.machineName(formsfeederServerName)
+					.port(formsfeederServerPort)
+					.plugin("Debug")
+					.contextRoot("/custom/context/root/")
+					.build();
+			DataSourceList result = underTest.accept(DataSourceList.emptyList());
 
-		wireMockServer.verify(getRequestedFor(urlMatching("/custom/context/root/Debug"))
-				.withHeader(CorrelationId.CORRELATION_ID_HDR,matching(underTest.returnedCorrelationId())));
-
+			wireMockServer.verify(getRequestedFor(urlMatching("/custom/context/root/Debug"))
+					.withHeader(CorrelationId.CORRELATION_ID_HDR, matching(underTest.returnedCorrelationId())));
+		}
 	}
 
 	@Test
