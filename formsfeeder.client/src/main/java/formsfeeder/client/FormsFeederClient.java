@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -40,12 +41,15 @@ public class FormsFeederClient implements FeedConsumer {
 	private final WebTarget target;
 	private final Supplier<String> correlationIdFn;
 	private final String pluginName;
+	private final Map<String,Supplier<String>> headerMap;
 	String returnedCorrelationId = null;
 	
-	private FormsFeederClient(WebTarget target, Supplier<String> correlationIdFn, String pluginName) {
+	private FormsFeederClient(WebTarget target, Supplier<String> correlationIdFn, String pluginName,
+							  Map<String, Supplier<String>> headerMap) {
 		this.target = target;
 		this.correlationIdFn = correlationIdFn;
 		this.pluginName = pluginName;
+		this.headerMap = headerMap;
 	}
 
 	@Override
@@ -62,10 +66,13 @@ public class FormsFeederClient implements FeedConsumer {
 								 );
 				}
 			}
-			javax.ws.rs.client.Invocation.Builder invocBuilder = target.path("/api/v1/" + pluginName)
+			javax.ws.rs.client.Invocation.Builder invocBuilder = target.path(pluginName )
 																	   .request()
 																	   .header(CorrelationId.CORRELATION_ID_HDR, correlationIdSent);
-			
+			if(headerMap!=null && !headerMap.isEmpty()) {
+				headerMap.keySet().stream().forEach(header -> invocBuilder.header(header, headerMap.get(header).get()));
+			}
+
 			// If the list is empty, send a GET instead of a POST
 			Response response = dataSources.list().isEmpty() ? invocBuilder.get() : invocBuilder.post(asEntity(asFormDataMultipart(dataSources)));
 			
@@ -153,6 +160,12 @@ public class FormsFeederClient implements FeedConsumer {
 		}
 
 		@Override
+		public Builder contextRoot(String contextRoot) {
+			builder.contextRoot(contextRoot);
+			return this;
+		}
+
+		@Override
 		public Builder clientFactory(Supplier<Client> clientFactory) {
 			builder.clientFactory(clientFactory);
 			return this;
@@ -171,6 +184,17 @@ public class FormsFeederClient implements FeedConsumer {
 		}
 
 		@Override
+		public Builder addHeader(String header, Supplier<String> value) {
+			builder.addHeader(header,value );
+			return this;
+		}
+
+		@Override
+		public Map<String, Supplier<String>> getHeaderMap() {
+			return builder.getHeaderMap();
+		}
+		
+		@Override
 		public Supplier<String> getCorrelationIdFn() {
 			return builder.getCorrelationIdFn();
 		}
@@ -186,10 +210,11 @@ public class FormsFeederClient implements FeedConsumer {
 		}
 		
 		public FormsFeederClient build() {
-			return new FormsFeederClient(builder.createLocalTarget(), 
+			return new FormsFeederClient(builder.createLocalTarget(),
 										 builder.getCorrelationIdFn(), 
-										 Objects.requireNonNull(this.pluginName, "Plug-in name must be supplied using plugin() method before build() is called.")
-										 );
+										 Objects.requireNonNull(this.pluginName, "Plug-in name must be supplied using plugin() method before build() is called."),
+										 builder.getHeaderMap()
+			);
 		}
 	}
 	

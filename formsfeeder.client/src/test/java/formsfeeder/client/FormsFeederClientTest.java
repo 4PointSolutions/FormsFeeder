@@ -1,5 +1,9 @@
 package formsfeeder.client;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -50,6 +54,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
 
+import formsfeeder.client.support.CorrelationId;
 import formsfeeder.client.FormsFeederClient.FormsFeederClientException;
 
 @ExtendWith(MockitoExtension.class)
@@ -171,7 +176,49 @@ class FormsFeederClientTest {
 	        wireMockServer.stop();
 		}
 	}
-	
+
+	@Test
+	void testAccept_HeadersAdded() throws Exception {
+		if (USE_WIREMOCK) {    // Perform this test when doing unit testing (using wiremock), but skip this test when doing integration testing
+			String correlationId = "correlationId";
+			String headerName1 = "headerName1";
+			String headerValue1 = "headerValue1";
+			String headerName2 = "headerName2";
+			String headerValue2 = "headerValue2";
+
+			FormsFeederClient underTest = FormsFeederClient.builder()
+					.machineName(formsfeederServerName)
+					.port(formsfeederServerPort)
+					.plugin("Debug")
+					.correlationId(() -> correlationId)
+					.addHeader(headerName1, () -> headerValue1)
+					.addHeader(headerName2, () -> headerValue2)
+					.build();
+			DataSourceList result = underTest.accept(DataSourceList.emptyList());
+
+			wireMockServer.verify(getRequestedFor(urlMatching("/api/v1/Debug"))
+					.withHeader(headerName1, matching(headerValue1))
+					.withHeader(headerName2, matching(headerValue2))
+					.withHeader(CorrelationId.CORRELATION_ID_HDR, matching(correlationId)));
+		}
+	}
+
+	@Test
+	void testAccept_CustomContextRoot() throws Exception {
+		if (USE_WIREMOCK) {    // Perform this test when doing unit testing (using wiremock), but skip this test when doing integration testing
+			FormsFeederClient underTest = FormsFeederClient.builder()
+					.machineName(formsfeederServerName)
+					.port(formsfeederServerPort)
+					.plugin("Debug")
+					.contextRoot("/custom/context/root/")
+					.build();
+			DataSourceList result = underTest.accept(DataSourceList.emptyList());
+
+			wireMockServer.verify(getRequestedFor(urlMatching("/custom/context/root/Debug"))
+					.withHeader(CorrelationId.CORRELATION_ID_HDR, matching(underTest.returnedCorrelationId())));
+		}
+	}
+
 	@Test
 	void testAccept_OneParamReturned() throws Exception {
 		String expectedParamName = "Param1";
@@ -181,9 +228,9 @@ class FormsFeederClientTest {
 												  .machineName(formsfeederServerName)
 												  .port(formsfeederServerPort)
 												  .plugin("Debug")
-												  .build();	
+												  .build();
 		DataSourceList result = underTest.accept(DataSourceList.builder().add(expectedParamName,expectedParamValue).build());
-		
+
 		assertNotNull(underTest.returnedCorrelationId());
 		assertFalse(Jdk8Utils.isBlank(underTest.returnedCorrelationId()));
 		assertNotNull(result);

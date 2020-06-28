@@ -1,5 +1,6 @@
 package formsfeeder.client.support;
 
+import java.util.Map;
 import java.util.function.Supplier;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
@@ -21,11 +22,17 @@ public interface Builder {
 
 	public Builder useSsl(boolean useSsl);
 
+	public Builder contextRoot(String contextRoot);
+
 	public Builder clientFactory(Supplier<Client> clientFactory);
 
 	public Builder basicAuthentication(String username, String password);
 
 	public Builder correlationId(Supplier<String> correlationIdFn);
+
+	public Builder addHeader(String header, Supplier<String> value);
+
+	public Map<String, Supplier<String>> getHeaderMap();
 
 	public Supplier<String> getCorrelationIdFn();
 

@@ -1,5 +1,7 @@
 package formsfeeder.client.support;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Supplier;
 
 import javax.ws.rs.client.Client;
@@ -24,7 +26,9 @@ public class BuilderImpl implements Builder {
 	private String machineName = "localhost";
 	private int port = 4502;
 	private HttpAuthenticationFeature authFeature = null;
+	private Map<String, Supplier<String>> headerMap = new HashMap<>();
 	private boolean useSsl = false;
+	private String contextRoot = "/api/v1/";
 	private Supplier<Client> clientFactory = defaultClientFactory;
 	private Supplier<String> correlationIdFn = null;
 
@@ -47,6 +51,12 @@ public class BuilderImpl implements Builder {
 	@Override
 	public BuilderImpl useSsl(boolean useSsl) {
 		this.useSsl = useSsl;
+		return this;
+	}
+
+	@Override
+	public BuilderImpl contextRoot(String contextRoot) {
+		this.contextRoot = contextRoot;
 		return this;
 	}
 
@@ -74,13 +84,24 @@ public class BuilderImpl implements Builder {
 	}
 
 	@Override
+	public BuilderImpl addHeader(String header, Supplier<String> value) {
+		this.headerMap.put(header, value);
+		return this;
+	}
+
+	@Override
+	public Map getHeaderMap() {
+		return this.headerMap;
+	}
+
+	@Override
 	public WebTarget createLocalTarget() {
 		Client client = clientFactory.get();
 		client.register(MultiPartFeature.class);
 		if (this.authFeature != null) {
 			client.register(authFeature);
 		}
-		WebTarget localTarget = client.target("http" + (useSsl ? "s" : "") + "://" + machineName + ":" + Integer.toString(port));
+		WebTarget localTarget = client.target("http" + (useSsl ? "s" : "") + "://" + machineName + ":" + Integer.toString(port) + contextRoot);
 		return localTarget;
 	}
 
