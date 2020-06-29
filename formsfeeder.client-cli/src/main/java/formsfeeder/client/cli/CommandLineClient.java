@@ -5,10 +5,12 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import formsfeeder.client.cli.parameters.AuthParameters.BasicAuthParameters;
 import org.apache.commons.cli.ParseException;
 
 
@@ -40,12 +42,29 @@ public class CommandLineClient {
 			
 			
 			HostParameters hostParams = cliParameters.hostParameters();
-			FormsFeederClient ffClient = FormsFeederClient.builder()
+			FormsFeederClient.Builder ffClientBuilder = FormsFeederClient.builder()
 					  .machineName(hostParams.hostName())
 					  .port(hostParams.hostPort())
 					  .useSsl(hostParams.useSsl())
-					  .plugin(cliParameters.plugin())
-					  .build();	
+					  .plugin(cliParameters.plugin());
+
+			cliParameters.authParameters().ifPresent(
+					authParameters->{
+						if(authParameters instanceof BasicAuthParameters) {
+							ffClientBuilder.basicAuthentication(((BasicAuthParameters)authParameters).username(), ((BasicAuthParameters)authParameters).password());
+						}
+					}
+			);
+
+			cliParameters.contextRoot().ifPresent((contextRoot)->ffClientBuilder.contextRoot(contextRoot));
+
+			cliParameters.headers().ifPresent(
+					(headers)->headers.entrySet().forEach(
+							header -> ffClientBuilder.addHeader(header.getKey(), ()->header.getValue())
+					)
+			);
+
+			FormsFeederClient ffClient = ffClientBuilder.build();
 
 			DataSourceList result = ffClient.accept(asDataSourceList(cliParameters.dataSourceInfos()));
 

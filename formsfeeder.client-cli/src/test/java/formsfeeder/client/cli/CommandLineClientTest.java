@@ -1,5 +1,8 @@
 package formsfeeder.client.cli;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.apache.commons.codec.binary.Base64;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -102,8 +106,68 @@ class CommandLineClientTest {
 	        wireMockServer.stop();
 		}
 	}
-	
-	
+
+	@Test
+	void testMain_ContextRoot() throws Exception {
+		String expectedParamValue = "ParamValue";
+		String expectedParamName = "Param";
+		String expectedContextRoot = "/context/root/";
+
+		String[] args = { "-h", getFFServerLocation(),
+				"-u", getFFServerCredentials(),
+				"-d", expectedParamName + "=" + expectedParamValue,
+				"-p", "Debug",
+				"-c", expectedContextRoot};
+
+		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
+
+		String stdoutStr = new String(stdout.toByteArray(), StandardCharsets.UTF_8);
+		assertAll(
+				()->assertTrue(stdoutStr.contains(expectedParamName), "Expected '" + stdoutStr + "' to contain '" + expectedParamName + "', but didn't."),
+				()->assertTrue(stdoutStr.contains(expectedParamValue), "Expected '" + stdoutStr + "' to contain '" + expectedParamValue + "', but didn't."),
+				()->assertTrue(stdoutStr.contains(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE.asString()), "Expected '" + stdoutStr + "' to contain '" + StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE.asString() + "', but didn't."),
+				()->assertEquals(0, getFileCount(fs), "Expected no files to be created.")
+		);
+
+		if(USE_WIREMOCK) {
+			wireMockServer.verify(postRequestedFor(urlMatching(expectedContextRoot+"Debug")));
+		}
+	}
+
+	@Test
+	void testMain_RequestHeaders() throws Exception {
+		String expectedParamValue = "ParamValue";
+		String expectedParamName = "Param";
+		String expectedHeader1 = "header1";
+		String expectedHeader1Value = "header1Value";
+		String expectedAuthHeader = "Authorization";
+		String expectedAuthHeaderValue = "Basic " + Base64.encodeBase64String((FORMSFEEDER_SERVER_USERNAME + ":" + FORMSFEEDER_SERVER_PASSWORD).getBytes());
+
+		String[] args = { "-h", getFFServerLocation(),
+				"-u", getFFServerCredentials(),
+				"-d", expectedParamName + "=" + expectedParamValue,
+				"-p", "Debug",
+				"-header", "header1=header1Value"};
+
+		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
+
+		String stdoutStr = new String(stdout.toByteArray(), StandardCharsets.UTF_8);
+		assertAll(
+				()->assertTrue(stdoutStr.contains(expectedParamName), "Expected '" + stdoutStr + "' to contain '" + expectedParamName + "', but didn't."),
+				()->assertTrue(stdoutStr.contains(expectedParamValue), "Expected '" + stdoutStr + "' to contain '" + expectedParamValue + "', but didn't."),
+				()->assertTrue(stdoutStr.contains(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE.asString()), "Expected '" + stdoutStr + "' to contain '" + StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE.asString() + "', but didn't."),
+				()->assertEquals(0, getFileCount(fs), "Expected no files to be created.")
+		);
+
+		if(USE_WIREMOCK) {
+			wireMockServer.verify(postRequestedFor(urlMatching("/api/v1/Debug"))
+					.withHeader(expectedAuthHeader, matching(expectedAuthHeaderValue))
+					.withHeader(expectedHeader1,matching(expectedHeader1Value)));
+		}
+	}
+
 	@Test
 	void testMain_OneDS_OneOutput_Stdout() throws Exception {
 		
