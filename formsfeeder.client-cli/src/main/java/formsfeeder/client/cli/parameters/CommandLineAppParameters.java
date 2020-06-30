@@ -28,7 +28,7 @@ public class CommandLineAppParameters implements AppParameters {
 	private static final String CONTEXT_ROOT_LONG_OPTION = "contextroot";
 	private static final String USER_CREDENTIALS_SHORT_OPTION = "u";
 	private static final String USER_CREDENTIALS_LONG_OPTION = "user";
-	private static final String HEADER_SHORT_OPTION = "header";
+	private static final String HEADER_SHORT_OPTION = "hdr";
 	private static final String HEADER_LONG_OPTION = "header";
 	private static final String DATA_SOURCE_SHORT_OPTION = "d";
 	private static final String DATA_SOURCE_LONG_OPTION = "data";	
