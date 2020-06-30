@@ -1,0 +1,25 @@
+{
+  "id" : "7a9d3b4b-aa24-402b-89f8-c1732bfa0c9d",
+  "name" : "context_root_debug",
+  "request" : {
+    "url" : "/context/root/Debug",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "contains" : "ParamValue"
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "Found datasource: name='Param' with value 'ParamValue' with contentType 'text/plain; charset=UTF-8'.",
+    "headers" : {
+      "x-correlation-id" : "{{request.headers.x-correlation-id}}",
+      "Content-Type" : "text/plain;charset=UTF-8",
+      "Date" : "Fri, 05 Jun 2020 18:34:32 GMT",
+      "Keep-Alive" : "timeout=60"
+    },
+    "transformers" : [ "response-template" ]
+  },
+  "uuid" : "7a9d3b4b-aa24-402b-89f8-c1732bfa0c9d",
+  "persistent" : true,
+  "insertionIndex" : 3
+}

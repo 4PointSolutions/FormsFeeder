@@ -17,9 +17,13 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 class CommandLineAppParametersTest {
 	private static final String HOST_LOCATION_SHORT_OPTION = "-h";
-	private static final String HOST_LOCATION_LONG_OPTION = "--host";	
+	private static final String HOST_LOCATION_LONG_OPTION = "--host";
+	private static final String CONTEXT_ROOT_SHORT_OPTION = "-c";
+	private static final String CONTEXT_ROOT_LONG_OPTION = "-contextroot";
 	private static final String USER_CREDENTIALS_SHORT_OPTION = "-u";
-	private static final String USER_CREDENTIALS_LONG_OPTION = "--user";	
+	private static final String USER_CREDENTIALS_LONG_OPTION = "--user";
+	private static final String HEADER_SHORT_OPTION = "-hdr";
+	private static final String HEADER_LONG_OPTION = "--header";
 	private static final String DATA_SOURCE_SHORT_OPTION = "-d";
 	private static final String DATA_SOURCE_LONG_OPTION = "--data";	
 	private static final String OUTPUT_LOCATION_SHORT_OPTION = "-o";
@@ -32,8 +36,15 @@ class CommandLineAppParametersTest {
 	private static final String HOST_MACHINE_NAME = "localhost";
 	private static final String HOST_PORT = "8080";
 	private static final String HOST_LOCATION_PARAM = "http://" + HOST_MACHINE_NAME + ":" + HOST_PORT;
+	private static final String CONTEXT_ROOT_PARAM = "/context/root/";
 	private static final String USER_CREDENTIALS_USERNAME = "username";
 	private static final String USER_CREDENTIALS_PASSWORD = "password";
+	private static final String HEADER_1_KEY = "header1";
+	private static final String HEADER_1_VALUE = "headervalue1";
+	private static final String HEADER_1_PARAM = HEADER_1_KEY + "=" + HEADER_1_VALUE;
+	private static final String HEADER_2_KEY = "header2";
+	private static final String HEADER_2_VALUE = "headervalue2";
+	private static final String HEADER_2_PARAM = HEADER_2_KEY + "=" + HEADER_2_VALUE;
 	private static final String USER_CREDENTIALS_PARAM = USER_CREDENTIALS_USERNAME + ":" + USER_CREDENTIALS_PASSWORD;
 	private static final String OUTPUT_LOCATION_PARAM = "output/output.txt";
 	private static final String PLUGIN_PARAM = "Debug";
@@ -48,7 +59,10 @@ class CommandLineAppParametersTest {
 	private static final String DATA_SOURCE_3_PARAM = DATA_SOURCE_3_NAME + "=" + DATA_SOURCE_3_VALUE;
  
 	private static final String VALID_HOST_LOCATION_SHORT_PAIR = HOST_LOCATION_SHORT_OPTION + " " + HOST_LOCATION_PARAM;
+	private static final String VALID_CONTEXT_ROOT_SHORT_PAIR = CONTEXT_ROOT_SHORT_OPTION + " " + CONTEXT_ROOT_PARAM;
 	private static final String VALID_USER_CREDENTIALS_SHORT_PAIR = USER_CREDENTIALS_SHORT_OPTION + " " + USER_CREDENTIALS_PARAM;
+	private static final String VALID_HEADER_1_SHORT_PAIR = HEADER_SHORT_OPTION + " " + HEADER_1_PARAM;
+	private static final String VALID_HEADER_2_SHORT_PAIR = HEADER_SHORT_OPTION + " " + HEADER_2_PARAM;
 	private static final String VALID_OUTPUT_LOCATION_SHORT_PAIR = OUTPUT_LOCATION_SHORT_OPTION + " " + OUTPUT_LOCATION_PARAM;
 	private static final String VALID_PLUGIN_SHORT_PAIR = PLUGIN_SHORT_OPTION + " " + PLUGIN_PARAM;
 	private static final String DATA_SOURCE_1_SHORT_PAIR = DATA_SOURCE_SHORT_OPTION + " " + DATA_SOURCE_1_PARAM;
@@ -56,7 +70,10 @@ class CommandLineAppParametersTest {
 	private static final String DATA_SOURCE_3_SHORT_PAIR = DATA_SOURCE_SHORT_OPTION + " " + DATA_SOURCE_3_PARAM;
 
 	private static final String VALID_HOST_LOCATION_LONG_PAIR = HOST_LOCATION_LONG_OPTION + " " + HOST_LOCATION_PARAM;
+	private static final String VALID_CONTEXT_ROOT_LONG_PAIR = CONTEXT_ROOT_LONG_OPTION + " " + CONTEXT_ROOT_PARAM;
 	private static final String VALID_USER_CREDENTIALS_LONG_PAIR = USER_CREDENTIALS_LONG_OPTION + " " + USER_CREDENTIALS_PARAM;
+	private static final String VALID_HEADER_1_LONG_PAIR = HEADER_LONG_OPTION + " " + HEADER_1_PARAM;
+	private static final String VALID_HEADER_2_LONG_PAIR = HEADER_LONG_OPTION + " " + HEADER_2_PARAM;
 	private static final String VALID_OUTPUT_LOCATION_LONG_PAIR = OUTPUT_LOCATION_LONG_OPTION + " " + OUTPUT_LOCATION_PARAM;
 	private static final String VALID_PLUGIN_LONG_PAIR = PLUGIN_LONG_OPTION + " " + PLUGIN_PARAM;
 	private static final String DATA_SOURCE_1_LONG_PAIR = DATA_SOURCE_LONG_OPTION + " " + DATA_SOURCE_1_PARAM;
@@ -65,7 +82,10 @@ class CommandLineAppParametersTest {
 
 	private static final String VALID_SHORT_ARG_STRING = 
 			 VALID_HOST_LOCATION_SHORT_PAIR + " "
+		   + VALID_CONTEXT_ROOT_SHORT_PAIR + " "
 	       + VALID_USER_CREDENTIALS_SHORT_PAIR + " "
+		   + VALID_HEADER_1_SHORT_PAIR + " "
+		   + VALID_HEADER_2_SHORT_PAIR + " "
 		   + VALID_OUTPUT_LOCATION_SHORT_PAIR + " "
 		   + VALID_PLUGIN_SHORT_PAIR + " "
 		   + DATA_SOURCE_1_SHORT_PAIR + " "
@@ -79,21 +99,27 @@ class CommandLineAppParametersTest {
 			   + VERBOSE_LONG_OPTION + " "
 		       + DATA_SOURCE_1_LONG_PAIR + " "
 		       + DATA_SOURCE_2_LONG_PAIR + " "
+			   + VALID_CONTEXT_ROOT_LONG_PAIR + " "
+			   + VALID_HEADER_2_LONG_PAIR + " "
 		       + DATA_SOURCE_3_LONG_PAIR + " "
 		       + VALID_HOST_LOCATION_LONG_PAIR + " "
 			   + VALID_PLUGIN_LONG_PAIR + " "
-			   + VALID_OUTPUT_LOCATION_LONG_PAIR
+			   + VALID_OUTPUT_LOCATION_LONG_PAIR + " "
+			   + VALID_HEADER_1_LONG_PAIR + " "
 			   ;	// Intentionally using different orders in the different variations.
 	
 	private static final String VALID_MIXED_ARG_STRING = 
 			     VERBOSE_SHORT_OPTION + " "
 			   + VALID_USER_CREDENTIALS_SHORT_PAIR + " "
 			   + VALID_OUTPUT_LOCATION_LONG_PAIR + " "
+			   + VALID_HEADER_1_LONG_PAIR + " "
 			   + DATA_SOURCE_1_LONG_PAIR + " "
+			   + VALID_CONTEXT_ROOT_SHORT_PAIR + " "
 			   + DATA_SOURCE_2_SHORT_PAIR + " "
 			   + VALID_PLUGIN_LONG_PAIR + " "
 			   + DATA_SOURCE_3_SHORT_PAIR + " "
-			   + VALID_HOST_LOCATION_LONG_PAIR
+			   + VALID_HOST_LOCATION_LONG_PAIR + " "
+			   + VALID_HEADER_2_SHORT_PAIR
 			   ;
 	
 	private static final String NO_OPTIONAL_ARGS_STRING = 
@@ -115,7 +141,9 @@ class CommandLineAppParametersTest {
 		assertAll(
 				()->assertTrue(underTest.output().isPresent()),
 				()->assertTrue(underTest.authParameters().isPresent()),
-				()->assertEquals(3, underTest.dataSourceInfos().size())
+				()->assertEquals(3, underTest.dataSourceInfos().size()),
+				()->assertTrue(underTest.headers().isPresent()),
+				()->assertTrue(underTest.contextRoot().isPresent())
 				);
 		Path outputPath = underTest.output().get();
 		AuthParameters.BasicAuthParameters authParams = ((AuthParameters.BasicAuthParameters)underTest.authParameters().get());
@@ -125,9 +153,12 @@ class CommandLineAppParametersTest {
 				()->assertFalse(underTest.hostParameters().useSsl()),
 				()->assertEquals(HOST_MACHINE_NAME , underTest.hostParameters().hostName()),
 				()->assertEquals(Integer.valueOf(HOST_PORT), underTest.hostParameters().hostPort()),
+				()->assertEquals(CONTEXT_ROOT_PARAM, underTest.contextRoot().get()),
 				()->assertEquals(Paths.get(OUTPUT_LOCATION_PARAM).toString(), outputPath.toString()),
 				()->assertEquals(USER_CREDENTIALS_USERNAME, authParams.username()),
 				()->assertEquals(USER_CREDENTIALS_PASSWORD, authParams.password()),
+				()->assertEquals(HEADER_1_VALUE, underTest.headers().get().get(HEADER_1_KEY)),
+				()->assertEquals(HEADER_2_VALUE, underTest.headers().get().get(HEADER_2_KEY)),
 				()->assertEquals(DATA_SOURCE_1_NAME, dataSourceInfos.get(0).name()),
 				()->assertEquals(DATA_SOURCE_1_VALUE, dataSourceInfos.get(0).value()),
 				()->assertEquals(DATA_SOURCE_2_NAME, dataSourceInfos.get(1).name()),
@@ -168,7 +199,9 @@ class CommandLineAppParametersTest {
 		
 		assertAll(
 				()->assertTrue(result.contains(HOST_LOCATION_SHORT_OPTION), "Expected '" + result + "' to contain '" + HOST_LOCATION_SHORT_OPTION + "'."),
-				()->assertTrue(result.contains(USER_CREDENTIALS_SHORT_OPTION), "Expected '" + result + "' to contain '" + USER_CREDENTIALS_SHORT_OPTION + "'."),				
+				()->assertTrue(result.contains(CONTEXT_ROOT_SHORT_OPTION), "Expected '" + result + "' to contain '" + CONTEXT_ROOT_SHORT_OPTION + "'."),
+				()->assertTrue(result.contains(USER_CREDENTIALS_SHORT_OPTION), "Expected '" + result + "' to contain '" + USER_CREDENTIALS_SHORT_OPTION + "'."),
+				()->assertTrue(result.contains(HEADER_SHORT_OPTION), "Expected '" + result + "' to contain '" + HEADER_SHORT_OPTION + "'."),
 				()->assertTrue(result.contains(DATA_SOURCE_SHORT_OPTION), "Expected '" + result + "' to contain '" + DATA_SOURCE_SHORT_OPTION + "'."),
 				()->assertTrue(result.contains(OUTPUT_LOCATION_SHORT_OPTION), "Expected '" + result + "' to contain '" + OUTPUT_LOCATION_SHORT_OPTION + "'."),
 				()->assertTrue(result.contains(VERBOSE_SHORT_OPTION), "Expected '" + result + "' to contain '" + VERBOSE_SHORT_OPTION + "'.")
