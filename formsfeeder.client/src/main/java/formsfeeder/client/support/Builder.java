@@ -28,6 +28,10 @@ public interface Builder {
 
 	public Builder basicAuthentication(String username, String password);
 
+	public Map<String, Supplier<Object>> getQueryParams();
+
+	public Builder addQueryParam(String name, Supplier<Object> value);
+
 	public Builder correlationId(Supplier<String> correlationIdFn);
 
 	public Builder addHeader(String header, Supplier<String> value);

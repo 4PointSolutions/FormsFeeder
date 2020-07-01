@@ -26,6 +26,8 @@ public class CommandLineAppParameters implements AppParameters {
 	private static final String HOST_LOCATION_LONG_OPTION = "host";
 	private static final String CONTEXT_ROOT_SHORT_OPTION = "c";
 	private static final String CONTEXT_ROOT_LONG_OPTION = "contextroot";
+	private static final String QUERY_PARAM_SHORT_OPTION = "qp";
+	private static final String QUERY_PARAM_LONG_OPTION = "queryparam";
 	private static final String USER_CREDENTIALS_SHORT_OPTION = "u";
 	private static final String USER_CREDENTIALS_LONG_OPTION = "user";
 	private static final String HEADER_SHORT_OPTION = "hdr";
@@ -41,6 +43,7 @@ public class CommandLineAppParameters implements AppParameters {
 
 	private final HostParameters hostParameters;
 	private final String contextRoot;
+	private final Map<String, String> queryParams;
 	private final AuthParameters authParameters;
 	private final Map<String, String> headers;
 	private final List<DataSourceInfo> dataSourceInfos;
@@ -50,15 +53,20 @@ public class CommandLineAppParameters implements AppParameters {
 	
 	/**
 	 * @param hostLocation
+	 * @param contextRoot
+	 * @param queryParams
 	 * @param authParameters
+	 * @param headers
 	 * @param dataSourceInfos
+	 * @param outputPath
+	 * @param plugin
 	 * @param verbose
-	 * @param plugin 
 	 */
-	private CommandLineAppParameters(HostParameters hostLocation, String contextRoot, AuthParameters authParameters, Map<String, String> headers, List<DataSourceInfo> dataSourceInfos, Path outputPath, String plugin, boolean verbose) {
+	private CommandLineAppParameters(HostParameters hostLocation, String contextRoot, Map<String, String> queryParams, AuthParameters authParameters, Map<String, String> headers, List<DataSourceInfo> dataSourceInfos, Path outputPath, String plugin, boolean verbose) {
 		super();
 		this.hostParameters = hostLocation;
 		this.contextRoot = contextRoot;
+		this.queryParams = queryParams;
 		this.authParameters = authParameters;
 		this.headers = headers;
 		this.dataSourceInfos = dataSourceInfos;
@@ -74,6 +82,9 @@ public class CommandLineAppParameters implements AppParameters {
 
 	@Override
 	public  Optional<String> contextRoot() { return Optional.ofNullable(this.contextRoot); }
+
+	@Override
+	public Optional<Map<String, String>> queryParams() { return Optional.ofNullable(this.queryParams); }
 
 	@Override
 	public Optional<AuthParameters> authParameters() { return Optional.ofNullable(this.authParameters); }
@@ -106,13 +117,14 @@ public class CommandLineAppParameters implements AppParameters {
 		CommandLine cmd = generateCommandLine(options, args);
 		String hostLocation = cmd.getOptionValue(HOST_LOCATION_SHORT_OPTION);
 		String contextRoot = cmd.getOptionValue(CONTEXT_ROOT_SHORT_OPTION);
+		Map<String, String> queryParams = asMapParameters(cmd.getOptionValues(QUERY_PARAM_SHORT_OPTION));
 		AuthParameters authParameters = asAuthParameters(cmd.getOptionValue(USER_CREDENTIALS_SHORT_OPTION));
-		Map<String, String> headers = asHeaderMapParameters(cmd.getOptionValues(HEADER_SHORT_OPTION));
+		Map<String, String> headers = asMapParameters(cmd.getOptionValues(HEADER_SHORT_OPTION));
 		List<DataSourceInfo> dataSourceInfos = asDataSourceInfoList(cmd.getOptionValues(DATA_SOURCE_SHORT_OPTION));
 		Path outputPath = asPath(cmd.getOptionValue(OUTPUT_LOCATION_SHORT_OPTION));
 		String plugin = cmd.getOptionValue(PLUGIN_SHORT_OPTION);
 		boolean verbose = cmd.hasOption(VERBOSE_SHORT_OPTION);
-		return new CommandLineAppParameters(HostParameters.from(hostLocation), contextRoot, authParameters, headers, dataSourceInfos, outputPath, plugin, verbose);
+		return new CommandLineAppParameters(HostParameters.from(hostLocation), contextRoot, queryParams, authParameters, headers, dataSourceInfos, outputPath, plugin, verbose);
 	}
 	
 	private static final AuthParameters asAuthParameters(String authParam) throws ParseException {
@@ -125,11 +137,11 @@ public class CommandLineAppParameters implements AppParameters {
 		return new AuthParameters.BasicAuthParameters(splitParam[0], splitParam[1]);
 	}
 
-	private static final Map<String,String> asHeaderMapParameters(String[] headerParams) {
-		if(headerParams == null || headerParams.length == 0) {
+	private static final Map<String,String> asMapParameters(String[] mapParams) {
+		if(mapParams == null || mapParams.length == 0) {
 			return null;
 		}
-		return Arrays.stream(headerParams)
+		return Arrays.stream(mapParams)
 					 .map(CommandLineAppParameters::asEntry)
 					 .collect(Collectors.toMap(e->e.getKey(), e->e.getValue() ));
 	}
@@ -176,6 +188,12 @@ public class CommandLineAppParameters implements AppParameters {
 			      .longOpt(CONTEXT_ROOT_LONG_OPTION)
 			   	  .desc("Context root if not /api/v1/")
 			      .build();
+		final Option queryParam = Option.builder(QUERY_PARAM_SHORT_OPTION)
+				.required(false)
+				.hasArg(true)
+				.longOpt(QUERY_PARAM_LONG_OPTION)
+				.desc("queryParams (paramName=paramValue")
+				.build();
 	   final Option authParam = Option.builder(USER_CREDENTIALS_SHORT_OPTION)  
 			      .required(false)
 			      .hasArg(true)
@@ -216,6 +234,7 @@ public class CommandLineAppParameters implements AppParameters {
 	   final Options options = new Options();  
 	   options.addOption(hostLocation);
 	   options.addOption(contextRootParam);
+	   options.addOption(queryParam);
 	   options.addOption(authParam);
 	   options.addOption(headers);
 	   options.addOption(dataSource);

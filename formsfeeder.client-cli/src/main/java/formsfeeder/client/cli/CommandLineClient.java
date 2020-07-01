@@ -58,11 +58,15 @@ public class CommandLineClient {
 
 			cliParameters.contextRoot().ifPresent((contextRoot)->ffClientBuilder.contextRoot(contextRoot));
 
+			cliParameters.queryParams().ifPresent(
+					(queryParams)->queryParams.entrySet().forEach(
+						queryParam -> ffClientBuilder.addQueryParam(queryParam.getKey(),()->queryParam.getValue())
+					));
+
 			cliParameters.headers().ifPresent(
 					(headers)->headers.entrySet().forEach(
-							header -> ffClientBuilder.addHeader(header.getKey(), ()->header.getValue())
-					)
-			);
+						header -> ffClientBuilder.addHeader(header.getKey(), ()->header.getValue())
+					));
 
 			FormsFeederClient ffClient = ffClientBuilder.build();
 

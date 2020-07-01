@@ -30,6 +30,7 @@ public class BuilderImpl implements Builder {
 	private boolean useSsl = false;
 	private String contextRoot = "/api/v1/";
 	private Supplier<Client> clientFactory = defaultClientFactory;
+	private Map<String, Supplier<Object>> queryParams = new HashMap<>();
 	private Supplier<String> correlationIdFn = null;
 
 	public BuilderImpl() {
@@ -71,6 +72,15 @@ public class BuilderImpl implements Builder {
 		this.authFeature = HttpAuthenticationFeature.basic(username, password);
 		return this;
 	}
+
+	@Override
+	public BuilderImpl addQueryParam(String name, Supplier<Object> value) {
+		this.queryParams.put(name,value);
+		return this;
+	}
+
+	@Override
+	public Map getQueryParams() { return this.queryParams; }
 
 	@Override
 	public BuilderImpl correlationId(Supplier<String> correlationIdFn) {

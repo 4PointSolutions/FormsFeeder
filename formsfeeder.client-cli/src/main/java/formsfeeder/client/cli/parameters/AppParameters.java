@@ -11,6 +11,8 @@ public interface AppParameters {
 
 	public Optional<String> contextRoot();
 
+	public Optional<Map<String, String>> queryParams();
+
 	public Optional<AuthParameters> authParameters();
 
 	public Optional<Map<String,String>> headers();

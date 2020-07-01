@@ -19,7 +19,9 @@ class CommandLineAppParametersTest {
 	private static final String HOST_LOCATION_SHORT_OPTION = "-h";
 	private static final String HOST_LOCATION_LONG_OPTION = "--host";
 	private static final String CONTEXT_ROOT_SHORT_OPTION = "-c";
-	private static final String CONTEXT_ROOT_LONG_OPTION = "-contextroot";
+	private static final String CONTEXT_ROOT_LONG_OPTION = "--contextroot";
+	private static final String QUERY_PARAM_SHORT_OPTION = "-qp";
+	private static final String QUERY_PARAM_LONG_OPTION = "--queryparam";
 	private static final String USER_CREDENTIALS_SHORT_OPTION = "-u";
 	private static final String USER_CREDENTIALS_LONG_OPTION = "--user";
 	private static final String HEADER_SHORT_OPTION = "-hdr";
@@ -37,6 +39,12 @@ class CommandLineAppParametersTest {
 	private static final String HOST_PORT = "8080";
 	private static final String HOST_LOCATION_PARAM = "http://" + HOST_MACHINE_NAME + ":" + HOST_PORT;
 	private static final String CONTEXT_ROOT_PARAM = "/context/root/";
+	private static final String QUERY_1_KEY = "qpname1";
+	private static final String QUERY_1_VALUE = "qpvalue1";
+	private static final String QUERY_1_PARAM = QUERY_1_KEY + "=" + QUERY_1_VALUE;
+	private static final String QUERY_2_KEY = "qpname2";
+	private static final String QUERY_2_VALUE = "qpvalue2";
+	private static final String QUERY_2_PARAM = QUERY_2_KEY + "=" + QUERY_2_VALUE;
 	private static final String USER_CREDENTIALS_USERNAME = "username";
 	private static final String USER_CREDENTIALS_PASSWORD = "password";
 	private static final String HEADER_1_KEY = "header1";
@@ -60,6 +68,8 @@ class CommandLineAppParametersTest {
  
 	private static final String VALID_HOST_LOCATION_SHORT_PAIR = HOST_LOCATION_SHORT_OPTION + " " + HOST_LOCATION_PARAM;
 	private static final String VALID_CONTEXT_ROOT_SHORT_PAIR = CONTEXT_ROOT_SHORT_OPTION + " " + CONTEXT_ROOT_PARAM;
+	private static final String VALID_QUERY_PARAM_1_SHORT_PAIR = QUERY_PARAM_SHORT_OPTION + " " + QUERY_1_PARAM;
+	private static final String VALID_QUERY_PARAM_2_SHORT_PAIR = QUERY_PARAM_SHORT_OPTION + " " + QUERY_2_PARAM;
 	private static final String VALID_USER_CREDENTIALS_SHORT_PAIR = USER_CREDENTIALS_SHORT_OPTION + " " + USER_CREDENTIALS_PARAM;
 	private static final String VALID_HEADER_1_SHORT_PAIR = HEADER_SHORT_OPTION + " " + HEADER_1_PARAM;
 	private static final String VALID_HEADER_2_SHORT_PAIR = HEADER_SHORT_OPTION + " " + HEADER_2_PARAM;
@@ -71,6 +81,8 @@ class CommandLineAppParametersTest {
 
 	private static final String VALID_HOST_LOCATION_LONG_PAIR = HOST_LOCATION_LONG_OPTION + " " + HOST_LOCATION_PARAM;
 	private static final String VALID_CONTEXT_ROOT_LONG_PAIR = CONTEXT_ROOT_LONG_OPTION + " " + CONTEXT_ROOT_PARAM;
+	private static final String VALID_QUERY_PARAM_1_LONG_PAIR = QUERY_PARAM_LONG_OPTION + " " + QUERY_1_PARAM;
+	private static final String VALID_QUERY_PARAM_2_LONG_PAIR = QUERY_PARAM_LONG_OPTION + " " + QUERY_2_PARAM;
 	private static final String VALID_USER_CREDENTIALS_LONG_PAIR = USER_CREDENTIALS_LONG_OPTION + " " + USER_CREDENTIALS_PARAM;
 	private static final String VALID_HEADER_1_LONG_PAIR = HEADER_LONG_OPTION + " " + HEADER_1_PARAM;
 	private static final String VALID_HEADER_2_LONG_PAIR = HEADER_LONG_OPTION + " " + HEADER_2_PARAM;
@@ -83,6 +95,8 @@ class CommandLineAppParametersTest {
 	private static final String VALID_SHORT_ARG_STRING = 
 			 VALID_HOST_LOCATION_SHORT_PAIR + " "
 		   + VALID_CONTEXT_ROOT_SHORT_PAIR + " "
+		   + VALID_QUERY_PARAM_1_SHORT_PAIR + " "
+		   + VALID_QUERY_PARAM_2_SHORT_PAIR + " "
 	       + VALID_USER_CREDENTIALS_SHORT_PAIR + " "
 		   + VALID_HEADER_1_SHORT_PAIR + " "
 		   + VALID_HEADER_2_SHORT_PAIR + " "
@@ -98,11 +112,13 @@ class CommandLineAppParametersTest {
 				 VALID_USER_CREDENTIALS_LONG_PAIR + " "
 			   + VERBOSE_LONG_OPTION + " "
 		       + DATA_SOURCE_1_LONG_PAIR + " "
+			   + VALID_QUERY_PARAM_2_LONG_PAIR + " "
 		       + DATA_SOURCE_2_LONG_PAIR + " "
 			   + VALID_CONTEXT_ROOT_LONG_PAIR + " "
 			   + VALID_HEADER_2_LONG_PAIR + " "
 		       + DATA_SOURCE_3_LONG_PAIR + " "
 		       + VALID_HOST_LOCATION_LONG_PAIR + " "
+			   + VALID_QUERY_PARAM_1_LONG_PAIR + " "
 			   + VALID_PLUGIN_LONG_PAIR + " "
 			   + VALID_OUTPUT_LOCATION_LONG_PAIR + " "
 			   + VALID_HEADER_1_LONG_PAIR + " "
@@ -116,10 +132,12 @@ class CommandLineAppParametersTest {
 			   + DATA_SOURCE_1_LONG_PAIR + " "
 			   + VALID_CONTEXT_ROOT_SHORT_PAIR + " "
 			   + DATA_SOURCE_2_SHORT_PAIR + " "
+			   + VALID_QUERY_PARAM_2_SHORT_PAIR + " "
 			   + VALID_PLUGIN_LONG_PAIR + " "
 			   + DATA_SOURCE_3_SHORT_PAIR + " "
 			   + VALID_HOST_LOCATION_LONG_PAIR + " "
-			   + VALID_HEADER_2_SHORT_PAIR
+			   + VALID_HEADER_2_SHORT_PAIR + " "
+			   + VALID_QUERY_PARAM_1_LONG_PAIR
 			   ;
 	
 	private static final String NO_OPTIONAL_ARGS_STRING = 
@@ -143,7 +161,8 @@ class CommandLineAppParametersTest {
 				()->assertTrue(underTest.authParameters().isPresent()),
 				()->assertEquals(3, underTest.dataSourceInfos().size()),
 				()->assertTrue(underTest.headers().isPresent()),
-				()->assertTrue(underTest.contextRoot().isPresent())
+				()->assertTrue(underTest.contextRoot().isPresent()),
+				()->assertTrue(underTest.queryParams().isPresent())
 				);
 		Path outputPath = underTest.output().get();
 		AuthParameters.BasicAuthParameters authParams = ((AuthParameters.BasicAuthParameters)underTest.authParameters().get());
@@ -154,6 +173,8 @@ class CommandLineAppParametersTest {
 				()->assertEquals(HOST_MACHINE_NAME , underTest.hostParameters().hostName()),
 				()->assertEquals(Integer.valueOf(HOST_PORT), underTest.hostParameters().hostPort()),
 				()->assertEquals(CONTEXT_ROOT_PARAM, underTest.contextRoot().get()),
+				()->assertEquals(QUERY_1_VALUE, underTest.queryParams().get().get(QUERY_1_KEY)),
+				()->assertEquals(QUERY_2_VALUE, underTest.queryParams().get().get(QUERY_2_KEY)),
 				()->assertEquals(Paths.get(OUTPUT_LOCATION_PARAM).toString(), outputPath.toString()),
 				()->assertEquals(USER_CREDENTIALS_USERNAME, authParams.username()),
 				()->assertEquals(USER_CREDENTIALS_PASSWORD, authParams.password()),
@@ -200,6 +221,7 @@ class CommandLineAppParametersTest {
 		assertAll(
 				()->assertTrue(result.contains(HOST_LOCATION_SHORT_OPTION), "Expected '" + result + "' to contain '" + HOST_LOCATION_SHORT_OPTION + "'."),
 				()->assertTrue(result.contains(CONTEXT_ROOT_SHORT_OPTION), "Expected '" + result + "' to contain '" + CONTEXT_ROOT_SHORT_OPTION + "'."),
+				()->assertTrue(result.contains(QUERY_PARAM_SHORT_OPTION), "Expected '" + result + "' to contain '" + QUERY_PARAM_SHORT_OPTION + "'."),
 				()->assertTrue(result.contains(USER_CREDENTIALS_SHORT_OPTION), "Expected '" + result + "' to contain '" + USER_CREDENTIALS_SHORT_OPTION + "'."),
 				()->assertTrue(result.contains(HEADER_SHORT_OPTION), "Expected '" + result + "' to contain '" + HEADER_SHORT_OPTION + "'."),
 				()->assertTrue(result.contains(DATA_SOURCE_SHORT_OPTION), "Expected '" + result + "' to contain '" + DATA_SOURCE_SHORT_OPTION + "'."),

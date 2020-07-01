@@ -42,11 +42,13 @@ public class FormsFeederClient implements FeedConsumer {
 	private final Supplier<String> correlationIdFn;
 	private final String pluginName;
 	private final Map<String,Supplier<String>> headerMap;
+	private final Map<String,Supplier<Object>> queryParams;
 	String returnedCorrelationId = null;
 	
-	private FormsFeederClient(WebTarget target, Supplier<String> correlationIdFn, String pluginName,
+	private FormsFeederClient(WebTarget target, Map<String,Supplier<Object>> queryParams, Supplier<String> correlationIdFn, String pluginName,
 							  Map<String, Supplier<String>> headerMap) {
 		this.target = target;
+		this.queryParams = queryParams;
 		this.correlationIdFn = correlationIdFn;
 		this.pluginName = pluginName;
 		this.headerMap = headerMap;
@@ -66,9 +68,14 @@ public class FormsFeederClient implements FeedConsumer {
 								 );
 				}
 			}
-			javax.ws.rs.client.Invocation.Builder invocBuilder = target.path(pluginName )
-																	   .request()
-																	   .header(CorrelationId.CORRELATION_ID_HDR, correlationIdSent);
+
+			WebTarget webTarget = target.path(pluginName);
+			if(queryParams !=null && !queryParams.isEmpty()) {
+				for(Map.Entry<String,Supplier<Object>> entry : queryParams.entrySet()) {
+					webTarget = webTarget.queryParam(entry.getKey(), entry.getValue().get());
+				}
+			}
+			javax.ws.rs.client.Invocation.Builder invocBuilder = webTarget.request().header(CorrelationId.CORRELATION_ID_HDR, correlationIdSent);
 			if(headerMap!=null && !headerMap.isEmpty()) {
 				headerMap.keySet().stream().forEach(header -> invocBuilder.header(header, headerMap.get(header).get()));
 			}
@@ -172,6 +179,17 @@ public class FormsFeederClient implements FeedConsumer {
 		}
 
 		@Override
+		public Map<String, Supplier<Object>> getQueryParams() {
+			return builder.getQueryParams();
+		}
+
+		@Override
+		public Builder addQueryParam(String name, Supplier<Object> value) {
+			builder.addQueryParam(name,value);
+			return this;
+		}
+
+		@Override
 		public Builder basicAuthentication(String username, String password) {
 			builder.basicAuthentication(username, password);
 			return this;
@@ -211,6 +229,7 @@ public class FormsFeederClient implements FeedConsumer {
 		
 		public FormsFeederClient build() {
 			return new FormsFeederClient(builder.createLocalTarget(),
+										 builder.getQueryParams(),
 										 builder.getCorrelationIdFn(), 
 										 Objects.requireNonNull(this.pluginName, "Plug-in name must be supplied using plugin() method before build() is called."),
 										 builder.getHeaderMap()
