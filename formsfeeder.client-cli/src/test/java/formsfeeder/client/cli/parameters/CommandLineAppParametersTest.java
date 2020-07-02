@@ -18,7 +18,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 class CommandLineAppParametersTest {
 	private static final String HOST_LOCATION_SHORT_OPTION = "-h";
 	private static final String HOST_LOCATION_LONG_OPTION = "--host";
-	private static final String CONTEXT_ROOT_SHORT_OPTION = "-c";
+	private static final String CONTEXT_ROOT_SHORT_OPTION = "-cr";
 	private static final String CONTEXT_ROOT_LONG_OPTION = "-contextroot";
 	private static final String USER_CREDENTIALS_SHORT_OPTION = "-u";
 	private static final String USER_CREDENTIALS_LONG_OPTION = "--user";
