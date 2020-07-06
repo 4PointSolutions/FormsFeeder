@@ -148,7 +148,7 @@ class CommandLineClientTest {
 				"-u", getFFServerCredentials(),
 				"-d", expectedParamName + "=" + expectedParamValue,
 				"-p", "Debug",
-				"-c", expectedContextRoot};
+				"-cr", expectedContextRoot};
 
 		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
 		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
