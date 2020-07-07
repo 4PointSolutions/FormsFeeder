@@ -1,5 +1,6 @@
 package formsfeeder.client.support;
 
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.ws.rs.client.Client;
@@ -28,9 +29,11 @@ public interface Builder {
 
 	public Builder basicAuthentication(String username, String password);
 
-	public Map<String, Supplier<Object>> getQueryParams();
+	public Map<String, List<Supplier<String>>> getQueryParams();
 
-	public Builder addQueryParam(String name, Supplier<Object> value);
+	public Builder addQueryParam(String name, List<Supplier<String>> values);
+
+	public Builder addQueryParam(String name, Supplier<String> values);
 
 	public Builder correlationId(Supplier<String> correlationIdFn);
 

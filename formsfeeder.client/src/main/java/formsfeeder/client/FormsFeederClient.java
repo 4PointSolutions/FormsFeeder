@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -42,10 +43,10 @@ public class FormsFeederClient implements FeedConsumer {
 	private final Supplier<String> correlationIdFn;
 	private final String pluginName;
 	private final Map<String,Supplier<String>> headerMap;
-	private final Map<String,Supplier<Object>> queryParams;
+	private final Map<String,List<Supplier<String>>> queryParams;
 	String returnedCorrelationId = null;
 	
-	private FormsFeederClient(WebTarget target, Map<String,Supplier<Object>> queryParams, Supplier<String> correlationIdFn, String pluginName,
+	private FormsFeederClient(WebTarget target, Map<String,List<Supplier<String>>> queryParams, Supplier<String> correlationIdFn, String pluginName,
 							  Map<String, Supplier<String>> headerMap) {
 		this.target = target;
 		this.queryParams = queryParams;
@@ -71,8 +72,10 @@ public class FormsFeederClient implements FeedConsumer {
 
 			WebTarget webTarget = target.path(pluginName);
 			if(queryParams !=null && !queryParams.isEmpty()) {
-				for(Map.Entry<String,Supplier<Object>> entry : queryParams.entrySet()) {
-					webTarget = webTarget.queryParam(entry.getKey(), entry.getValue().get());
+				for(Map.Entry<String,List<Supplier<String>>> entry : queryParams.entrySet()) {
+					for(Supplier<String> valueSupplier : entry.getValue()) {
+						webTarget = webTarget.queryParam(entry.getKey(), valueSupplier.get());
+					}
 				}
 			}
 			javax.ws.rs.client.Invocation.Builder invocBuilder = webTarget.request().header(CorrelationId.CORRELATION_ID_HDR, correlationIdSent);
@@ -179,12 +182,18 @@ public class FormsFeederClient implements FeedConsumer {
 		}
 
 		@Override
-		public Map<String, Supplier<Object>> getQueryParams() {
+		public Map<String, List<Supplier<String>>> getQueryParams() {
 			return builder.getQueryParams();
 		}
 
 		@Override
-		public Builder addQueryParam(String name, Supplier<Object> value) {
+		public Builder addQueryParam(String name, List<Supplier<String>> value) {
+			builder.addQueryParam(name,value);
+			return this;
+		}
+
+		@Override
+		public Builder addQueryParam(String name, Supplier<String> value) {
 			builder.addQueryParam(name,value);
 			return this;
 		}

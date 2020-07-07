@@ -1,7 +1,12 @@
 package formsfeeder.client.support;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Supplier;
 
 import javax.ws.rs.client.Client;
@@ -30,7 +35,7 @@ public class BuilderImpl implements Builder {
 	private boolean useSsl = false;
 	private String contextRoot = "/api/v1/";
 	private Supplier<Client> clientFactory = defaultClientFactory;
-	private Map<String, Supplier<Object>> queryParams = new HashMap<>();
+	private Map<String, List<Supplier<String>>> queryParams = new HashMap<>();
 	private Supplier<String> correlationIdFn = null;
 
 	public BuilderImpl() {
@@ -74,13 +79,25 @@ public class BuilderImpl implements Builder {
 	}
 
 	@Override
-	public BuilderImpl addQueryParam(String name, Supplier<Object> value) {
+	public BuilderImpl addQueryParam(String name, List<Supplier<String>> value) {
 		this.queryParams.put(name,value);
 		return this;
 	}
 
 	@Override
-	public Map getQueryParams() { return this.queryParams; }
+	public BuilderImpl addQueryParam(String name, Supplier<String> value) {
+		if(this.queryParams.containsKey(name)) {
+			this.queryParams.get(name).add(value);
+		} else {
+			List<Supplier<String>> list = new ArrayList<>();
+			list.add(value);
+			this.queryParams.put(name, list);
+		}
+		return this;
+	}
+
+	@Override
+	public Map<String, List<Supplier<String>>> getQueryParams() { return this.queryParams; }
 
 	@Override
 	public BuilderImpl correlationId(Supplier<String> correlationIdFn) {
@@ -100,7 +117,7 @@ public class BuilderImpl implements Builder {
 	}
 
 	@Override
-	public Map getHeaderMap() {
+	public Map<String, Supplier<String>> getHeaderMap() {
 		return this.headerMap;
 	}
 

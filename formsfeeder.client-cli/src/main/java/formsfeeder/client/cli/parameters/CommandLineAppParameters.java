@@ -6,11 +6,16 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.cli.CommandLine;
@@ -43,7 +48,7 @@ public class CommandLineAppParameters implements AppParameters {
 
 	private final HostParameters hostParameters;
 	private final String contextRoot;
-	private final Map<String, String> queryParams;
+	private final Map<String, List<String>> queryParams;
 	private final AuthParameters authParameters;
 	private final Map<String, String> headers;
 	private final List<DataSourceInfo> dataSourceInfos;
@@ -62,7 +67,7 @@ public class CommandLineAppParameters implements AppParameters {
 	 * @param plugin
 	 * @param verbose
 	 */
-	private CommandLineAppParameters(HostParameters hostLocation, String contextRoot, Map<String, String> queryParams, AuthParameters authParameters, Map<String, String> headers, List<DataSourceInfo> dataSourceInfos, Path outputPath, String plugin, boolean verbose) {
+	private CommandLineAppParameters(HostParameters hostLocation, String contextRoot, Map<String, List<String>> queryParams, AuthParameters authParameters, Map<String, String> headers, List<DataSourceInfo> dataSourceInfos, Path outputPath, String plugin, boolean verbose) {
 		super();
 		this.hostParameters = hostLocation;
 		this.contextRoot = contextRoot;
@@ -84,7 +89,7 @@ public class CommandLineAppParameters implements AppParameters {
 	public  Optional<String> contextRoot() { return Optional.ofNullable(this.contextRoot); }
 
 	@Override
-	public Optional<Map<String, String>> queryParams() { return Optional.ofNullable(this.queryParams); }
+	public Map<String, List<String>> queryParams() { return this.queryParams != null ? this.queryParams : Collections.emptyMap(); }
 
 	@Override
 	public Optional<AuthParameters> authParameters() { return Optional.ofNullable(this.authParameters); }
@@ -117,7 +122,7 @@ public class CommandLineAppParameters implements AppParameters {
 		CommandLine cmd = generateCommandLine(options, args);
 		String hostLocation = cmd.getOptionValue(HOST_LOCATION_SHORT_OPTION);
 		String contextRoot = cmd.getOptionValue(CONTEXT_ROOT_SHORT_OPTION);
-		Map<String, String> queryParams = asMapParameters(cmd.getOptionValues(QUERY_PARAM_SHORT_OPTION));
+		Map<String, List<String>> queryParams = asMultiValueMapParameters(cmd.getOptionValues(QUERY_PARAM_SHORT_OPTION));
 		AuthParameters authParameters = asAuthParameters(cmd.getOptionValue(USER_CREDENTIALS_SHORT_OPTION));
 		Map<String, String> headers = asMapParameters(cmd.getOptionValues(HEADER_SHORT_OPTION));
 		List<DataSourceInfo> dataSourceInfos = asDataSourceInfoList(cmd.getOptionValues(DATA_SOURCE_SHORT_OPTION));
@@ -146,6 +151,27 @@ public class CommandLineAppParameters implements AppParameters {
 					 .collect(Collectors.toMap(e->e.getKey(), e->e.getValue() ));
 	}
 
+	private static final Map<String,List<String>> asMultiValueMapParameters(String[] mapParams) {
+		if(mapParams == null || mapParams.length == 0) {
+			return null;
+		}
+
+		Map<String,List<String>> params = new HashMap<>();
+		Arrays.stream(mapParams)
+				.map(CommandLineAppParameters::asEntry).forEach(entry -> {
+					if (params.containsKey(entry.getKey())) {
+						params.get(entry.getKey()).add(entry.getValue());
+					} else {
+						List<String> list = new ArrayList<>();
+						list.add(entry.getValue());
+						params.put(entry.getKey(), list);
+					}
+				}
+		);
+
+		return params;
+	}
+
 	private static final List<DataSourceInfo> asDataSourceInfoList(String[] dsParams) {
 		if (dsParams == null || dsParams.length == 0)
 			return null;
@@ -163,7 +189,16 @@ public class CommandLineAppParameters implements AppParameters {
 			return new AbstractMap.SimpleEntry<>(dsParam.substring(0, index).trim(), dsParam.substring(index+1).trim());
 		}
 	}
-	
+
+	private static AbstractMap.SimpleEntry<String, List<String>> asSupplierEntry(String dsParam) {
+		int index = dsParam.indexOf("=");
+		if (index < 0) {
+			return new AbstractMap.SimpleEntry<>(dsParam.trim(), Arrays.asList(""));	// Ideally this would be a strip() instead of trim() under JDK 11
+		} else {
+			return new AbstractMap.SimpleEntry<>(dsParam.substring(0, index).trim(), Arrays.asList(dsParam.substring(index + 1).trim().split(" ")));
+		}
+	}
+
 	private static final Path asPath(String path) {
 		if (path == null)
 			return null;
@@ -192,7 +227,7 @@ public class CommandLineAppParameters implements AppParameters {
 				.required(false)
 				.hasArg(true)
 				.longOpt(QUERY_PARAM_LONG_OPTION)
-				.desc("queryParams (paramName=paramValue")
+				.desc("queryParams (paramName=paramValue1")
 				.build();
 	   final Option authParam = Option.builder(USER_CREDENTIALS_SHORT_OPTION)  
 			      .required(false)
