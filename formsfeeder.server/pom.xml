@@ -24,6 +24,10 @@
 		<wiremock.version>2.26.3</wiremock.version>
 		<pf4j-spring.version>0.6.0</pf4j-spring.version>
 		<pf4j.version>3.3.1</pf4j.version>
+		<jasypt-spring-boot.version>3.0.3</jasypt-spring-boot.version>
+		<formsfeeder.version>0.0.1-SNAPSHOT</formsfeeder.version>
+		<pdfbox.version>2.0.20</pdfbox.version>
+		<jcabi-xml.version>0.22.1</jcabi-xml.version>
 	</properties>
 
 	<dependencies>
@@ -71,14 +75,19 @@
 			</exclusions>
 		</dependency>
 		<dependency>
+			<groupId>com.github.ulisesbocchio</groupId>
+			<artifactId>jasypt-spring-boot-starter</artifactId>
+			<version>${jasypt-spring-boot.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>com._4point.aem</groupId>
 			<artifactId>formsfeeder.core</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${formsfeeder.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com._4point.aem</groupId>
 			<artifactId>formsfeeder.pf4j-spring</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${formsfeeder.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.pf4j</groupId>
@@ -93,13 +102,13 @@
 		<dependency>	<!-- PDF Library for examining PDFs we generate -->
 			<groupId>org.apache.pdfbox</groupId>
 			<artifactId>pdfbox</artifactId>
-			<version>2.0.19</version>
+			<version>${pdfbox.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>	<!-- XML LIbrary for testing -->
 			<groupId>com.jcabi</groupId>
 			<artifactId>jcabi-xml</artifactId>
-			<version>0.22.1</version>
+			<version>${jcabi-xml.version}</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
