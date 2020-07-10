@@ -91,7 +91,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and 
 	 * formsfeeder.plugins.aemHost settings. 
 	 */
-	private static final boolean USE_WIREMOCK = false;
+	private static final boolean USE_WIREMOCK = true;
 	/*
 	 * Set WIREMOCK_RECORDING to true in order to record the interaction with a real FormsFeeder instance running on
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and
@@ -1059,7 +1059,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 
 	}
 
-	@Test
+	@Disabled
 	void testInvokeExampleHtml5Plugin() throws Exception {
 //		String uri = "http://localhost:8080";
 		System.out.println("uri='" + uri.toString() + "' path='" + HTML5_PLUGIN_PATH + "'." );
