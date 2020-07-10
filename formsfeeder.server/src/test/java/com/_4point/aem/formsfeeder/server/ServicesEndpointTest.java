@@ -73,6 +73,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
 	private static final String MOCK_PLUGIN_PATH = API_V1_PATH + "/Mock";
 	private static final String EXAMPLE_PLUGIN_PATH = API_V1_PATH + "/Example";
+	private static final String HTML5_PLUGIN_PATH = API_V1_PATH + "/Html5";
 
 	private static final String BODY_DS_NAME = "formsfeeder:BodyBytes";
 	private static final String MOCK_PLUGIN_SCENARIO_NAME = "scenario";
@@ -90,14 +91,14 @@ class ServicesEndpointTest implements EnvironmentAware {
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and 
 	 * formsfeeder.plugins.aemHost settings. 
 	 */
-	private static final boolean USE_WIREMOCK = true;
+	private static final boolean USE_WIREMOCK = false;
 	/*
 	 * Set WIREMOCK_RECORDING to true in order to record the interaction with a real FormsFeeder instance running on
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and
 	 * formsfeeder.plugins.aemHost settings.  This is useful for recreating the Wiremock Mapping files. 
 	 */
 	private static final boolean WIREMOCK_RECORDING = false;
-	private static final boolean SAVE_RESULTS = false;
+	private static final boolean SAVE_RESULTS = true;
 	static {
 		if (SAVE_RESULTS) {
 			try {
@@ -1058,7 +1059,28 @@ class ServicesEndpointTest implements EnvironmentAware {
 
 	}
 
+	@Test
+	void testInvokeExampleHtml5Plugin() throws Exception {
+//		String uri = "http://localhost:8080";
+		System.out.println("uri='" + uri.toString() + "' path='" + HTML5_PLUGIN_PATH + "'." );
+		Response response = ClientBuilder.newClient()
+				 .target(uri)
+				 .path(HTML5_PLUGIN_PATH)
+				 .queryParam("template", "crx:/content/dam/formsanddocuments/sample-forms/SampleForm.xdp")
+				 .request()
+				 .get();
 
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + HTML5_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.TEXT_HTML_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/html'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		assertTrue(response.hasEntity(), "Expected response to have entity");
+		byte[] resultBytes = ((InputStream)response.getEntity()).readAllBytes();
+		if (SAVE_RESULTS /* && USE_AEM */) {
+			try (var os = Files.newOutputStream(ACTUAL_RESULTS_DIR.resolve("testInvokeExampleHtml5Plugin_result.html"))) {
+				os.write(resultBytes);;
+			}
+		}
+	}
 	
 	private static URI getBaseUri(int port) throws URISyntaxException {
 		return new URI("http://localhost:" + port);
