@@ -190,15 +190,6 @@ public class CommandLineAppParameters implements AppParameters {
 		}
 	}
 
-	private static AbstractMap.SimpleEntry<String, List<String>> asSupplierEntry(String dsParam) {
-		int index = dsParam.indexOf("=");
-		if (index < 0) {
-			return new AbstractMap.SimpleEntry<>(dsParam.trim(), Arrays.asList(""));	// Ideally this would be a strip() instead of trim() under JDK 11
-		} else {
-			return new AbstractMap.SimpleEntry<>(dsParam.substring(0, index).trim(), Arrays.asList(dsParam.substring(index + 1).trim().split(" ")));
-		}
-	}
-
 	private static final Path asPath(String path) {
 		if (path == null)
 			return null;
