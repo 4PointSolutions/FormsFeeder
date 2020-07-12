@@ -24,13 +24,15 @@
 	 -->
 	<properties>
 		<spring-boot.version>2.2.6.RELEASE</spring-boot.version>
+		<formsfeeder.version>0.0.1-SNAPSHOT</formsfeeder.version>
+		<maven.surefire.plugin.version>3.0.0-M4</maven.surefire.plugin.version>
+		<maven.jar.plugin.version>3.2.0</maven.jar.plugin.version>
 	</properties>
 
 	<modules>
 		<module>example</module>
 		<module>debug</module>
 		<module>mock</module>
-		<module>example_html5</module>
 	</modules>
 
 	<dependencies>
@@ -44,14 +46,14 @@
 		<dependency>
 			<groupId>com._4point.aem</groupId>
 			<artifactId>formsfeeder.core</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${formsfeeder.version}</version>
 			<!-- !!! VERY IMPORTANT -->
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>com._4point.aem</groupId>
 			<artifactId>formsfeeder.pf4j-spring</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${formsfeeder.version}</version>
 			<!-- !!! VERY IMPORTANT -->
 			<scope>provided</scope>
 		</dependency>
@@ -82,7 +84,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>3.2.0</version>
+				<version>${maven.jar.plugin.version}</version>
 				<configuration>
 					<archive>
 						<manifest>
@@ -114,12 +116,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>3.0.0-M4</version>
+				<version>${maven.surefire.plugin.version}</version>
 				<dependencies>
 					<dependency>
 						<groupId>org.junit.jupiter</groupId>
 						<artifactId>junit-jupiter-engine</artifactId>
-						<version>5.6.2</version>
+						<version>${jupiter.version}</version>
 					</dependency>
 				</dependencies>
 			</plugin>
