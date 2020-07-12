@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import formsfeeder.client.cli.parameters.AuthParameters.BasicAuthParameters;
 import org.apache.commons.cli.ParseException;
@@ -34,12 +35,11 @@ public class CommandLineClient {
 	public static void mainline(String[] args, InputStream in, PrintStream out, PrintStream err, FileSystem destFileSystem) {
 		try {
 			AppParameters cliParameters = CommandLineAppParameters.parseArgs(args);
-			
+
 			if (!cliParameters.verbose()) {	// If not verbose, then disable the INFO messages from FormsFeederClient object.
 				Logger clientLogger = Logger.getLogger("formsfeeder.client.FormsFeederClient");	// Turn off the INFO logging in FormsFeederClient id .
 				clientLogger.setLevel(Level.WARNING);
 			}
-			
 			
 			HostParameters hostParams = cliParameters.hostParameters();
 			FormsFeederClient.Builder ffClientBuilder = FormsFeederClient.builder()
@@ -58,11 +58,13 @@ public class CommandLineClient {
 
 			cliParameters.contextRoot().ifPresent((contextRoot)->ffClientBuilder.contextRoot(contextRoot));
 
+			cliParameters.queryParams().entrySet().forEach(
+						queryParam -> queryParam.getValue().forEach(value -> ffClientBuilder.addQueryParam(queryParam.getKey(),()->value)));
+
 			cliParameters.headers().ifPresent(
 					(headers)->headers.entrySet().forEach(
-							header -> ffClientBuilder.addHeader(header.getKey(), ()->header.getValue())
-					)
-			);
+						header -> ffClientBuilder.addHeader(header.getKey(), ()->header.getValue())
+					));
 
 			FormsFeederClient ffClient = ffClientBuilder.build();
 

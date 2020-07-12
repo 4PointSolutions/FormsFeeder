@@ -1,8 +1,10 @@
 package formsfeeder.client.cli;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -104,6 +106,62 @@ class CommandLineClientTest {
 	        	}
 	        }
 	        wireMockServer.stop();
+		}
+	}
+
+	@Test
+	void testMain_QueryParamMultiValue() throws Exception {
+		String qpName1 = "qpName1";
+		String qpValue1 = "qpValue1";
+		String qpName2 = "qpName2";
+		String qpValue2 = "qpValue2";
+
+		String[] args = { "-h", getFFServerLocation(),
+				"-u", getFFServerCredentials(),
+				"-p", "Debug",
+				"-qp", qpName1+"="+qpValue1,
+				"-qp", qpName1+"="+qpValue2,
+				"-qp", qpName2+"="+qpValue2};
+
+		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
+
+		assertAll(
+				()->assertEquals(0, getFileCount(fs), "Expected no files to be created.")
+		);
+
+		if(USE_WIREMOCK) {
+			wireMockServer.verify(getRequestedFor(urlPathEqualTo("/api/v1/Debug"))
+					.withQueryParam(qpName1, matching(qpValue1))
+					.withQueryParam(qpName1, matching(qpValue2) )
+					.withQueryParam(qpName2,matching(qpValue2)));
+		}
+	}
+
+	@Test
+	void testMain_QueryParams() throws Exception {
+		String qpName1 = "qpName1";
+		String qpValue1 = "qpValue1";
+		String qpName2 = "qpName2";
+		String qpValue2 = "qpValue2";
+
+		String[] args = { "-h", getFFServerLocation(),
+				"-u", getFFServerCredentials(),
+				"-p", "Debug",
+				"-qp", qpName1+"="+qpValue1,
+				"-qp", qpName2+"="+qpValue2};
+
+		FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+		CommandLineClient.mainline(args, stdin, new PrintStream(stdout), new PrintStream(stderr), fs);
+
+		assertAll(
+				()->assertEquals(0, getFileCount(fs), "Expected no files to be created.")
+		);
+
+		if(USE_WIREMOCK) {
+			wireMockServer.verify(getRequestedFor(urlPathEqualTo("/api/v1/Debug"))
+					.withQueryParam(qpName1, matching(qpValue1))
+					.withQueryParam(qpName2,matching(qpValue2)));
 		}
 	}
 

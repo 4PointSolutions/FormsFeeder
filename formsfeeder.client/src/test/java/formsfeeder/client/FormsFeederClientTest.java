@@ -4,6 +4,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,6 +22,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -199,6 +201,56 @@ class FormsFeederClientTest {
 			wireMockServer.verify(getRequestedFor(urlMatching("/api/v1/Debug"))
 					.withHeader(headerName1, matching(headerValue1))
 					.withHeader(headerName2, matching(headerValue2))
+					.withHeader(CorrelationId.CORRELATION_ID_HDR, matching(correlationId)));
+		}
+	}
+
+	@Test
+	void testAccept_MultiValueQueryParams() throws Exception {
+		if (USE_WIREMOCK) {    // Perform this test when doing unit testing (using wiremock), but skip this test when doing integration testing
+			String correlationId = "correlationId";
+			String qpName1 = "qpName1";
+			String qpValue1 = "qpValue1";
+			String qpValue2 = "qpValue2";
+
+			FormsFeederClient underTest = FormsFeederClient.builder()
+					.machineName(formsfeederServerName)
+					.port(formsfeederServerPort)
+					.plugin("Debug")
+					.correlationId(() -> correlationId)
+					.addQueryParam(qpName1, Arrays.asList(() -> qpValue1,()->qpValue2))
+					.build();
+			DataSourceList result = underTest.accept(DataSourceList.emptyList());
+
+			wireMockServer.verify(getRequestedFor(urlPathEqualTo("/api/v1/Debug"))
+					.withQueryParam(qpName1,matching(qpValue1) )
+					.withQueryParam(qpName1,matching(qpValue2) )
+					.withHeader(CorrelationId.CORRELATION_ID_HDR, matching(correlationId)));
+		}
+	}
+
+	@Test
+	void testAccept_QueryParams() throws Exception {
+		if (USE_WIREMOCK) {    // Perform this test when doing unit testing (using wiremock), but skip this test when doing integration testing
+			String correlationId = "correlationId";
+			String qpName1 = "qpName1";
+			String qpValue1 = "qpValue1";
+			String qpName2 = "qpName2";
+			String qpValue2 = "qpValue2";
+
+			FormsFeederClient underTest = FormsFeederClient.builder()
+					.machineName(formsfeederServerName)
+					.port(formsfeederServerPort)
+					.plugin("Debug")
+					.correlationId(() -> correlationId)
+					.addQueryParam(qpName1, Arrays.asList(() -> qpValue1))
+					.addQueryParam(qpName2, Arrays.asList(() -> qpValue2))
+					.build();
+			DataSourceList result = underTest.accept(DataSourceList.emptyList());
+
+			wireMockServer.verify(getRequestedFor(urlPathEqualTo("/api/v1/Debug"))
+					.withQueryParam(qpName1,matching(qpValue1) )
+					.withQueryParam(qpName2,matching(qpValue2) )
 					.withHeader(CorrelationId.CORRELATION_ID_HDR, matching(correlationId)));
 		}
 	}

@@ -1,12 +1,12 @@
 package formsfeeder.client.support;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Supplier;
-
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -30,6 +30,7 @@ public class BuilderImpl implements Builder {
 	private boolean useSsl = false;
 	private String contextRoot = "/api/v1/";
 	private Supplier<Client> clientFactory = defaultClientFactory;
+	private Map<String, List<Supplier<String>>> queryParams = new HashMap<>();
 	private Supplier<String> correlationIdFn = null;
 
 	public BuilderImpl() {
@@ -73,6 +74,15 @@ public class BuilderImpl implements Builder {
 	}
 
 	@Override
+	public BuilderImpl addQueryParam(String name, List<Supplier<String>> value) {
+		this.queryParams.put(name,value);
+		return this;
+	}
+
+	@Override
+	public Map<String, List<Supplier<String>>> getQueryParams() { return this.queryParams; }
+
+	@Override
 	public BuilderImpl correlationId(Supplier<String> correlationIdFn) {
 		this.correlationIdFn = correlationIdFn;
 		return this;
@@ -90,7 +100,7 @@ public class BuilderImpl implements Builder {
 	}
 
 	@Override
-	public Map getHeaderMap() {
+	public Map<String, Supplier<String>> getHeaderMap() {
 		return this.headerMap;
 	}
 

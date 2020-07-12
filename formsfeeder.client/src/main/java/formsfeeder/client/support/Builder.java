@@ -1,5 +1,7 @@
 package formsfeeder.client.support;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import javax.ws.rs.client.Client;
@@ -28,6 +30,20 @@ public interface Builder {
 
 	public Builder basicAuthentication(String username, String password);
 
+	public Map<String, List<Supplier<String>>> getQueryParams();
+
+	public Builder addQueryParam(String name, List<Supplier<String>> values);
+
+	public default Builder addQueryParam(String name, Supplier<String> value) {
+		this.addQueryParam(name, Collections.singletonList(value));	// List.of() would be better, but we're in Java 8 land here
+		return this;
+	}
+
+	public default Builder addQueryParam(String name, String value) {
+		this.addQueryParam(name, ()->value);
+		return this;
+	}
+
 	public Builder correlationId(Supplier<String> correlationIdFn);
 
 	public Builder addHeader(String header, Supplier<String> value);
@@ -37,5 +53,6 @@ public interface Builder {
 	public Supplier<String> getCorrelationIdFn();
 
 	public WebTarget createLocalTarget();
+
 
 }
