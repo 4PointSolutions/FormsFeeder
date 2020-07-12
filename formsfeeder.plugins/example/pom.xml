@@ -19,6 +19,7 @@
 		because these plugins are not referenced as dependencies, so they do not 
 		need to be installed in the local maven repository. -->
 	<properties>
+		<wiremock.version>2.26.3</wiremock.version>
 		<!-- PF4J Plugin properties for this plugin -->
 		<plugin.id>com._4point.aem.formsfeeder.plugins.example</plugin.id>
 		<plugin.class>com._4point.aem.formsfeeder.plugins.example.ExamplePlugin</plugin.class>
@@ -99,6 +100,22 @@
 			<artifactId>junit-addons</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.hamcrest</groupId>
+			<artifactId>hamcrest-library</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jsoup</groupId>
+			<artifactId>jsoup</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+            <groupId>com.github.tomakehurst</groupId>
+            <artifactId>wiremock-jre8</artifactId>
+            <version>${wiremock.version}</version>
+            <scope>test</scope>
+        </dependency>
 
 		<!-- AEM Dependencies -->
 		<dependency>
