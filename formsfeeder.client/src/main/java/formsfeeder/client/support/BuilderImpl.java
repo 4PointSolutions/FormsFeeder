@@ -4,6 +4,7 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -30,7 +31,7 @@ public class BuilderImpl implements Builder {
 	private boolean useSsl = false;
 	private String contextRoot = "/api/v1/";
 	private Supplier<Client> clientFactory = defaultClientFactory;
-	private Map<String, List<Supplier<String>>> queryParams = new HashMap<>();
+	private Map<String, List<Supplier<String>>> queryParams = new LinkedHashMap<>();	// Linked Hashmap in order to maintain the order.
 	private Supplier<String> correlationIdFn = null;
 
 	public BuilderImpl() {

@@ -2,7 +2,7 @@
   "id" : "3c0fd3bd-d400-4819-9036-cc7cecf5a6a1",
   "name" : "api_v1_debug",
   "request" : {
-    "url" : "/api/v1/Debug?qpName1=qpValue1&qpName2=qpValue2",
+    "url" : "/api/v1/Debug?qpName1=qpValue1&qpName2=qpValue2&qpName3=qpValue3",
     "method" : "GET",
     "queryParameters" : {
       "qpName1" : {
@@ -10,6 +10,9 @@
       },
       "qpName2" : {
         "equalTo" : "qpValue2"
+      },
+      "qpName3" : {
+        "equalTo" : "qpValue3"
       }
     }
   },
