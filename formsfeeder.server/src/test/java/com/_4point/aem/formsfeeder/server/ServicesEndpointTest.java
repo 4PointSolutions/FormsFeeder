@@ -1029,7 +1029,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 	
 	@ParameterizedTest
 	@EnumSource()
-	void testInvokeExamplePlugin(PdfScenario scenario) throws Exception {
+	void testInvokeExamplePdfPlugin(PdfScenario scenario) throws Exception {
 		final String TEMPLATE_PARAM_NAME = "template";
 		final String DATA_PARAM_NAME = "data";
 		final String INTERACTIVE_PARAM_NAME = "interactive";
