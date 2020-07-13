@@ -28,10 +28,8 @@ import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerBadRequestE
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
-import com._4point.aem.formsfeeder.plugins.example.ExamplePlugin.ExampleFeedConsumerExtension;
-import com._4point.aem.formsfeeder.plugins.example.ExamplePlugin.ExampleFeedConsumerExtension.ExamplePluginInputParameters;
 
-class ExamplePluginTest {
+class ExamplePdfPluginTest {
 	private static final Path RESOURCES_FOLDER = Paths.get("src", "test", "resources");
 	private static final Path SAMPLE_FILES_DIR = RESOURCES_FOLDER.resolve("SampleFiles");
 	private static final Path ACTUAL_RESULTS_DIR = RESOURCES_FOLDER.resolve("ActualResults");
@@ -58,7 +56,7 @@ class ExamplePluginTest {
 	}
 	private static final boolean USE_AEM = false;
 	
-	private ExamplePlugin.ExampleFeedConsumerExtension underTest = new ExamplePlugin.ExampleFeedConsumerExtension();
+	private ExamplePdfPlugin underTest = new ExamplePdfPlugin();
 
 	private enum PdfScenario {
 		INTERACTIVE(true), NON_INTERACTIVE(false);
@@ -123,7 +121,7 @@ class ExamplePluginTest {
 
 	@Test
 	void testName() {
-		assertEquals("Example", underTest .name());
+		assertEquals("RenderPdf", underTest .name());
 	}
 
 	@ParameterizedTest
@@ -137,7 +135,7 @@ class ExamplePluginTest {
 													  .add(INTERACTIVE_PARAM_NAME, interactiveFlag)
 													  .build();
 		
-		ExamplePluginInputParameters result = ExampleFeedConsumerExtension.ExamplePluginInputParameters.from(dataSourceList, SimpleDocumentFactoryImpl.getFactory());
+		ExamplePdfPlugin.ExamplePluginInputParameters result = ExamplePdfPlugin.ExamplePluginInputParameters.from(dataSourceList, SimpleDocumentFactoryImpl.getFactory());
 		assertArrayEquals(Files.newInputStream(expectedTemplateData).readAllBytes(), result.getTemplate().getInlineData());
 		assertArrayEquals(Files.newInputStream(expectedDataData).readAllBytes(), result.getData().getInlineData());
 		assertEquals(interactiveFlag, result.isInteractive());
@@ -194,7 +192,7 @@ class ExamplePluginTest {
 	@ParameterizedTest
 	@EnumSource
 	void testExampleParametersMissingParameters(ExampleParametersMissingParametersScenario scenario) {
-		FeedConsumerBadRequestException ex = assertThrows(FeedConsumerBadRequestException.class, ()->ExampleFeedConsumerExtension.ExamplePluginInputParameters.from(scenario.getDataSourceList(), SimpleDocumentFactoryImpl.getFactory()));
+		FeedConsumerBadRequestException ex = assertThrows(FeedConsumerBadRequestException.class, ()->ExamplePdfPlugin.ExamplePluginInputParameters.from(scenario.getDataSourceList(), SimpleDocumentFactoryImpl.getFactory()));
 		String msg = ex.getMessage();
 		assertNotNull(msg);
 		assertAll(
