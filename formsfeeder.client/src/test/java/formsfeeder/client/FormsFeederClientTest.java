@@ -212,6 +212,9 @@ class FormsFeederClientTest {
 			String qpName1 = "qpName1";
 			String qpValue1 = "qpValue1";
 			String qpValue2 = "qpValue2";
+			String qpName2 = "qpName2";
+			String qpValue3 = "qpValue3";
+			String qpValue4 = "qpValue4";
 
 			FormsFeederClient underTest = FormsFeederClient.builder()
 					.machineName(formsfeederServerName)
@@ -219,12 +222,15 @@ class FormsFeederClientTest {
 					.plugin("Debug")
 					.correlationId(() -> correlationId)
 					.addQueryParam(qpName1, Arrays.asList(() -> qpValue1,()->qpValue2))
+					.addQueryParam(qpName2, qpValue3, qpValue4)
 					.build();
 			DataSourceList result = underTest.accept(DataSourceList.emptyList());
 
 			wireMockServer.verify(getRequestedFor(urlPathEqualTo("/api/v1/Debug"))
 					.withQueryParam(qpName1,matching(qpValue1) )
 					.withQueryParam(qpName1,matching(qpValue2) )
+					.withQueryParam(qpName2,matching(qpValue3) )
+					.withQueryParam(qpName2,matching(qpValue4) )
 					.withHeader(CorrelationId.CORRELATION_ID_HDR, matching(correlationId)));
 		}
 	}

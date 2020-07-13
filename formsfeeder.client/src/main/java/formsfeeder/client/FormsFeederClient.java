@@ -199,7 +199,7 @@ public class FormsFeederClient implements FeedConsumer {
 		}
 
 		@Override
-		public Builder addQueryParam(String name, String value) {
+		public Builder addQueryParam(String name, String... value) {
 			builder.addQueryParam(name,value);
 			return this;
 		}

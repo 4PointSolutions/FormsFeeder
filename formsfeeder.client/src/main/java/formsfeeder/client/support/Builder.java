@@ -1,9 +1,12 @@
 package formsfeeder.client.support;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
 
@@ -39,8 +42,10 @@ public interface Builder {
 		return this;
 	}
 
-	public default Builder addQueryParam(String name, String value) {
-		this.addQueryParam(name, ()->value);
+	public default Builder addQueryParam(final String name, final String... value) {
+		this.addQueryParam(name, Arrays.stream(value)
+									   .map(v->(Supplier<String>)(()->v))
+									   .collect(Collectors.toList()));
 		return this;
 	}
 
