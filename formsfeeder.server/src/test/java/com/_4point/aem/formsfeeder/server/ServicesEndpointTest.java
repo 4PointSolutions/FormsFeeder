@@ -65,15 +65,15 @@ import com.jcabi.xml.XMLDocument;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
 class ServicesEndpointTest implements EnvironmentAware {
 
-	private static final String ENV_FORMSFEEDER_PLUGINS_AEM_PORT = "formsfeeder.plugins.aemPort";
-	private static final String ENV_FORMSFEEDER_PLUGINS_AEM_HOST = "formsfeeder.plugins.aemHost";
+	private static final String ENV_FORMSFEEDER_AEM_PORT = "formsfeeder.aemPort";
+	private static final String ENV_FORMSFEEDER_AEM_HOST = "formsfeeder.aemHost";
 	private static final MediaType APPLICATION_PDF = new MediaType("application", "pdf");
 	private static final MediaType APPLICATION_XDP = new MediaType("application", "vnd.adobe.xdp+xml");
 	private static final String API_V1_PATH = "/api/v1";
 	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
 	private static final String MOCK_PLUGIN_PATH = API_V1_PATH + "/Mock";
 	private static final String EXAMPLE_PLUGIN_PATH = API_V1_PATH + "/Example";
-	private static final String HTML5_PLUGIN_PATH = API_V1_PATH + "/Html5";
+	private static final String HTML5_PLUGIN_PATH = API_V1_PATH + "/RenderHtml5";
 
 	private static final String BODY_DS_NAME = "formsfeeder:BodyBytes";
 	private static final String MOCK_PLUGIN_SCENARIO_NAME = "scenario";
@@ -98,7 +98,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 	 * formsfeeder.plugins.aemHost settings.  This is useful for recreating the Wiremock Mapping files. 
 	 */
 	private static final boolean WIREMOCK_RECORDING = false;
-	private static final boolean SAVE_RESULTS = true;
+	private static final boolean SAVE_RESULTS = false;
 	static {
 		if (SAVE_RESULTS) {
 			try {
@@ -127,8 +127,8 @@ class ServicesEndpointTest implements EnvironmentAware {
 	        wireMockServer.start();
 			System.out.println("Inside SetEnvironment wiremock block.");
 			if (WIREMOCK_RECORDING) {
-				String aemBaseUrl = "http://" + environment.getRequiredProperty(ENV_FORMSFEEDER_PLUGINS_AEM_HOST) + ":"
-						+ environment.getRequiredProperty(ENV_FORMSFEEDER_PLUGINS_AEM_PORT);
+				String aemBaseUrl = "http://" + environment.getRequiredProperty(ENV_FORMSFEEDER_AEM_HOST) + ":"
+						+ environment.getRequiredProperty(ENV_FORMSFEEDER_AEM_PORT);
 				System.out.println("Wiremock recording of '" + aemBaseUrl + "'.");
 				wireMockServer.startRecording(aemBaseUrl);
 			}
@@ -139,8 +139,8 @@ class ServicesEndpointTest implements EnvironmentAware {
 				ConfigurableEnvironment env1 = (ConfigurableEnvironment) environment;
 				MutablePropertySources propertySources = env1.getPropertySources();
 				Map<String, Object> myMap = new HashMap<>();
-				myMap.put(ENV_FORMSFEEDER_PLUGINS_AEM_HOST, "localhost");
-				myMap.put(ENV_FORMSFEEDER_PLUGINS_AEM_PORT, wiremockPort);
+				myMap.put(ENV_FORMSFEEDER_AEM_HOST, "localhost");
+				myMap.put(ENV_FORMSFEEDER_AEM_PORT, wiremockPort);
 				propertySources.addFirst(new MapPropertySource("WIREMOCK_MAP", myMap));
 			} else {
 				System.out.println("Unable to write to environment.");
@@ -1059,9 +1059,8 @@ class ServicesEndpointTest implements EnvironmentAware {
 
 	}
 
-	@Disabled
+	@Test
 	void testInvokeExampleHtml5Plugin() throws Exception {
-//		String uri = "http://localhost:8080";
 		System.out.println("uri='" + uri.toString() + "' path='" + HTML5_PLUGIN_PATH + "'." );
 		Response response = ClientBuilder.newClient()
 				 .target(uri)
