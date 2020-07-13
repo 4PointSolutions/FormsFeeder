@@ -1,5 +1,9 @@
 package com._4point.aem.formsfeeder.server;
 
+import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -72,7 +76,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 	private static final String API_V1_PATH = "/api/v1";
 	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
 	private static final String MOCK_PLUGIN_PATH = API_V1_PATH + "/Mock";
-	private static final String EXAMPLE_PLUGIN_PATH = API_V1_PATH + "/Example";
+	private static final String PDF_PLUGIN_PATH = API_V1_PATH + "/RenderPdf";
 	private static final String HTML5_PLUGIN_PATH = API_V1_PATH + "/RenderHtml5";
 
 	private static final String BODY_DS_NAME = "formsfeeder:BodyBytes";
@@ -91,7 +95,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and 
 	 * formsfeeder.plugins.aemHost settings. 
 	 */
-	private static final boolean USE_WIREMOCK = true;
+	private static final boolean USE_WIREMOCK = false;
 	/*
 	 * Set WIREMOCK_RECORDING to true in order to record the interaction with a real FormsFeeder instance running on
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and
@@ -1038,11 +1042,11 @@ class ServicesEndpointTest implements EnvironmentAware {
 		Response response = ClientBuilder.newClient()
 				 .register(MultiPartFeature.class)
 				 .target(uri)
-				 .path(EXAMPLE_PLUGIN_PATH)
+				 .path(PDF_PLUGIN_PATH)
 				 .request()
 				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
 		
-		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + EXAMPLE_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + PDF_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(APPLICATION_PDF.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/pdf'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		assertTrue(response.hasEntity(), "Expected response to have entity");
@@ -1079,6 +1083,14 @@ class ServicesEndpointTest implements EnvironmentAware {
 				os.write(resultBytes);;
 			}
 		}
+		// Verify the result;
+		HtmlFormDocument htmlDoc = HtmlFormDocument.create(resultBytes, new URI("http://" + environment.getProperty(ENV_FORMSFEEDER_AEM_HOST) + ":" + environment.getProperty(ENV_FORMSFEEDER_AEM_PORT, "4502")));
+		assertEquals("LC Forms", htmlDoc.getTitle());
+
+		// Make sure the data wasn't populated.
+		String html = new String(resultBytes, StandardCharsets.UTF_8);
+		// Does not contain field data.
+		assertThat(html, not(anyOf(containsString("Text Field1 Data"), containsString("Text Field2 Data"))));
 	}
 	
 	private static URI getBaseUri(int port) throws URISyntaxException {
