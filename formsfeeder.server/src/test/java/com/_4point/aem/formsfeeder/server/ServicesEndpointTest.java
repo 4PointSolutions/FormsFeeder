@@ -69,8 +69,8 @@ import com.jcabi.xml.XMLDocument;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
 class ServicesEndpointTest implements EnvironmentAware {
 
-	private static final String ENV_FORMSFEEDER_AEM_PORT = "formsfeeder.aemPort";
-	private static final String ENV_FORMSFEEDER_AEM_HOST = "formsfeeder.aemHost";
+	private static final String ENV_FORMSFEEDER_AEM_PORT = "formsfeeder.aem.port";
+	private static final String ENV_FORMSFEEDER_AEM_HOST = "formsfeeder.aem.host";
 	private static final MediaType APPLICATION_PDF = new MediaType("application", "pdf");
 	private static final MediaType APPLICATION_XDP = new MediaType("application", "vnd.adobe.xdp+xml");
 	private static final String API_V1_PATH = "/api/v1";
@@ -1115,7 +1115,6 @@ class ServicesEndpointTest implements EnvironmentAware {
 
 	@Override
 	public void setEnvironment(Environment environment) {
-		System.out.println("Inside SetEnvironment.");
 		this.environment = environment;
 	}
 

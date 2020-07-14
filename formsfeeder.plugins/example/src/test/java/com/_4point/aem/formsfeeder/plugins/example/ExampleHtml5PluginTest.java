@@ -174,6 +174,9 @@ class ExampleHtml5PluginTest {
 			// Does not contain field data.
 			assertThat(html, not(anyOf(containsString("Text Field1 Data"), containsString("Text Field2 Data"))));
 		}
+		String html = new String(resultBytes, StandardCharsets.UTF_8);
+		// Check that the Forms Feeder filters worked
+		assertThat(html, containsString("/aem/etc.clientlibs/fd/xfaforms/clientlibs/profile.css"));
 	}
 
 	@Test
@@ -219,7 +222,9 @@ class ExampleHtml5PluginTest {
 			// Contains field data.
 			assertThat(html, allOf(containsString("Text Field1 Data"), containsString("Text Field2 Data")));
 		}
-
+		// Check that the Forms Feeder filters worked
+		String html = new String(resultBytes, StandardCharsets.UTF_8);
+		assertThat(html, containsString("/aem/etc.clientlibs/fd/xfaforms/clientlibs/profile.css"));
 	}
 
 	@Test

@@ -10,6 +10,7 @@ import org.pf4j.Extension;
 import org.pf4j.ExtensionPoint;
 import org.springframework.core.env.Environment;
 
+import com._4point.aem.docservices.rest_services.client.helpers.StandardFormsFeederUrlFilters;
 import com._4point.aem.docservices.rest_services.client.html5.Html5FormsService;
 import com._4point.aem.docservices.rest_services.client.html5.Html5FormsService.Html5FormsServiceException;
 import com._4point.aem.fluentforms.api.Document;
@@ -46,6 +47,7 @@ public class ExampleHtml5Plugin implements NamedFeedConsumer, EnvironmentConsume
 															  .port(aemHostPort())
 															  .basicAuthentication(aemUsername(), aemPassword())
 															  .useSsl(false)
+															  .addRenderResultFilter(StandardFormsFeederUrlFilters::replaceAemUrls)
 															  .build();
 
 			Document result = params.getData().isEmpty() ? html5Service.renderHtml5Form(params.getTemplate())
