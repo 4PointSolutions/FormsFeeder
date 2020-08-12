@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
@@ -29,7 +30,12 @@ class DataSourceListBuilderTest {
 	private static final String STRING_DS_NAME = "StringDS";
 	private static final String DUMMY_DS_NAME = "DummyDS";
 	private static final String BYTE_ARRAY_W_CT_DS_NAME = "ByteArrayDSWithContentType";
-	
+	private static final String DSL_DS_NAME = "DataSourceListDS";
+
+	private static final String FIRST_DSL_ENTRY_NAME = "FirstName";
+	private static final String SECOND_DSL_ENTRY_NAME = "SecondName";
+	private static final String THIRD_DSL_ENTRY_NAME = "ThirdName";
+
 	// Custom Data Source
 	private static final DataSource dummyDS = new DataSource() {
 
@@ -75,6 +81,21 @@ class DataSourceListBuilderTest {
 	private static final String stringData = "String Data";
 	private static final MimeType mimeType = StandardMimeTypes.APPLICATION_PDF_TYPE;
  
+	private static final StringDataSource DS1 = new StringDataSource("FirstEntry", FIRST_DSL_ENTRY_NAME);
+	private static final StringDataSource DS2 = new StringDataSource("SecondEntry", SECOND_DSL_ENTRY_NAME, Jdk8Utils.mapOf("attributeName1", "attributeValue1"));
+	private static final StringDataSource DS3 = new StringDataSource("ThirdEntry", SECOND_DSL_ENTRY_NAME);	// Make sure we have a duplicate entry
+	private static final StringDataSource DS4 = new StringDataSource("FourthEntry", THIRD_DSL_ENTRY_NAME);
+
+	private static final List<DataSource> srcList = Jdk8Utils.listOf(
+										DS1,
+										DS2,
+										DS3,
+										DS4
+									   );
+
+	private static final DataSourceList dslData = DataSourceList.from(srcList);
+
+
 	@Test
 	void testBuildAll() throws Exception{
 		// Construct a DataSourceList with one of each and every type
@@ -89,12 +110,13 @@ class DataSourceListBuilderTest {
 				.add(FILE_DS_NAME, pathData)
 				.add(STRING_DS_NAME, stringData)
 				.add(BYTE_ARRAY_W_CT_DS_NAME, byteArrayData, mimeType)
+				.add(DSL_DS_NAME, dslData)
 				.build();
 		
 		List<DataSource> resultList = result.list();
 		
 		assertAll(
-				()->assertEquals(10, resultList.size()),	// 10 DSes were added.
+				()->assertEquals(11, resultList.size()),	// 10 DSes were added.
 				()->assertSame(dummyDS, resultList.get(0)),
 				()->assertEquals(BOOLEAN_DS_NAME, resultList.get(1).name()),
 				()->assertEquals(Boolean.toString(booleanData), readIntoString(resultList.get(1).inputStream())),
@@ -114,10 +136,28 @@ class DataSourceListBuilderTest {
 				()->assertEquals(stringData, readIntoString(resultList.get(8).inputStream())),
 				()->assertEquals(BYTE_ARRAY_W_CT_DS_NAME, resultList.get(9).name()),
 				()->assertArrayEquals(byteArrayData, Jdk8Utils.readAllBytes(resultList.get(9).inputStream())),
-				()->assertEquals(mimeType, resultList.get(9).contentType())
+				()->assertEquals(mimeType, resultList.get(9).contentType()),
+				()->validateDslData(resultList.get(10))
 				);
 	}
 
+	/**
+	 * Validates that the resultDsl DataSourceList matches the dslData DataSourceList.  
+	 * 
+	 * @param resultDsl
+	 */
+	void validateDslData(DataSource resultDs) {
+		assertTrue(resultDs instanceof ZipInputDataSourceWrapper, "Expected datasource to be instanceof ZipDataSource but it wasn't (" + resultDs.getClass().getName() + ").");
+		// TODO: commented out until more of ZipDataSource is implemented 
+//		DataSourceList resultDsl = ((ZipDataSource) resultDs).asDataSourceList();
+//		assertEquals(dslData.size(), resultDsl.size());
+//		List<DataSource> resultList = resultDsl.list();
+//		assertSame(DS1, resultList.get(0));
+//		assertSame(DS2, resultList.get(1));
+//		assertSame(DS3, resultList.get(2));
+//		assertSame(DS4, resultList.get(3));
+	}
+	
 	@Test
 	void testBuildEmpty() {
 		DataSourceList result = DataSourceList.builder().build();
@@ -136,7 +176,8 @@ class DataSourceListBuilderTest {
 		List<Long> lList = Jdk8Utils.listOf(longData, longData);
 		List<Path> pList = Jdk8Utils.listOf(pathData, pathData, pathData);
 		List<String> sList = Jdk8Utils.listOf(stringData);
-		int expectedSize = dsList.size() + bList.size() + baList.size() + dList.size() + fList.size() + iList.size() + lList.size() + pList.size() + sList.size() + baList.size();
+		List<DataSourceList> dslList = Jdk8Utils.listOf(dslData, dslData);
+		int expectedSize = dsList.size() + bList.size() + baList.size() + dList.size() + fList.size() + iList.size() + lList.size() + pList.size() + sList.size() + baList.size() + dslList.size();
 		
 		DataSourceList result = DataSourceList.builder()
 				.addDataSources(dsList)
@@ -149,6 +190,7 @@ class DataSourceListBuilderTest {
 				.addPaths(FILE_DS_NAME, pList)
 				.addStrings(STRING_DS_NAME, sList)
 				.addByteArrays(BYTE_ARRAY_W_CT_DS_NAME, baList, mimeType)
+				.addDataSourceLists(DSL_DS_NAME, dslList)
 				.build();
 		
 		List<DataSource> resultList = result.list();
@@ -192,6 +234,7 @@ class DataSourceListBuilderTest {
 				()->assertEquals(BYTE_ARRAY_W_CT_DS_NAME, resultList.get(18).name()),
 				()->assertArrayEquals(byteArrayData, Jdk8Utils.readAllBytes(resultList.get(18).inputStream())),
 				()->assertEquals(mimeType, resultList.get(18).contentType())
+				// TODO:  Test that DSL was added.
 				);
 	}
 
@@ -207,6 +250,7 @@ class DataSourceListBuilderTest {
 				.addLongs(LONG_DS_NAME, Collections.emptyList())
 				.addPaths(FILE_DS_NAME, Collections.emptyList())
 				.addStrings(STRING_DS_NAME, Collections.emptyList())
+				.addDataSourceLists(DSL_DS_NAME, Collections.emptyList())
 				.build();
 		
 		assertTrue(result.list().isEmpty());

@@ -61,6 +61,15 @@ public class DataSourceList {
 	}
 
 	/**
+	 * Returns the number of items in the DataSourceList.
+	 * 
+	 * @return
+	 */
+	public final int size() {
+		return list.size();
+	}
+
+	/**
 	 * Gets the first DataSource with the specified name.
 	 * 
 	 * Will generate a NullPointerException if the name parameter is null.
@@ -268,6 +277,12 @@ public class DataSourceList {
 			return this;
 		}
 
+		public Builder add(String name, DataSourceList dsl) {
+			// TODO:  Add DataSourceList to the List
+//			underConstruction.add(new StringDataSource(Long.toString(l), Objects.requireNonNull(name, "Name cannot be null.")));
+			return this;
+		}
+
 		public Builder add(String name, String s, Map<String, String> attributes) {
 			underConstruction.add(new StringDataSource(s, Objects.requireNonNull(name, "Name cannot be null."), attributes));
 			return this;
@@ -327,6 +342,12 @@ public class DataSourceList {
 			return this;
 		}
 
+		public Builder add(String name, DataSourceList dsl, Map<String, String> attributes) {
+			// TODO: Add the DataSourceList to the current list.
+//			underConstruction.add(new StringDataSource(Long.toString(l), Objects.requireNonNull(name, "Name cannot be null."), attributes));
+			return this;
+		}
+
 		public Builder addDataSources(List<DataSource> dsList) {
 			dsList.forEach(ds->underConstruction.add(ds));
 			return this;
@@ -376,6 +397,13 @@ public class DataSourceList {
 			lList.forEach(l->underConstruction.add(new StringDataSource(l.toString(), Objects.requireNonNull(name, "Name cannot be null."))));
 			return this;
 		}
+
+		public Builder addDataSourceLists(String name, List<DataSourceList> lList) {
+			// TODO: Add the DataSourceLists
+//			lList.forEach(l->underConstruction.add(new StringDataSource(l.toString(), Objects.requireNonNull(name, "Name cannot be null."))));
+			return this;
+		}
+
 		public Builder addStrings(String name, List<String> sList, Map<String, String> attributes) {
 			sList.forEach(s->underConstruction.add(new StringDataSource(s, Objects.requireNonNull(name, "Name cannot be null."), attributes)));
 			return this;
@@ -420,6 +448,13 @@ public class DataSourceList {
 			lList.forEach(l->underConstruction.add(new StringDataSource(l.toString(), Objects.requireNonNull(name, "Name cannot be null."), attributes)));
 			return this;
 		}
+		
+		public Builder addDataSourceLists(String name, List<DataSourceList> lList, Map<String, String> attributes) {
+			// TODO:  Add DataSourceLists to the list.
+//			lList.forEach(l->underConstruction.add(new StringDataSource(l.toString(), Objects.requireNonNull(name, "Name cannot be null."), attributes)));
+			return this;
+		}
+		
 	}
 	
 	/**
@@ -683,6 +718,40 @@ public class DataSourceList {
 			return dsList.getDataSources(predicate).stream()
 					.map(Deconstructor::dsToLong)
 					.collect(Collectors.toList());
+		}
+
+		public static final DataSourceList dsToDataSourceList(DataSource ds) {
+//			return Long.valueOf(dsToString(ds));
+			// TODO:  Implement this.
+			return null;
+		}
+
+		public final Optional<DataSourceList> getDataSourceListByName(String name) {
+//			return dsList.getDataSourceByName(name).map(Deconstructor::dsToLong);
+			// TODO:  Implement this.
+			return null;
+		}
+
+		public final Optional<DataSourceList> getDataSourceList(Predicate<DataSource> predicate) {
+//			return dsList.getDataSource(predicate).map(Deconstructor::dsToLong);
+			// TODO:  Implement this.
+			return null;
+		}
+
+		public final List<DataSourceList> getDataSourceListsByName(String name) {
+//			return dsList.getDataSourcesByName(name).stream()
+//					.map(Deconstructor::dsToLong)
+//					.collect(Collectors.toList());
+			// TODO:  Implement this.
+			return null;
+		}
+
+		public final List<DataSourceList> getDataSourceLists(Predicate<DataSource> predicate) {
+//			return dsList.getDataSources(predicate).stream()
+//					.map(Deconstructor::dsToLong)
+//					.collect(Collectors.toList());
+			// TODO:  Implement this.
+			return null;
 		}
 
 
