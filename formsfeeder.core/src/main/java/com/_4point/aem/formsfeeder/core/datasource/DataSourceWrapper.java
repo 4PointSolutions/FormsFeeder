@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public abstract class DataSourceWrapper implements DataSource {
 
-	private final DataSource dataSource;
+	protected final DataSource dataSource;
 
 	protected DataSourceWrapper(DataSource dataSource) {
 		super();
