@@ -17,6 +17,7 @@ import java.nio.file.Paths;
 
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -31,40 +32,17 @@ class XmlDataSourceListEncoderTest {
 	
 	private final StringWriter resultWriter = new StringWriter();
 
-	private enum EncodingScenario {
-		EMPTY_LIST(DataSourceList.emptyList(), "<?xml version=\"1.0\" ?><DataSourceList/>"),
-		EMPTY_LIST2(DataSourceList.builder().build(), "<?xml version=\"1.0\" ?><DataSourceList/>"),
-		SIMPLE_ENTRY(DataSourceList.builder().add("DsName1", "DsValue1").build(), 
-				"<?xml version=\"1.0\" ?><DataSourceList><DataSource Name=\"DsName1\" ContentType=\"text/plain; charset=UTF-8\"><Content>RHNWYWx1ZTE=</Content></DataSource></DataSourceList>"),
-		SIMPLE_ENTRY_WITH_ATTRS(DataSourceList.builder().add("DsName2", 2, Jdk8Utils.mapOf("Ds2Attr1", "Ds2AttrValue1")).build(), 
-				"<?xml version=\"1.0\" ?><DataSourceList><DataSource Name=\"DsName2\" ContentType=\"text/plain; charset=UTF-8\"><Attribute Name=\"Ds2Attr1\" Value=\"Ds2AttrValue1\"/><Content>Mg==</Content></DataSource></DataSourceList>"),
-		SIMPLE_ENTRY_ALL_ATTRS(DataSourceList.builder().add("DSName3", "DSValue3".getBytes(), StandardMimeTypes.APPLICATION_PDF_TYPE, Paths.get("dir", "filename"), Jdk8Utils.mapOf("Ds3Attr1", "Ds3AttrValue1")).build(), 
-				"<?xml version=\"1.0\" ?><DataSourceList><DataSource Name=\"DSName3\" ContentType=\"application/pdf\" Filename=\"dir\\filename\"><Attribute Name=\"Ds3Attr1\" Value=\"Ds3AttrValue1\"/><Content>RFNWYWx1ZTM=</Content></DataSource></DataSourceList>"),
-		MULTI_ENTRY(DataSourceList.builder().addStrings("DSName4", Jdk8Utils.listOf("DSValue4_1", "DSValue4_2"), Jdk8Utils.mapOf("Ds4Attr1", "Ds4AttrValue1")).build(), 
-				"<?xml version=\"1.0\" ?><DataSourceList><DataSource Name=\"DSName4\" ContentType=\"text/plain; charset=UTF-8\"><Attribute Name=\"Ds4Attr1\" Value=\"Ds4AttrValue1\"/><Content>RFNWYWx1ZTRfMQ==</Content></DataSource><DataSource Name=\"DSName4\" ContentType=\"text/plain; charset=UTF-8\"><Attribute Name=\"Ds4Attr1\" Value=\"Ds4AttrValue1\"/><Content>RFNWYWx1ZTRfMg==</Content></DataSource></DataSourceList>"),
-		;
-		
-		private final DataSourceList targetList;
-		private final String expectedResult;
-
-		private EncodingScenario(DataSourceList targetList, String expectedResult) {
-			this.targetList = targetList;
-			this.expectedResult = expectedResult;
-		}
-		
-	}
-	
 	@ParameterizedTest
 	@EnumSource
-	void testEncode(EncodingScenario scenario) throws Exception {
+	void testEncode(XmlDataSourceListTestConstants.TestScenario scenario) throws Exception {
 
 		try(XmlDataSourceListEncoder underTest = XmlDataSourceListEncoder.wrap(resultWriter)) {
-			underTest.encode(scenario.targetList);
+			underTest.encode(scenario.dsList);
 		}
 
 		
 		resultWriter.close();
-		assertEquals(scenario.expectedResult, resultWriter.toString());
+		assertEquals(scenario.xml, resultWriter.toString());
 	}
 
 	@Test
@@ -112,6 +90,17 @@ class XmlDataSourceListEncoderTest {
 		assertNotNull(msg);
 		assertAll(
 				()->assertThat(msg, containsString("Output Stream")),
+				()->assertThat(msg, containsString("cannot be null"))
+				);
+	}
+
+	@Test
+	void test_NullXmlStreamWriter() {
+		NullPointerException ex = assertThrows(NullPointerException.class, ()->XmlDataSourceListEncoder.wrap((XMLStreamWriter)null));
+		String msg = ex.getMessage();
+		assertNotNull(msg);
+		assertAll(
+				()->assertThat(msg, containsString("XMLStreamWriter")),
 				()->assertThat(msg, containsString("cannot be null"))
 				);
 	}

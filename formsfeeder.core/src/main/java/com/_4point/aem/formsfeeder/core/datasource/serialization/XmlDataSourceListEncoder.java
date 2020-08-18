@@ -1,13 +1,14 @@
 package com._4point.aem.formsfeeder.core.datasource.serialization;
 
+import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.*;
+import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.XmlDataSourceConstants.*;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.file.Path;
-import java.util.Base64;
-import java.util.Base64.Encoder;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
@@ -20,7 +21,6 @@ import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
 public class XmlDataSourceListEncoder extends XmlEncoder {
-	private static final String DSL_ELEMENT_NAME = "DataSourceList";
 	
 	private XmlDataSourceListEncoder(XMLStreamWriter xsw) throws XMLStreamException {
 		super(xsw);
@@ -55,7 +55,7 @@ public class XmlDataSourceListEncoder extends XmlEncoder {
 	}
 
 	public static XmlDataSourceListEncoder wrap(XMLStreamWriter xsw) throws XMLStreamException {
-		return new XmlDataSourceListEncoder(xsw);
+		return new XmlDataSourceListEncoder(Objects.requireNonNull(xsw, "XMLStreamWriter cannot be null."));
 	}
 	
 	public static XmlDataSourceListEncoder wrap(OutputStream os) throws XMLStreamException, FactoryConfigurationError {
@@ -67,15 +67,6 @@ public class XmlDataSourceListEncoder extends XmlEncoder {
 	}
 	
 	public static class XmlDataSourceEncoder extends XmlEncoder {
-		private static final String DS_ELEMENT_NAME = "DataSource";
-		private static final String NAME_ATTR_NAME = "Name";
-		private static final String CONTENT_TYPE_ATTR_NAME = "ContentType";
-		private static final String FILENAME_ATTR_NAME = "Filename";
-		private static final String ATTR_ELEMENT_NAME = "Attribute";
-		private static final String ATTR_NAME_ATTR_NAME = "Name";
-		private static final String ATTR_VALUE_ATTR_NAME = "Value";
-		private static final String CONTENT_ELEMENT_NAME = "Content";
-		private static final Encoder ENCODER = Base64.getEncoder();
 
 
 		private XmlDataSourceEncoder(XMLStreamWriter xsw) {
