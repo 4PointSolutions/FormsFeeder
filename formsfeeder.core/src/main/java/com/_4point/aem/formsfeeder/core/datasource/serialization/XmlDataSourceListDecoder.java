@@ -37,7 +37,8 @@ public class XmlDataSourceListDecoder extends XmlDecoder {
 	private static class DecoderContext {
 		private final XMLStreamReader xsr;
 		private DataSourceList.Builder dslBuilder = null;
-		private DataSourceDecoderContext dsDc = null; 
+		private DataSourceDecoderContext dsDc = null;
+		private ForeignElementDecoderContext feDc = null;
 		
 		private DecoderContext(XMLStreamReader xsr) {
 			super();
@@ -72,7 +73,7 @@ public class XmlDataSourceListDecoder extends XmlDecoder {
 						dslBuilder.add(name, content, filename, attributes);		// No contentType
 					} else if (contentType != null && attributes.isEmpty() && filename == null) {
 						dslBuilder.add(name, content, contentType);					// No attributes and no filename
-					} else if (contentType != null && !attributes.isEmpty() && filename != null) {
+					} else if (contentType == null && !attributes.isEmpty() && filename == null) {
 						dslBuilder.add(name, content, attributes);					// No contentType and no filename
 					} else if (contentType == null && attributes.isEmpty() && filename != null) {
 						dslBuilder.add(name, content, filename);					// No contentType and no attributes
@@ -88,6 +89,29 @@ public class XmlDataSourceListDecoder extends XmlDecoder {
 			return this;
 		}
 		
+		private static class ForeignElementDecoderContext {
+			private final String foreignElementName;
+			private final DecoderState previousState;
+			private ForeignElementDecoderContext(String foreignElementName, DecoderState previousState) {
+				super();
+				this.foreignElementName = foreignElementName;
+				this.previousState = previousState;
+			}
+		}
+		
+		private void pushForeignElementState(String foreignElementName, DecoderState previousState) {
+			this.feDc = new ForeignElementDecoderContext(foreignElementName,previousState);
+		}
+		
+		private DecoderState popForeignElementState() {
+			DecoderState prevState = Objects.requireNonNull(this.feDc, "Tried to pop ForeignObjectState without a corresponding push!").previousState;
+			this.feDc = null;
+			return prevState;
+		}
+		
+		private String foreignElementName() {
+			return this.feDc.foreignElementName;
+		}
 	}
 	
 	/**
@@ -109,7 +133,9 @@ public class XmlDataSourceListDecoder extends XmlDecoder {
 		InitialState(DecoderState::initialState), 
 		EndState(DecoderState::endState),
 		LookingForDataSourceElement(DecoderState::lookingForDataSourceElement),
-		LookingInsideDataSourceElement(DecoderState::lookingInsideDataSourceElement);
+		LookingInsideDataSourceElement(DecoderState::lookingInsideDataSourceElement),
+		IgnoringForeignElement(DecoderState::ignoringForeignElement)
+		;
 		
 		private final BiFunction<Integer, DecoderContext, DecoderState> function;
 
@@ -131,9 +157,15 @@ public class XmlDataSourceListDecoder extends XmlDecoder {
 		}
 
 		private static DecoderState lookingForDataSourceElement(int nextItem, DecoderContext ctx) {
-			if (nextItem == XMLStreamReader.START_ELEMENT && ctx.xsr.getLocalName().equals(DS_ELEMENT_NAME)) {
-				decodeDataSourceElement(ctx);
-				return DecoderState.LookingInsideDataSourceElement;
+			if (nextItem == XMLStreamReader.START_ELEMENT) {
+				if (ctx.xsr.getLocalName().equals(DS_ELEMENT_NAME)) {
+					decodeDataSourceElement(ctx);
+					return DecoderState.LookingInsideDataSourceElement;
+				} else {
+					// Some other element START_ELEMENT
+					ctx.pushForeignElementState(ctx.xsr.getLocalName(), DecoderState.LookingForDataSourceElement);
+					return DecoderState.IgnoringForeignElement;
+				}
 			}
 			if (nextItem == XMLStreamReader.END_ELEMENT && ctx.xsr.getLocalName().equals(DSL_ELEMENT_NAME)) {
 				return DecoderState.EndState;
@@ -155,9 +187,20 @@ public class XmlDataSourceListDecoder extends XmlDecoder {
 				case CONTENT_ELEMENT_NAME:
 					ctx.dsDc.content = decodeContent(ctx);
 					break;
+				default:
+					// Some other element START_ELEMENT
+					ctx.pushForeignElementState(ctx.xsr.getLocalName(), DecoderState.LookingInsideDataSourceElement);
+					return DecoderState.IgnoringForeignElement;
 				}
 			}
 			return DecoderState.LookingInsideDataSourceElement;
+		}
+		
+		private static DecoderState ignoringForeignElement(int nextItem, DecoderContext ctx) {
+			if ((nextItem == XMLStreamReader.END_ELEMENT && ctx.xsr.getLocalName() == ctx.foreignElementName())) {
+				return ctx.popForeignElementState();
+			}
+			return DecoderState.IgnoringForeignElement;
 		}
 		
 		@Override
@@ -209,7 +252,6 @@ public class XmlDataSourceListDecoder extends XmlDecoder {
 			try {
 				String elementText = ctx.xsr.getElementText();
 				if (elementText != null && !elementText.trim().isEmpty()) {
-					System.out.println("Decoding '" + elementText + "'.");
 					return DECODER.decode(elementText);
 				}
 				return new byte[0];
@@ -231,12 +273,11 @@ public class XmlDataSourceListDecoder extends XmlDecoder {
 		DecoderContext ctx = DecoderContext.from(xsr);
 		DecoderState currentState = DecoderState.InitialState;
 		while(xsr.hasNext()) {
-			if (currentState == DecoderState.InitialState || currentState == DecoderState.EndState) {
+			if (currentState == DecoderState.InitialState || currentState == DecoderState.EndState || currentState == DecoderState.IgnoringForeignElement) {
 				currentState = currentState.process(xsr.next(), ctx);
 			} else {
 				currentState = currentState.process(xsr.nextTag(), ctx);
 			}
-			System.out.println("New State='" + currentState.toString() + "'.");
 		}
 
 		return Optional.ofNullable(ctx.dslBuilder).map(DataSourceList.Builder::build);
