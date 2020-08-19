@@ -4,7 +4,11 @@ import java.util.Base64;
 import java.util.Base64.Decoder;
 import java.util.Base64.Encoder;
 
+import com._4point.aem.formsfeeder.core.datasource.MimeType;
+import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
+
 /* package */ class XmlDataSourceListConstants {
+	static final MimeType DSL_MIME_TYPE = StandardMimeTypes.APPLICATION_VND_4POINT_DATASOURCELIST_TYPE;
 	static final String DSL_ELEMENT_NAME = "DataSourceList";
 
 	static class XmlDataSourceConstants {

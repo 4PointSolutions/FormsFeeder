@@ -29,6 +29,10 @@ public class StandardMimeTypes {
 	public static final String APPLICATION_VND_ADOBE_XFDF_STR = "application/vnd.adobe.xfdf";
 	public static final MimeType APPLICATION_VND_ADOBE_XFDF_TYPE = MimeType.of(APPLICATION_VND_ADOBE_XFDF_STR);
 
+	// Library Specific file types
+	public static final String APPLICATION_VND_4POINT_DATASOURCELIST_STR = "application/vnd.4point.datasourcelist+xml";
+	public static final MimeType APPLICATION_VND_4POINT_DATASOURCELIST_TYPE = MimeType.of(APPLICATION_VND_4POINT_DATASOURCELIST_STR);
+	
 	// Default
 	public static final String APPLICATION_OCTET_STREAM_STR = "application/octet-stream";
 	public static final MimeType APPLICATION_OCTET_STREAM_TYPE = MimeType.of(APPLICATION_OCTET_STREAM_STR);

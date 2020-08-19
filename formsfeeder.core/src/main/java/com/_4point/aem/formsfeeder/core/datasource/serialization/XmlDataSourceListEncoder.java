@@ -18,9 +18,11 @@ import javax.xml.stream.XMLStreamWriter;
 
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
+import com._4point.aem.formsfeeder.core.datasource.MimeType;
 import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
 public class XmlDataSourceListEncoder extends XmlEncoder {
+	public static final MimeType DSL_MIME_TYPE = XmlDataSourceListConstants.DSL_MIME_TYPE;
 	
 	private XmlDataSourceListEncoder(XMLStreamWriter xsw) throws XMLStreamException {
 		super(xsw);

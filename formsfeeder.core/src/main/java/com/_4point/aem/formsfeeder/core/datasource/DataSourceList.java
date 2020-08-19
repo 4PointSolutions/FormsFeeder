@@ -284,7 +284,7 @@ public class DataSourceList {
 		}
 
 		public Builder add(String name, DataSourceList dsl) {
-			underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(dsl), Objects.requireNonNull(name, "Name cannot be null."), StandardMimeTypes.APPLICATION_XML_TYPE));
+			underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(dsl), Objects.requireNonNull(name, "Name cannot be null."), XmlDataSourceListEncoder.DSL_MIME_TYPE));
 			return this;
 		}
 
@@ -348,7 +348,7 @@ public class DataSourceList {
 		}
 
 		public Builder add(String name, DataSourceList dsl, Map<String, String> attributes) {
-			underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(dsl), Objects.requireNonNull(name, "Name cannot be null."), StandardMimeTypes.APPLICATION_XML_TYPE, attributes));
+			underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(dsl), Objects.requireNonNull(name, "Name cannot be null."), XmlDataSourceListEncoder.DSL_MIME_TYPE, attributes));
 			return this;
 		}
 
@@ -403,7 +403,7 @@ public class DataSourceList {
 		}
 
 		public Builder addDataSourceLists(String name, List<DataSourceList> lList) {
-			lList.forEach(l->underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(l), Objects.requireNonNull(name, "Name cannot be null."), StandardMimeTypes.APPLICATION_XML_TYPE)));
+			lList.forEach(l->underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(l), Objects.requireNonNull(name, "Name cannot be null."), XmlDataSourceListEncoder.DSL_MIME_TYPE)));
 			return this;
 		}
 
@@ -453,7 +453,7 @@ public class DataSourceList {
 		}
 		
 		public Builder addDataSourceLists(String name, List<DataSourceList> lList, Map<String, String> attributes) {
-			lList.forEach(l->underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(l), Objects.requireNonNull(name, "Name cannot be null."), StandardMimeTypes.APPLICATION_XML_TYPE, attributes)));
+			lList.forEach(l->underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(l), Objects.requireNonNull(name, "Name cannot be null."), XmlDataSourceListEncoder.DSL_MIME_TYPE, attributes)));
 			return this;
 		}
 		
@@ -734,7 +734,7 @@ public class DataSourceList {
 		}
 
 		public static final Optional<DataSourceList> dsToDataSourceList(DataSource ds) {
-			if (!StandardMimeTypes.APPLICATION_XML_TYPE.equals(ds.contentType())) {
+			if (!XmlDataSourceListDecoder.DSL_MIME_TYPE.equals(ds.contentType())) {
 				throw new IllegalArgumentException("Cannot convert DataSource with contentType '" + ds.contentType().asString() + "' to a DataSourceList.");
 			}
 			try(XmlDataSourceListDecoder decoder = XmlDataSourceListDecoder.wrap(ds.inputStream())) {
