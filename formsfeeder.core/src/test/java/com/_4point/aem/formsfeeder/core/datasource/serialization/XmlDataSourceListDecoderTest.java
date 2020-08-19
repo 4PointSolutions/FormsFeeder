@@ -28,7 +28,6 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
-import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
 public class XmlDataSourceListDecoderTest {

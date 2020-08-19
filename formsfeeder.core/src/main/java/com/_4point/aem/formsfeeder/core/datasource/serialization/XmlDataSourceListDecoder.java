@@ -28,7 +28,6 @@ import javax.xml.stream.XMLStreamReader;
 
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.MimeType;
-import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 
 public class XmlDataSourceListDecoder extends XmlDecoder {
 	public static final MimeType DSL_MIME_TYPE = XmlDataSourceListConstants.DSL_MIME_TYPE;
