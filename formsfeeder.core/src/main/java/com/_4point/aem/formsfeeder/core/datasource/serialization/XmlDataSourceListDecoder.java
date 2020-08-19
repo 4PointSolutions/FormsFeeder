@@ -1,7 +1,15 @@
 package com._4point.aem.formsfeeder.core.datasource.serialization;
 
-import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.*;
-import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.XmlDataSourceConstants.*;
+import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.DSL_ELEMENT_NAME;
+import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.XmlDataSourceConstants.ATTR_ELEMENT_NAME;
+import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.XmlDataSourceConstants.ATTR_NAME_ATTR_NAME;
+import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.XmlDataSourceConstants.ATTR_VALUE_ATTR_NAME;
+import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.XmlDataSourceConstants.CONTENT_ELEMENT_NAME;
+import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.XmlDataSourceConstants.CONTENT_TYPE_ATTR_NAME;
+import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.XmlDataSourceConstants.DECODER;
+import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.XmlDataSourceConstants.DS_ELEMENT_NAME;
+import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.XmlDataSourceConstants.FILENAME_ATTR_NAME;
+import static com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListConstants.XmlDataSourceConstants.NAME_ATTR_NAME;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,13 +21,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.stream.Stream;
 
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.MimeType;
 

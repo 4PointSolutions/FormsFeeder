@@ -15,6 +15,8 @@ import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
+import com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListDecoder;
+import com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListDecoderTest;
 import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
 class DataSourceListBuilderTest {
@@ -145,17 +147,19 @@ class DataSourceListBuilderTest {
 	 * Validates that the resultDsl DataSourceList matches the dslData DataSourceList.  
 	 * 
 	 * @param resultDsl
+	 * @throws Exception 
 	 */
-	void validateDslData(DataSource resultDs) {
-//		assertTrue(resultDs instanceof ZipDataSourceWrapper, "Expected datasource to be instanceof ZipDataSource but it wasn't (" + resultDs.getClass().getName() + ").");
-		// TODO: commented out until more of ZipDataSource is implemented 
-//		DataSourceList resultDsl = ((ZipDataSource) resultDs).asDataSourceList();
-//		assertEquals(dslData.size(), resultDsl.size());
-//		List<DataSource> resultList = resultDsl.list();
-//		assertSame(DS1, resultList.get(0));
-//		assertSame(DS2, resultList.get(1));
-//		assertSame(DS3, resultList.get(2));
-//		assertSame(DS4, resultList.get(3));
+	void validateDslData(DataSource resultDs) throws Exception {
+		assertTrue(resultDs instanceof ByteArrayDataSource, "Expected datasource to be instanceof BDataSource but it wasn't (" + resultDs.getClass().getName() + ").");
+		Optional<DataSourceList> dsl = DataSourceList.Deconstructor.dsToDataSourceList(resultDs);
+		assertTrue(dsl.isPresent(), "Expected DataSource to be present after decoding.");
+		DataSourceList resultDsl = dsl.get();
+		assertEquals(dslData.size(), resultDsl.size());
+		List<DataSource> resultList = resultDsl.list();
+		XmlDataSourceListDecoderTest.dsEquals(DS1, resultList.get(0), true);
+		XmlDataSourceListDecoderTest.dsEquals(DS2, resultList.get(1), true);
+		XmlDataSourceListDecoderTest.dsEquals(DS3, resultList.get(2), true);
+		XmlDataSourceListDecoderTest.dsEquals(DS4, resultList.get(3), true);
 	}
 	
 	@Test
@@ -195,7 +199,7 @@ class DataSourceListBuilderTest {
 		
 		List<DataSource> resultList = result.list();
 		assertAll(
-				()->assertEquals(expectedSize, 19),					// # of DSs matches what we've encoded below.
+				()->assertEquals(expectedSize, 21),					// # of DSs matches what we've encoded below.
 				()->assertEquals(expectedSize, resultList.size()),	// # of DSs that were added.
 				()->assertSame(dummyDS, resultList.get(0)),
 				()->assertSame(dummyDS, resultList.get(1)),
@@ -233,8 +237,9 @@ class DataSourceListBuilderTest {
 				()->assertEquals(stringData, readIntoString(resultList.get(17).inputStream())),
 				()->assertEquals(BYTE_ARRAY_W_CT_DS_NAME, resultList.get(18).name()),
 				()->assertArrayEquals(byteArrayData, Jdk8Utils.readAllBytes(resultList.get(18).inputStream())),
-				()->assertEquals(mimeType, resultList.get(18).contentType())
-				// TODO:  Test that DSL was added.
+				()->assertEquals(mimeType, resultList.get(18).contentType()),
+				()->validateDslData(resultList.get(19)),
+				()->validateDslData(resultList.get(20))
 				);
 	}
 

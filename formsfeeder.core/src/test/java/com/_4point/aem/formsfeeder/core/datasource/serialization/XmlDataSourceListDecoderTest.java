@@ -31,7 +31,7 @@ import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
-class XmlDataSourceListDecoderTest {
+public class XmlDataSourceListDecoderTest {
 
 	@ParameterizedTest
 	@EnumSource

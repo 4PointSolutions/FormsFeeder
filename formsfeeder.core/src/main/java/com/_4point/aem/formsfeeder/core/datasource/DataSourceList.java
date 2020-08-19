@@ -1,5 +1,6 @@
 package com._4point.aem.formsfeeder.core.datasource;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -14,6 +15,11 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.stream.XMLStreamException;
+
+import com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListDecoder;
+import com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListEncoder;
 import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
 /**
@@ -278,8 +284,7 @@ public class DataSourceList {
 		}
 
 		public Builder add(String name, DataSourceList dsl) {
-			// TODO:  Add DataSourceList to the List
-//			underConstruction.add(new StringDataSource(Long.toString(l), Objects.requireNonNull(name, "Name cannot be null.")));
+			underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(dsl), Objects.requireNonNull(name, "Name cannot be null."), StandardMimeTypes.APPLICATION_XML_TYPE));
 			return this;
 		}
 
@@ -343,8 +348,7 @@ public class DataSourceList {
 		}
 
 		public Builder add(String name, DataSourceList dsl, Map<String, String> attributes) {
-			// TODO: Add the DataSourceList to the current list.
-//			underConstruction.add(new StringDataSource(Long.toString(l), Objects.requireNonNull(name, "Name cannot be null."), attributes));
+			underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(dsl), Objects.requireNonNull(name, "Name cannot be null."), StandardMimeTypes.APPLICATION_XML_TYPE, attributes));
 			return this;
 		}
 
@@ -399,8 +403,7 @@ public class DataSourceList {
 		}
 
 		public Builder addDataSourceLists(String name, List<DataSourceList> lList) {
-			// TODO: Add the DataSourceLists
-//			lList.forEach(l->underConstruction.add(new StringDataSource(l.toString(), Objects.requireNonNull(name, "Name cannot be null."))));
+			lList.forEach(l->underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(l), Objects.requireNonNull(name, "Name cannot be null."), StandardMimeTypes.APPLICATION_XML_TYPE)));
 			return this;
 		}
 
@@ -450,11 +453,21 @@ public class DataSourceList {
 		}
 		
 		public Builder addDataSourceLists(String name, List<DataSourceList> lList, Map<String, String> attributes) {
-			// TODO:  Add DataSourceLists to the list.
-//			lList.forEach(l->underConstruction.add(new StringDataSource(l.toString(), Objects.requireNonNull(name, "Name cannot be null."), attributes)));
+			lList.forEach(l->underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(l), Objects.requireNonNull(name, "Name cannot be null."), StandardMimeTypes.APPLICATION_XML_TYPE, attributes)));
 			return this;
 		}
 		
+		private byte[] dataSourceListToByteArray(DataSourceList dsl) {
+			ByteArrayOutputStream contents = new ByteArrayOutputStream();
+			try (XmlDataSourceListEncoder encoder = XmlDataSourceListEncoder.wrap(contents)) {
+				encoder.encode(dsl);
+			} catch (IOException | XMLStreamException | FactoryConfigurationError e) {
+				// This should never happen.
+				String msg = e.getMessage();
+				throw new IllegalStateException("Error while encoding DataSourceList (" + (msg != null ? msg : "null") + ").", e);
+			}
+			return contents.toByteArray();
+		}
 	}
 	
 	/**
@@ -720,40 +733,38 @@ public class DataSourceList {
 					.collect(Collectors.toList());
 		}
 
-		public static final DataSourceList dsToDataSourceList(DataSource ds) {
-//			return Long.valueOf(dsToString(ds));
-			// TODO:  Implement this.
-			return null;
+		public static final Optional<DataSourceList> dsToDataSourceList(DataSource ds) {
+			if (!StandardMimeTypes.APPLICATION_XML_TYPE.equals(ds.contentType())) {
+				throw new IllegalArgumentException("Cannot convert DataSource with contentType '" + ds.contentType().asString() + "' to a DataSourceList.");
+			}
+			try(XmlDataSourceListDecoder decoder = XmlDataSourceListDecoder.wrap(ds.inputStream())) {
+				return decoder.decode();
+			} catch (XMLStreamException | IOException | FactoryConfigurationError e) {
+				String msg = e.getMessage();
+				throw new IllegalStateException("Error while decoding DataSourceList (" + (msg == null ? "null" : msg) + ").", e);
+			}
 		}
 
 		public final Optional<DataSourceList> getDataSourceListByName(String name) {
-//			return dsList.getDataSourceByName(name).map(Deconstructor::dsToLong);
-			// TODO:  Implement this.
-			return null;
+			return dsList.getDataSourceByName(name).flatMap(Deconstructor::dsToDataSourceList);
 		}
 
 		public final Optional<DataSourceList> getDataSourceList(Predicate<DataSource> predicate) {
-//			return dsList.getDataSource(predicate).map(Deconstructor::dsToLong);
-			// TODO:  Implement this.
-			return null;
+			return dsList.getDataSource(predicate).flatMap(Deconstructor::dsToDataSourceList);
 		}
 
 		public final List<DataSourceList> getDataSourceListsByName(String name) {
-//			return dsList.getDataSourcesByName(name).stream()
-//					.map(Deconstructor::dsToLong)
-//					.collect(Collectors.toList());
-			// TODO:  Implement this.
-			return null;
+			return dsList.getDataSourcesByName(name).stream()
+					.map(Deconstructor::dsToDataSourceList)
+					.flatMap(Jdk8Utils::optionalStream)
+					.collect(Collectors.toList());
 		}
 
 		public final List<DataSourceList> getDataSourceLists(Predicate<DataSource> predicate) {
-//			return dsList.getDataSources(predicate).stream()
-//					.map(Deconstructor::dsToLong)
-//					.collect(Collectors.toList());
-			// TODO:  Implement this.
-			return null;
+			return dsList.getDataSources(predicate).stream()
+					.map(Deconstructor::dsToDataSourceList)
+					.flatMap(Jdk8Utils::optionalStream)
+					.collect(Collectors.toList());
 		}
-
-
 	}
 }
