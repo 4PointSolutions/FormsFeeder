@@ -12,12 +12,14 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.json.JsonObject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -44,6 +46,7 @@ import com._4point.aem.formsfeeder.core.datasource.MimeType;
 import com._4point.aem.formsfeeder.server.pf4j.FeedConsumers;
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com._4point.aem.formsfeeder.server.support.DataSourceListJaxRsUtils;
+import com._4point.aem.formsfeeder.server.support.DataSourceListJsonUtils;
 import com._4point.aem.formsfeeder.server.support.FfLoggerFactory;
 
 /**
@@ -133,6 +136,47 @@ public class ServicesEndpoint {
 			}
 		}
 		final DataSourceList dataSourceList1 = DataSourceListJaxRsUtils.asDataSourceList(formData, logger);
+		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
+		final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
+		return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId);
+	}
+
+	/**
+	 * Method that gets invoked for POST transactions that contain application/json.
+	 * 
+	 * This breaks apart the application/json into individual strings, converts the strings to DataSources.  It merges the DataSources
+	 * from the query parameters with the json DataSources and then calls the appropriate plug-in.  It then returns
+	 * the results of the plug-in as either a single response (if the plug-in returned just one DataSource) or as an
+	 * application/json response (if the plug-in returned multiple DataSources).
+	 * 
+	 * It stores that all scalar json fields are StringDataSource objects.  If the string is encoded in some way
+	 * (such as base64 encoded), then it is the plugin's responsibility to decode  it.
+	 * 
+	 * Any json arrays or dictionaries are converted into DataSourceList objects that are added to the parent DataSourceList.  
+	 * 
+	 * @param remainder
+	 * @param correlationIdHdr
+	 * @param uriInfo
+	 * @param formData
+	 * @return
+	 * @throws IOException 
+	 */
+	@Path(PLUGIN_NAME_REMAINDER_PATH)
+	@Consumes(MediaType.APPLICATION_JSON)
+	@POST
+    public Response invokeWithJsonBody(@PathParam("remainder") String remainder, @Context HttpHeaders httpHeaders, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @Context UriInfo uriInfo, JsonObject json) throws IOException {
+		final String correlationId = CorrelationId.generate(correlationIdHdr);
+		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
+		logger.info("Received " + MediaType.APPLICATION_JSON + " POST request to '" + API_V1_PATH + "/" + remainder + "'.");
+		if (logger.isDebugEnabled()) {
+			for( Entry<String, List<String>> headers : httpHeaders.getRequestHeaders().entrySet()) {
+				String key = headers.getKey();
+				for (String value : headers.getValue()) {
+					logger.debug("HttpHeader->'" + key + "'='" + value + "'.");
+				}
+			}
+		}
+		final DataSourceList dataSourceList1 = DataSourceListJsonUtils.asDataSourceList(json, logger);
 		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
 		return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId);
