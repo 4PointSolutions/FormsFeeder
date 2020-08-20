@@ -9,6 +9,7 @@ import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 
 /* package */ class XmlDataSourceListConstants {
 	static final MimeType DSL_MIME_TYPE = StandardMimeTypes.APPLICATION_VND_4POINT_DATASOURCELIST_TYPE;
+	static final String DSL_MIME_TYPE_STR = StandardMimeTypes.APPLICATION_VND_4POINT_DATASOURCELIST_STR;
 	static final String DSL_ELEMENT_NAME = "DataSourceList";
 
 	static class XmlDataSourceConstants {

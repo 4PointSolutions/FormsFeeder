@@ -31,6 +31,7 @@ import com._4point.aem.formsfeeder.core.datasource.MimeType;
 
 public class XmlDataSourceListDecoder extends XmlDecoder {
 	public static final MimeType DSL_MIME_TYPE = XmlDataSourceListConstants.DSL_MIME_TYPE;
+	public static final String DSL_MIME_TYPE_STR = XmlDataSourceListConstants.DSL_MIME_TYPE_STR;
 
 	private XmlDataSourceListDecoder(XMLStreamReader xsr) {
 		super(xsr);
