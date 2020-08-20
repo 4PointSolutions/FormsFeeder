@@ -8,12 +8,17 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.stream.FactoryConfigurationError;
 import javax.xml.stream.XMLStreamException;
@@ -26,7 +31,7 @@ import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
  * Wraps a list of DataSource objects and provides common functions for operating on that list.
  *
  */
-public class DataSourceList {
+public class DataSourceList implements Iterable<DataSource> {
 	private static final DataSourceList EMPTY_LIST = new DataSourceList();
 	
 	private final List<DataSource> list;
@@ -180,12 +185,81 @@ public class DataSourceList {
 	/**
 	 * Returns true if the list is empty.
 	 * 
+	 * @see List.isEmpty()
+	 * 
 	 * @return true if list is empty otherwise false
 	 */
 	public final boolean isEmpty() {
 		return this.list().isEmpty();
 	}
 	
+	/**
+	 * Performs the given action for each element of the Iterable until all elements have been processed or the action throws an exception.
+	 * 
+	 * @see Iterable.forEach()
+	 * 
+	 * @param action
+	 */
+	public void forEach(Consumer<? super DataSource> action) {
+		this.list.forEach(action);
+	}
+
+	/**
+	 * Returns an iterator over elements of type DataSource.
+	 * 
+	 * @see Iterable.iterator()
+	 * 
+	 * @return
+	 */
+	public Iterator<DataSource> iterator() {
+		return this.list.iterator();
+	}
+
+	/**
+	 * Returns the element at the specified position in this list.
+	 * 
+	 * @see List.get()
+	 * 
+	 * @param index
+	 * @return
+	 */
+	public DataSource get(int index) {
+		return this.list.get(index);
+	}
+
+	/**
+	 * Creates a Spliterator over the elements described by this Iterable.
+	 * 
+	 * @see Iterable.spliterator()
+	 * 
+	 * @return
+	 */
+	public Spliterator<DataSource> spliterator() {
+		return this.list.spliterator();
+	}
+
+	/**
+	 * Returns a sequential Stream with this collection as its source.
+	 * 
+	 * @see Collection.stream()
+	 * 
+	 * @return
+	 */
+	public Stream<DataSource> stream() {
+		return this.list.stream();
+	}
+
+	/**
+	 * Returns a possibly parallel Stream with this collection as its source.
+	 * 
+	 * @see List.parallelStream()
+	 * 
+	 * @return
+	 */
+	public Stream<DataSource> parallelStream() {
+		return this.list.parallelStream();
+	}
+
 	/**
 	 * Create a DataSourceList.Builder for building a DataSourceList.
 	 * 
