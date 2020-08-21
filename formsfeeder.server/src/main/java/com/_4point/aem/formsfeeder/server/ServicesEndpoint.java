@@ -2,15 +2,13 @@ package com._4point.aem.formsfeeder.server;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.Collection;
-import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 import javax.json.JsonObject;
 import javax.ws.rs.Consumes;
@@ -19,7 +17,6 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
@@ -28,8 +25,6 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.glassfish.jersey.media.multipart.ContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +37,6 @@ import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerInternalErr
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
-import com._4point.aem.formsfeeder.core.datasource.MimeType;
 import com._4point.aem.formsfeeder.server.pf4j.FeedConsumers;
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com._4point.aem.formsfeeder.server.support.DataSourceListJaxRsUtils;
@@ -102,7 +96,7 @@ public class ServicesEndpoint {
 		}
 		final DataSourceList dataSourceList1 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList2 = generateFormsFeederDataSourceList(correlationId);
-		return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2), logger, correlationId);
+		return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2), logger, correlationId, ServicesEndpoint::toMultipartFormData);
 	}
 
 	/**
@@ -138,7 +132,7 @@ public class ServicesEndpoint {
 		final DataSourceList dataSourceList1 = DataSourceListJaxRsUtils.asDataSourceList(formData, logger);
 		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
-		return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId);
+		return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId, ServicesEndpoint::toMultipartFormData);
 	}
 
 	/**
@@ -179,7 +173,7 @@ public class ServicesEndpoint {
 		final DataSourceList dataSourceList1 = DataSourceListJsonUtils.asDataSourceList(json, logger);
 		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
-		return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId);
+		return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId, ServicesEndpoint::toJson);
 	}
 
 	/**
@@ -219,7 +213,7 @@ public class ServicesEndpoint {
 			final DataSourceList dataSourceList1 = DataSourceListJaxRsUtils.asDataSourceList(in, mediaType, contentDisposition, FORMSFEEDER_BODY_BYTES_DS_NAME, logger);
 			final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 			final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
-			return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId);
+			return invokePlugin(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId, ServicesEndpoint::toMultipartFormData);
 		} catch (ContentDispositionHeaderException e) {
 			// If we encounter Parse Errors while determining ContentDisposition, it must be a BadRequest.
 			logger.error(e.getMessage() + ", Returning \"Bad Request\" status code.", e);
@@ -240,7 +234,7 @@ public class ServicesEndpoint {
 	 * @param logger
 	 * @return
 	 */
-	private final Response invokePlugin(final String remainder, final DataSourceList dataSourceList, final Logger logger, final String correlationId) {
+	private final Response invokePlugin(final String remainder, final DataSourceList dataSourceList, final Logger logger, final String correlationId, final BiFunction<DataSourceList, Logger, ResponseData> multiReturnConverter) {
 		Optional<FeedConsumer> optConsumer = feedConsumers.consumer(determineConsumerName(remainder));
 		if (optConsumer.isEmpty()) {
 			String msg = "Resource '" + API_V1_PATH + "/" + remainder + "' does not exist.";
@@ -248,7 +242,7 @@ public class ServicesEndpoint {
 			return buildResponse(Response.status(Response.Status.NOT_FOUND).entity(msg).type(MediaType.TEXT_PLAIN_TYPE), correlationId);
 		} else {
 			try {
-				return convertToResponse(invokeConsumer(dataSourceList, optConsumer.get(), logger), logger, correlationId);
+				return convertToResponse(invokeConsumer(dataSourceList, optConsumer.get(), logger), logger, correlationId, multiReturnConverter);
 			} catch (FeedConsumerInternalErrorException e) {
 				String msg = String.format("Plugin processor experienced an Internal Server Error. (%s)", e.getMessage());
 				logger.error(msg + ", Returning \"Internal Server Error\" status code.",e);
@@ -340,7 +334,7 @@ public class ServicesEndpoint {
 	 * @param logger
 	 * @return
 	 */
-	private static final Response convertToResponse(final DataSourceList outputs, final Logger logger, final String correlationId) {
+	private static final Response convertToResponse(final DataSourceList outputs, final Logger logger, final String correlationId, final BiFunction<DataSourceList, Logger, ResponseData> multiReturnConverter) {
 		List<DataSource> dsList = Objects.requireNonNull(outputs, "Plugin returned null DataSourceList!").list();
 		if (dsList.isEmpty()) {
 			// Nothing in the response, so return no content.
@@ -350,14 +344,8 @@ public class ServicesEndpoint {
 			// One data source, so return the contents in the body of the response.
 			return buildResponse(DataSourceListJaxRsUtils.asResponseBuilder(outputs.list().get(0), logger), correlationId);
 		} else { // More than one return.
-			// Convert DataSourceList to MultipartFormData.
-	    	FormDataMultiPart responsesData = DataSourceListJaxRsUtils.asFormDataMultipart(outputs);
-	    	logger.debug("Returning multiple data sources.");
-			for (var bp : responsesData.getBodyParts()) {
-				logger.debug("Added {} -> {}", bp.getMediaType().toString(), bp.getContentDisposition());
-			}
-			logger.debug("Responses mediatype='{}'.", responsesData.getMediaType().toString());
-			return buildResponse(Response.ok(responsesData, responsesData.getMediaType()), correlationId);
+			ResponseData responsesData = multiReturnConverter.apply(outputs, logger);
+			return buildResponse(Response.ok(responsesData.data(), responsesData.mediaType()), correlationId);
 		}
 	}
 
@@ -385,6 +373,48 @@ public class ServicesEndpoint {
 				.build();
 	}
 	
+	private static interface ResponseData {
+		public Object data();
+		public MediaType mediaType();
+	}
+
+	private static ResponseData toMultipartFormData(DataSourceList outputs, Logger logger) {
+		// Convert DataSourceList to MultipartFormData.
+    	FormDataMultiPart responsesData = DataSourceListJaxRsUtils.asFormDataMultipart(outputs);
+    	logger.debug("Returning multiple data sources.");
+		for (var bp : responsesData.getBodyParts()) {
+			logger.debug("Added {} -> {}", bp.getMediaType().toString(), bp.getContentDisposition());
+		}
+		logger.debug("Responses mediatype='{}'.", responsesData.getMediaType().toString());
+		return new ResponseData() {
+			
+			@Override
+			public MediaType mediaType() {
+				return responsesData.getMediaType();
+			}
+			
+			@Override
+			public Object data() {
+				return responsesData;
+			}
+		};
+	}
+
+	private static ResponseData toJson(DataSourceList outputs, Logger logger) {
+		JsonObject json = DataSourceListJsonUtils.asJson(outputs, logger);
+		return new ResponseData() {
+			
+			@Override
+			public MediaType mediaType() {
+				return MediaType.APPLICATION_JSON_TYPE;
+			}
+			
+			@Override
+			public Object data() {
+				return json;
+			}
+		};
+	}
 	/**
 	 * Exceptions that occur while performing ContentDisposition processing. 
 	 *

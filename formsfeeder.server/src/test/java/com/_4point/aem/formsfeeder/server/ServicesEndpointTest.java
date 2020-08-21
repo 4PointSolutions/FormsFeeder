@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.json.Json;
+import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -726,6 +727,9 @@ class ServicesEndpointTest implements EnvironmentAware {
 		bodyData.bodyPart(new FileDataBodyPart(expectedParamName1, SAMPLE_XDP.toFile(), APPLICATION_XDP));	// One with a filename
 		bodyData.field(expectedParamName2, InputStream.nullInputStream(), MediaType.APPLICATION_OCTET_STREAM_TYPE);	// One without a filename
 		
+//		JsonObject jsonData = Json.createObjectBuilder()
+//								  .a
+		
 		Response response = ClientBuilder.newClient()
 				 .register(MultiPartFeature.class)
 				 .target(uri)
@@ -770,35 +774,36 @@ class ServicesEndpointTest implements EnvironmentAware {
 		String expectedParamName3 = bodyParamString + "3";
 		String expectedParamValue3 = expectedParamName3 + " " + bodyValueString;
 
-		// TODO: Convert to JSON
-		FormDataMultiPart bodyData = new FormDataMultiPart();
-		bodyData.field(expectedParamName1, expectedParamValue1);
-		bodyData.field(expectedParamName2, expectedParamValue2);
-		bodyData.field(expectedParamName3, expectedParamValue3);
-
+		JsonObject jsonData = Json.createObjectBuilder()
+				  .add(expectedParamName1, expectedParamValue1)
+				  .add(expectedParamName2, expectedParamValue2)
+				  .add(expectedParamName3, expectedParamValue3)
+				  .build();
+		
 		Response response = ClientBuilder.newClient()
 				 .register(MultiPartFeature.class)
 				 .target(uri)
 				 .path(DEBUG_PLUGIN_PATH)
 				 .request()
-				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+				 .post(Entity.json(jsonData));
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
-		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
-		// TODO: Convert to JSON
-		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
-		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
+		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
+
+		
+		// Expecting a single entry called "Message"
+		assertEquals(1, jsonResultObj.entrySet().size());
+		JsonArray jsonResultArray = jsonResultObj.getJsonArray("Message");
 		int returnsCount = 0;
-		for (Entry<String, List<FormDataBodyPart>> field : fields.entrySet()) {
-			for (var body : field.getValue()) {
-				returnsCount++;
-				assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(body.getMediaType()), "Expected response media type (" + body.getMediaType().toString() + ") to be compatible with 'text/plain'.");
-				String value = body.getEntityAs(String.class);
-				assertTrue(value.contains(bodyParamString), "Expected response body to contain '" + bodyParamString + "', but was '" + value + "'.");
-				assertTrue(value.contains(bodyValueString), "Expected response body to contain '" + bodyValueString + "', but was '" + value + "'.");
-			}
+		for (var entry : jsonResultArray) {
+			// Expecting 3 Strings with the messages in them.
+			String string = entry.toString();
+			returnsCount++;
+			assertTrue(string.contains(bodyParamString), "Expected response body to contain '" + bodyParamString + "', but was '" + string + "'.");
+			assertTrue(string.contains(bodyValueString), "Expected response body to contain '" + bodyValueString + "', but was '" + string + "'.");
 		}
 		assertEquals(3, returnsCount);
 	}
