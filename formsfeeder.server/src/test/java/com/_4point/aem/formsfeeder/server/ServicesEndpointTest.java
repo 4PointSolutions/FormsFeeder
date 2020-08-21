@@ -56,6 +56,7 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
 
+import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -87,7 +88,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 	private static final Path SAMPLE_XDP = SAMPLE_FILES_DIR.resolve("SampleForm.xdp");
 	private static final Path SAMPLE_DATA = SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
 	private static final Path SAMPLE_PDF = SAMPLE_FILES_DIR.resolve("SampleForm.pdf");
-	private static final boolean USE_WIREMOCK = false;
+	private static final boolean USE_WIREMOCK = true;
 	private static final boolean WIREMOCK_RECORDING = false;
 	private static final boolean SAVE_RESULTS = false;
 	static {
@@ -719,48 +720,72 @@ class ServicesEndpointTest implements EnvironmentAware {
 
 	@Test
 	void testInvokePostNoQueryParamsComplexJsonParams() {
-		String expectedParamName1 = "BodyParam1";
-		String expectedParamName2 = "BodyParam2";
+		String bodyParamString = "BodyParam";
+		String expectedParamName1 = bodyParamString + "1";
+		String expectedParamName2 = bodyParamString + "2";
+		String expectedParamName3 = bodyParamString + "3";
+		String expectedParamName4 = bodyParamString + "4";
+		String expectedParamName5 = bodyParamString + "5";
+		String expectedParamName6 = bodyParamString + "6";
 		
-		// TODO: Convert to JSON
-		FormDataMultiPart bodyData = new FormDataMultiPart();
-		bodyData.bodyPart(new FileDataBodyPart(expectedParamName1, SAMPLE_XDP.toFile(), APPLICATION_XDP));	// One with a filename
-		bodyData.field(expectedParamName2, InputStream.nullInputStream(), MediaType.APPLICATION_OCTET_STREAM_TYPE);	// One without a filename
 		
-//		JsonObject jsonData = Json.createObjectBuilder()
-//								  .a
+		double expectedParamValue1 = Double.MIN_VALUE;
+		int expectedParamValue2 = Integer.MIN_VALUE;
+		long expectedParamValue3 = Long.MIN_VALUE;
+		JsonObject jsonData = Json.createObjectBuilder()
+				  .add(expectedParamName1, expectedParamValue1)
+				  .add(expectedParamName2, expectedParamValue2)
+				  .add(expectedParamName3, expectedParamValue3)
+				  .addNull(expectedParamName4)
+				  .add(expectedParamName5, Json.createArrayBuilder().add(1).build())
+				  .add(expectedParamName6, Json.createObjectBuilder().add("foo", "bar").build())
+				  .build();
+		
 		
 		Response response = ClientBuilder.newClient()
 				 .register(MultiPartFeature.class)
 				 .target(uri)
 				 .path(DEBUG_PLUGIN_PATH)
 				 .request()
-				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+				 .post(Entity.json(jsonData));
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
-		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
-		// TODO: Convert to JSON
-		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
-		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
+		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
+
+		// Expecting a single entry called "Message"
+		assertEquals(1, jsonResultObj.entrySet().size());
+		JsonArray jsonResultArray = jsonResultObj.getJsonArray("Message");
 		int returnsCount = 0;
-		for (Entry<String, List<FormDataBodyPart>> field : fields.entrySet()) {
-			for (var body : field.getValue()) {
-				returnsCount++;
-				assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(body.getMediaType()), "Expected response media type (" + body.getMediaType().toString() + ") to be compatible with 'text/plain'.");
-				String value = body.getEntityAs(String.class);
-				if (value.contains(expectedParamName1)) {
-					assertTrue(value.contains(APPLICATION_XDP.toString()), "Expected response body to contain '" + APPLICATION_XDP.toString() + "', but was '" + value + "'.");
-					assertTrue(value.contains(SAMPLE_XDP.getFileName().toString()), "Expected response body to contain '" + SAMPLE_XDP.getFileName().toString() + "', but was '" + value + "'.");
-				} else if (value.contains(expectedParamName2)) {
-					assertTrue(value.contains(MediaType.APPLICATION_OCTET_STREAM), "Expected response body to contain '" + MediaType.APPLICATION_OCTET_STREAM + "', but was '" + value + "'.");
-				} else {
-					fail("Unexpected response '" + value + "'.");
-				}
+		for (var entry : jsonResultArray) {
+			// Expecting 3 Strings with the messages in them.
+			String value = entry.toString();
+			returnsCount++;
+			if (value.contains(expectedParamName1)) {
+				CharSequence expectedBodyParamValue = Double.toString(Double.MIN_VALUE);
+				assertTrue(value.contains(expectedBodyParamValue), "Expected response body to contain '" + expectedBodyParamValue + "', but was '" + value + "'.");
+			} else if (value.contains(expectedParamName2)) {
+				CharSequence expectedBodyParamValue = Integer.toString(Integer.MIN_VALUE);
+				assertTrue(value.contains(expectedBodyParamValue), "Expected response body to contain '" + expectedBodyParamValue + "', but was '" + value + "'.");
+			} else if (value.contains(expectedParamName3)) {
+				CharSequence expectedBodyParamValue = Long.toString(Long.MIN_VALUE);
+				assertTrue(value.contains(expectedBodyParamValue), "Expected response body to contain '" + expectedBodyParamValue + "', but was '" + value + "'.");
+			} else if (value.contains(expectedParamName4)) {
+				CharSequence expectedBodyParamValue = StandardMimeTypes.APPLICATION_OCTET_STREAM_STR;
+				assertTrue(value.contains(expectedBodyParamValue), "Expected response body to contain '" + expectedBodyParamValue + "', but was '" + value + "'.");
+			} else if (value.contains(expectedParamName5)) {
+				CharSequence expectedBodyParamValue = StandardMimeTypes.APPLICATION_VND_4POINT_DATASOURCELIST_STR;
+				assertTrue(value.contains(expectedBodyParamValue), "Expected response body to contain '" + expectedBodyParamValue + "', but was '" + value + "'.");
+			} else if (value.contains(expectedParamName6)) {
+				CharSequence expectedBodyParamValue = StandardMimeTypes.APPLICATION_VND_4POINT_DATASOURCELIST_STR;
+				assertTrue(value.contains(expectedBodyParamValue), "Expected response body to contain '" + expectedBodyParamValue + "', but was '" + value + "'.");
+			} else {
+				fail("Unexpected response '" + value + "'.");
 			}
 		}
-		assertEquals(2, returnsCount);
+		assertEquals(6, returnsCount);
 	}
 
 	@Test
@@ -793,7 +818,6 @@ class ServicesEndpointTest implements EnvironmentAware {
 		
 		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
 
-		
 		// Expecting a single entry called "Message"
 		assertEquals(1, jsonResultObj.entrySet().size());
 		JsonArray jsonResultArray = jsonResultObj.getJsonArray("Message");
@@ -821,9 +845,9 @@ class ServicesEndpointTest implements EnvironmentAware {
 		String expectedQueryParamName3 = queryParamString + "3";
 		String expectedQueryParamValue3 = expectedQueryParamName3 + " " + queryValueString;
 		
-		// TODO: Convert to JSON
-		FormDataMultiPart bodyData = new FormDataMultiPart();
-		bodyData.field(expectedBodyParamName, expectedBodyParamValue);
+		JsonObject jsonData = Json.createObjectBuilder()
+				  .add(expectedBodyParamName, expectedBodyParamValue)
+				  .build();
 		
 		Response response = ClientBuilder.newClient()
 				 .register(MultiPartFeature.class)
@@ -833,30 +857,28 @@ class ServicesEndpointTest implements EnvironmentAware {
 				 .queryParam(expectedQueryParamName2, expectedQueryParamValue2)
 				 .queryParam(expectedQueryParamName3, expectedQueryParamValue3)
 				 .request()
-				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+				 .post(Entity.json(jsonData));
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
-		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
-		// TODO: Convert to JSON
-		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
-		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
+		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
+
+		// Expecting a single entry called "Message"
+		assertEquals(1, jsonResultObj.entrySet().size());
+		JsonArray jsonResultArray = jsonResultObj.getJsonArray("Message");
 		int returnsCount = 0;
-		for (Entry<String, List<FormDataBodyPart>> field : fields.entrySet()) {
-			for (var body : field.getValue()) {
-				returnsCount++;
-				
-				MediaType mediaType = body.getMediaType();
-				assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(mediaType), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
-				String value = body.getEntityAs(String.class);
-				if (value.contains("Body")) {
-					assertTrue(value.contains(expectedBodyParamName), "Expected response body to contain '" + expectedBodyParamName + "', but was '" + value + "'.");
-					assertTrue(value.contains(expectedBodyParamValue), "Expected response body to contain '" + expectedBodyParamValue + "', but was '" + value + "'.");
-				} else {
-					assertTrue(value.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + value + "'.");
-					assertTrue(value.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + value + "'.");
-				}
+		for (var entry : jsonResultArray) {
+			// Expecting 3 Strings with the messages in them.
+			String value = entry.toString();
+			returnsCount++;
+			if (value.contains("Body")) {
+				assertTrue(value.contains(expectedBodyParamName), "Expected response body to contain '" + expectedBodyParamName + "', but was '" + value + "'.");
+				assertTrue(value.contains(expectedBodyParamValue), "Expected response body to contain '" + expectedBodyParamValue + "', but was '" + value + "'.");
+			} else {
+				assertTrue(value.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + value + "'.");
+				assertTrue(value.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + value + "'.");
 			}
 		}
 		assertEquals(4, returnsCount);
@@ -873,7 +895,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 		String expectedBodyParamName3 = bodyParamString + "3";
 		String expectedBodyParamValue3 = expectedBodyParamName3 + " " + bodyValueString;
 		String expectedBodyParamName4 = bodyParamString + "4";
-		InputStream expectedBodyParamValue4 = (InputStream)(new ByteArrayInputStream("<root>Body Text Value</root>".getBytes(StandardCharsets.UTF_8)));
+		Boolean expectedBodyParamValue4 = Boolean.TRUE;
 
 		String queryParamString = "QueryParam";
 		String queryValueString = "Value";
@@ -884,13 +906,15 @@ class ServicesEndpointTest implements EnvironmentAware {
 		String expectedParamName3 = queryParamString + "3";
 		String expectedParamValue3 = expectedParamName3 + " " + queryValueString;
 
-		// TODO: Convert to JSON
-		FormDataMultiPart bodyData = new FormDataMultiPart();
-		bodyData.field(expectedBodyParamName1, expectedBodyParamValue1);
-		bodyData.field(expectedBodyParamName2, expectedBodyParamValue2);
-		bodyData.field(expectedBodyParamName3, expectedBodyParamValue3);
-		bodyData.field(expectedBodyParamName4, expectedBodyParamValue4, MediaType.APPLICATION_XML_TYPE);
+		JsonObject jsonData = Json.createObjectBuilder()
+				  .add(expectedBodyParamName1, expectedBodyParamValue1)
+				  .add(expectedBodyParamName2, expectedBodyParamValue2)
+				  .add(expectedBodyParamName3, expectedBodyParamValue3)
+				  .add(expectedBodyParamName4, expectedBodyParamValue4)
+				  .build();
+		
 
+		
 		Response response = ClientBuilder.newClient()
 				 .register(MultiPartFeature.class)
 				 .target(uri)
@@ -899,35 +923,34 @@ class ServicesEndpointTest implements EnvironmentAware {
 				 .queryParam(expectedParamName2, expectedParamValue2)
 				 .queryParam(expectedParamName3, expectedParamValue3)
 				 .request()
-				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+				 .post(Entity.json(jsonData));
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
-		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
-		// TODO: Convert to JSON
-		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
-		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
+		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
+
+		// Expecting a single entry called "Message"
+		assertEquals(1, jsonResultObj.entrySet().size());
+		JsonArray jsonResultArray = jsonResultObj.getJsonArray("Message");
 		int returnsCount = 0;
-		for (Entry<String, List<FormDataBodyPart>> field : fields.entrySet()) {
-			for (var body : field.getValue()) {
-				returnsCount++;
-				
-				MediaType mediaType = body.getMediaType();
-				assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(mediaType), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
-				String value = body.getEntityAs(String.class);
-				if (value.contains("Body")) {
-					if (value.contains("BodyParam4")) {
-						// Look for the XML parameter
-						
-					} else {
-						assertTrue(value.contains(bodyParamString), "Expected response body to contain '" + bodyParamString + "', but was '" + value + "'.");
-						assertTrue(value.contains(bodyValueString), "Expected response body to contain '" + bodyValueString + "', but was '" + value + "'.");
-					}
+		for (var entry : jsonResultArray) {
+			// Expecting 3 Strings with the messages in them.
+			String value = entry.toString();
+			returnsCount++;
+			if (value.contains("Body")) {
+				if (value.contains("BodyParam4")) {
+					// Look for the XML parameter
+					assertTrue(value.contains(bodyParamString), "Expected response body to contain '" + bodyParamString + "', but was '" + value + "'.");
+					assertTrue(value.contains("true"), "Expected response body to contain '" + "true" + "', but was '" + value + "'.");
 				} else {
-					assertTrue(value.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + value + "'.");
-					assertTrue(value.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + value + "'.");
+					assertTrue(value.contains(bodyParamString), "Expected response body to contain '" + bodyParamString + "', but was '" + value + "'.");
+					assertTrue(value.contains(bodyValueString), "Expected response body to contain '" + bodyValueString + "', but was '" + value + "'.");
 				}
+			} else {
+				assertTrue(value.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + value + "'.");
+				assertTrue(value.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + value + "'.");
 			}
 		}
 		assertEquals(7, returnsCount);
