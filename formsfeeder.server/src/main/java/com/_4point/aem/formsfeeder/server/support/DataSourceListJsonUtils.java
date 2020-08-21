@@ -3,10 +3,13 @@ package com._4point.aem.formsfeeder.server.support;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Base64.Encoder;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import javax.json.Json;
@@ -95,36 +98,53 @@ public class DataSourceListJsonUtils {
 	 * @return FormDataMultipart
 	 */
 	public static JsonObject asJson(final DataSourceList dataSourceList, Logger logger) {
-		return asJsonObjectBuilder(dataSourceList.list(), logger).build();
-	}
-
-	// Define an interface that we will use for both JsonObjects and JsonArrays for adding children
-	private static interface JsonParent {
-		void add(JsonObjectBuilder objBuilder);
-		void add(JsonArrayBuilder arrayConsumer);
-		void add(String str);
-		// Ideally we would add other add() methods for other kinds of objects but we're not quite there yet.
-	}
-	
-	private static JsonObjectBuilder asJsonObjectBuilder(final List<DataSource> dataSourceList, Logger logger) {
 		JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
-		dataSourceList.forEach(ds->addAsJsonObject(toJsonParent(jsonBuilder, ds.name()), ds, logger));
-		return jsonBuilder;
+		addDslToJsonObject(jsonBuilder, dataSourceList.list(), logger);
+		return jsonBuilder.build();
 	}
 
-	private static JsonArrayBuilder asJsonArrayBuilder(final List<DataSource> dataSourceList, Logger logger) {
-		JsonArrayBuilder jsonBuilder = Json.createArrayBuilder();
-		dataSourceList.forEach(ds->addAsJsonObject(toJsonParent(jsonBuilder), ds, logger));
-		return jsonBuilder;
+	// Adds a list of DataSources into JsonObject using a JsonObjectBuilder. 
+	private static void addDslToJsonObject(JsonObjectBuilder jsonObjBuilder, final List<DataSource> dataSourceList, Logger logger) {
+		// Create a LinkedHashMap with all the datasources indexed by datasource name
+		LinkedHashMap<String, List<DataSource>> childList = new LinkedHashMap<>(dataSourceList.size() + dataSourceList.size()/4);	// create it with some size to spare.
+		dataSourceList.forEach(ds->childList.compute(ds.name(), (k,v)->addItem(ds, v)));	// populates the map, maintaining lists where there are duplicate names.
+		
+		// Loop through the child list, if there's only one entry call addAsJsonObject otherwise create an JsonArray and add it.
+		for (List<DataSource> child : childList.values()) {
+			DataSource firstDs = child.get(0);
+			if (child.size() > 1) {
+				JsonArrayBuilder jsonBuilder = Json.createArrayBuilder();
+				JsonParent arrayParent = toJsonParent(jsonBuilder);
+				child.forEach(ds->addtoJsonParent(arrayParent, ds, logger));
+				jsonObjBuilder.add(firstDs.name(), jsonBuilder);
+			} else {
+				if (firstDs.name().isBlank()) {
+					throw new IllegalArgumentException("DataSources contained in JsonObjects cannot have a blank name.");
+				}
+					// Get the one and only DataSource in the list.
+				JsonParent objectParent = toJsonParent(jsonObjBuilder, firstDs.name());
+				addtoJsonParent(objectParent, firstDs, logger);
+			}
+		}
 	}
 
-	private static void addAsJsonObject(JsonParent jsonParent, final DataSource dataSource, Logger logger) {
+	// Called from addDslToJsonObject() to add an DataSource to a List of DataSoUrces (allocates the list if it doesn't already exist).
+	private static List<DataSource> addItem(DataSource ds, List<DataSource> list) {
+		if (list == null) {	 
+			list = new ArrayList<>();
+		}
+		list.add(ds);
+		return list;
+	}
+
+	// Adds a single DataSource into an JsonObject or JsonArray. 
+	private static void addtoJsonParent(JsonParent jsonParent, final DataSource dataSource, Logger logger) {
 		try {
 			switch(dataSource.contentType().asTypeString()) {
 			case XmlDataSourceListDecoder.DSL_MIME_TYPE_STR:
 				XmlDataSourceListDecoder.wrap(dataSource.inputStream())
 										.decode()
-										.ifPresent(dsl->asJsonObjectOrArray(jsonParent, dsl.list(), logger));
+										.ifPresent(dsl->addToJsonParent(jsonParent, dsl, logger));
 				break;
 			case StandardMimeTypes.TEXT_PLAIN_STR:
 				Charset charset = dataSource.contentType().charset();
@@ -140,23 +160,34 @@ public class DataSourceListJsonUtils {
 		}
 	}
 	
-	private static void asJsonObjectOrArray(JsonParent jsonParent, final List<DataSource> dataSourceList, Logger logger) {
-		// Partition the list into two lists, one containing entries with a blank name and one without
-		Map<Boolean, List<DataSource>> partitionedLists = dataSourceList.stream().collect(Collectors.partitioningBy(ds->ds.name().isBlank()));
-		
-		// Add the blank-named entries into a Json array 
-		List<DataSource> arrayList = partitionedLists.get(Boolean.TRUE);
-		if (!arrayList.isEmpty()) {
-			jsonParent.add(asJsonArrayBuilder(arrayList, logger));
-		}
-		
-		// Add the non-blank-named entries into Json object
-		List<DataSource> objectList = partitionedLists.get(Boolean.FALSE);
-		if (!objectList.isEmpty()) {
-			jsonParent.add(asJsonObjectBuilder(objectList, logger));
+	// Add a DataSourceList into an JsonObject or JsonArray.
+	private static void addToJsonParent(JsonParent jsonParent, final DataSourceList dataSourceList, Logger logger) {
+		if (dataSourceList.stream().filter(Predicate.not(d->d.name().isBlank())).count() == 0) {
+			JsonArrayBuilder jsonBuilder = Json.createArrayBuilder();
+			addDslToJsonArray(jsonBuilder, dataSourceList.list(), logger);
+			jsonParent.add(jsonBuilder);
+		} else {
+			JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+			addDslToJsonObject(jsonBuilder, dataSourceList.list(), logger);
+			jsonParent.add(jsonBuilder);
 		}
 	}
+
+	// Only called when an DataSourceList full of DataSources with no name.
+	private static void addDslToJsonArray(JsonArrayBuilder jsonArrayBuilder, final List<DataSource> dataSourceList, Logger logger) {
+			JsonParent arrayParent = toJsonParent(jsonArrayBuilder);
+			dataSourceList.forEach(ds->addtoJsonParent(arrayParent, ds, logger));
+	}
 	
+	// Define an interface that we will use for both JsonObjects and JsonArrays for adding children
+	private static interface JsonParent {
+		void add(JsonObjectBuilder objBuilder);
+		void add(JsonArrayBuilder arrayConsumer);
+		void add(String str);
+		// Ideally we would add other add() methods for other kinds of objects but we're not quite there yet.
+	}
+
+	// Construct a JsonParent that is backed by a JsonObject
 	private static JsonParent toJsonParent(JsonObjectBuilder builder, String name) {
 		return new JsonParent() {
 			@Override
@@ -176,6 +207,7 @@ public class DataSourceListJsonUtils {
 		};
 	}
 
+	// Construct a JsonParent that is backed by a JsonArray
 	private static JsonParent toJsonParent(JsonArrayBuilder builder) {
 		return new JsonParent() {
 			@Override

@@ -141,11 +141,12 @@ class DataSourceListJsonUtilsTest {
 	@Test
 	void testAsJson() {
 		
+		// A DataSourceList with no names in it is treated as an Array.
 		DataSourceList nestedJsonArrayDsl = DataSourceList.builder() 	// Order of entries matters for test verification
 				  .add("", BOOLEAN_DATA)
 				  .add("", BYTE_ARRAY_DATA)
 				  .add("", DOUBLE_DATA)
-//				  .add(name, f)		// Float
+//				  .add("", f)		// Float
 				  .add("", INTEGER_DATA)
 				  .add("", LONG_DATA)
 //				  .add("", p)		// Path
@@ -153,6 +154,7 @@ class DataSourceListJsonUtilsTest {
 				  .build();
 
 		DataSourceList nestedJsonObjDsl = DataSourceList.builder()
+											  .add(STRING_DATA_STR, STRING_DATA)
 											  .add(BOOLEAN_DATA_STR, BOOLEAN_DATA)
 											  .add(BYTE_ARRAY_DATA_STR, BYTE_ARRAY_DATA)
 											  .add(DOUBLE_DATA_STR, DOUBLE_DATA)
@@ -160,24 +162,11 @@ class DataSourceListJsonUtilsTest {
 											  .add(INTEGER_DATA_STR, INTEGER_DATA)
 											  .add(LONG_DATA_STR, LONG_DATA)
 //											  .add(name, p)		// Path
-											  .add(STRING_DATA_STR, STRING_DATA)
 											  .build();
-
-		DataSourceList jsonArrayDsl = DataSourceList.builder()	// Order of entries matters for test verification
-				  .add("", BOOLEAN_DATA)
-				  .add("", BYTE_ARRAY_DATA)
-				  .add("", DOUBLE_DATA)
-//				  .add(name, f)		// Float
-				  .add("", INTEGER_DATA)
-				  .add("", LONG_DATA)
-//				  .add("", p)		// Path
-				  .add("", STRING_DATA)
-				  .add("", nestedJsonObjDsl)	// DataSourceList of JSON Object
-				  .add("", nestedJsonArrayDsl)	// DataSourceList of JSON Array
-				  .build();
 
 		DataSourceList jsonObjDsl = DataSourceList.builder()
 											  .add(BOOLEAN_DATA_STR, BOOLEAN_DATA)
+											  .add(STRING_DATA_STR, STRING_DATA)
 											  .add(BYTE_ARRAY_DATA_STR, BYTE_ARRAY_DATA)
 											  .add(NESTED_JSON_OBJECT_DATA_STR, nestedJsonObjDsl)	// DataSourceList of JSON Object
 											  .add(NESTED_JSON_ARRAY_DATA_STR, nestedJsonArrayDsl)	// DataSourceList of JSON Array
@@ -186,26 +175,44 @@ class DataSourceListJsonUtilsTest {
 											  .add(INTEGER_DATA_STR, INTEGER_DATA)
 											  .add(LONG_DATA_STR, LONG_DATA)
 //											  .add(name, p)		// Path
-											  .add(STRING_DATA_STR, STRING_DATA)
+											  .add(JSON_ARRAY_DATA_STR, BOOLEAN_DATA)
+											  .add(JSON_ARRAY_DATA_STR, BYTE_ARRAY_DATA)
+											  .add(JSON_ARRAY_DATA_STR, DOUBLE_DATA)
+//											  .add(JSON_ARRAY_DATA_STR, f)		// Float
+											  .add(JSON_ARRAY_DATA_STR, INTEGER_DATA)
+											  .add(JSON_ARRAY_DATA_STR, LONG_DATA)
+//											  .add(JSON_ARRAY_DATA_STR, p)		// Path
+											  .add(JSON_ARRAY_DATA_STR, STRING_DATA)
+											  .add(JSON_ARRAY_DATA_STR, nestedJsonObjDsl)	// DataSourceList of JSON Object
+											  .add(JSON_ARRAY_DATA_STR, nestedJsonArrayDsl)	// DataSourceList of JSON Array
 											  .build();
 
 		DataSourceList srcDsl = DataSourceList.builder()
 				  .add(BOOLEAN_DATA_STR, BOOLEAN_DATA)
 				  .add(BYTE_ARRAY_DATA_STR, BYTE_ARRAY_DATA)
 				  .add(JSON_OBJECT_DATA_STR, jsonObjDsl)	// DataSourceList of JSON Object
-				  .add(JSON_ARRAY_DATA_STR, jsonArrayDsl)	// DataSourceList of JSON Array
 				  .add(DOUBLE_DATA_STR, DOUBLE_DATA)
 //				  .add(name, f)		// Float
 				  .add(INTEGER_DATA_STR, INTEGER_DATA)
 				  .add(LONG_DATA_STR, LONG_DATA)
 //				  .add(name, p)		// Path
 				  .add(STRING_DATA_STR, STRING_DATA)
+				  .add(JSON_ARRAY_DATA_STR, BOOLEAN_DATA)		// Multiple Objects with the same name is treated as an array. 
+				  .add(JSON_ARRAY_DATA_STR, BYTE_ARRAY_DATA)
+				  .add(JSON_ARRAY_DATA_STR, DOUBLE_DATA)
+//				  .add(JSON_ARRAY_DATA_STR, f)		// Float
+				  .add(JSON_ARRAY_DATA_STR, INTEGER_DATA)
+				  .add(JSON_ARRAY_DATA_STR, LONG_DATA)
+//				  .add(JSON_ARRAY_DATA_STR, p)		// Path
+				  .add(JSON_ARRAY_DATA_STR, STRING_DATA)
+				  .add(JSON_ARRAY_DATA_STR, nestedJsonObjDsl)	// DataSourceList of JSON Object
+				  .add(JSON_ARRAY_DATA_STR, nestedJsonArrayDsl)	// DataSourceList of JSON Array
 				  .build();
 		
 		JsonObject result = asJson(srcDsl, logger);
 		
 		assertNotNull(result);
-//		System.out.println(result.toString());
+		System.out.println(result.toString());
 		
 
 		validateJsonObjectScalarContents(result);
