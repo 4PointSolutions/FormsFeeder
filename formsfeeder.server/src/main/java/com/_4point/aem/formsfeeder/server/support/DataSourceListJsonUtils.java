@@ -92,6 +92,16 @@ public class DataSourceListJsonUtils {
 	/**
 	 * Convert a DataSourceList to a Json object.
 	 * 
+	 * This should produce a relatively intuitive JSON structure based on the structure of the DataSourceList.
+	 * 
+	 * It follows the following rules:
+	 *   * DataSourceLists get turned into JSON objects (with one exception, see below)
+	 *   * Within a DataSourceList, each data source with a unique name is turned into an property of the enclosing JSON object
+	 *   * Within a DataSourceList, if there are multiple data sources with the same name, they are turned into an array property with that name.
+	 *   * Within a JSON Array, a DataSourceList that contains entries that have empty Strings for names, that will be added as an array, otherwise
+	 *     it will be added as a JsonObject.  (So if the DataSourceList contains entries with the same non-empty names, they will be turned into
+	 *     a child array of the JsonObject.)
+	 * 
 	 * @param dataSourceList
 	 * @return FormDataMultipart
 	 */
@@ -119,7 +129,7 @@ public class DataSourceListJsonUtils {
 				if (firstDs.name().isBlank()) {
 					throw new IllegalArgumentException("DataSources contained in JsonObjects cannot have a blank name.");
 				}
-					// Get the one and only DataSource in the list.
+				// Get the one and only DataSource in the list.
 				JsonParent objectParent = toJsonParent(jsonObjBuilder, firstDs.name());
 				addtoJsonParent(objectParent, firstDs, logger);
 			}
