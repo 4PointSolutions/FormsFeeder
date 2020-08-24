@@ -191,7 +191,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 	}
 
 	@Test
-	void testInvokeGetManyParams() {
+	void testInvokeGetManyParamsNoAccept() {
 		String queryParamString = "QueryParam";
 		String queryValueString = "Value";
 		String expectedParamName1 = queryParamString + "1";
@@ -211,7 +211,48 @@ class ServicesEndpointTest implements EnvironmentAware {
 				 .get();
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
-		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/json'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		
+		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
+
+		// Expecting a single entry called "Message"
+		assertEquals(1, jsonResultObj.entrySet().size());
+		JsonArray jsonResultArray = jsonResultObj.getJsonArray("Message");
+		int returnsCount = 0;
+		for (var entry : jsonResultArray) {
+			// Expecting 3 Strings with the messages in them.
+			String string = entry.toString();
+			returnsCount++;
+			assertTrue(string.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + string + "'.");
+			assertTrue(string.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + string + "'.");
+		}
+		assertEquals(3, returnsCount);
+	}
+
+	@Test
+	void testInvokeGetManyParamsAcceptMultipartFormdata() {
+		String queryParamString = "QueryParam";
+		String queryValueString = "Value";
+		String expectedParamName1 = queryParamString + "1";
+		String expectedParamValue1 = expectedParamName1 + " " + queryValueString;
+		String expectedParamName2 = queryParamString + "2";
+		String expectedParamValue2 = expectedParamName2 + " " + queryValueString;
+		String expectedParamName3 = queryParamString + "3";
+		String expectedParamValue3 = expectedParamName3 + " " + queryValueString;
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .queryParam(expectedParamName1, expectedParamValue1)
+				 .queryParam(expectedParamName2, expectedParamValue2)
+				 .queryParam(expectedParamName3, expectedParamValue3)
+				 .request()
+				 .accept(MediaType.MULTIPART_FORM_DATA_TYPE)
+				 .get();
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'multipart/form-data'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
 		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
@@ -225,6 +266,47 @@ class ServicesEndpointTest implements EnvironmentAware {
 				assertTrue(value.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + value + "'.");
 				assertTrue(value.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + value + "'.");
 			}
+		}
+		assertEquals(3, returnsCount);
+	}
+
+	@Test
+	void testInvokeGetManyParamsAcceptJson() {
+		String queryParamString = "QueryParam";
+		String queryValueString = "Value";
+		String expectedParamName1 = queryParamString + "1";
+		String expectedParamValue1 = expectedParamName1 + " " + queryValueString;
+		String expectedParamName2 = queryParamString + "2";
+		String expectedParamValue2 = expectedParamName2 + " " + queryValueString;
+		String expectedParamName3 = queryParamString + "3";
+		String expectedParamValue3 = expectedParamName3 + " " + queryValueString;
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .queryParam(expectedParamName1, expectedParamValue1)
+				 .queryParam(expectedParamName2, expectedParamValue2)
+				 .queryParam(expectedParamName3, expectedParamValue3)
+				 .request()
+				 .accept(MediaType.APPLICATION_JSON_TYPE)
+				 .get();
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/json'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		
+		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
+
+		// Expecting a single entry called "Message"
+		assertEquals(1, jsonResultObj.entrySet().size());
+		JsonArray jsonResultArray = jsonResultObj.getJsonArray("Message");
+		int returnsCount = 0;
+		for (var entry : jsonResultArray) {
+			// Expecting 3 Strings with the messages in them.
+			String string = entry.toString();
+			returnsCount++;
+			assertTrue(string.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + string + "'.");
+			assertTrue(string.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + string + "'.");
 		}
 		assertEquals(3, returnsCount);
 	}
@@ -359,7 +441,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 	}
 
 	@Test
-	void testInvokePostOneQueryParamOneBodyParam() {
+	void testInvokePostOneQueryParamOneBodyParamAcceptMultpartFormData() {
 		String expectedParamName = "QueryParam1";
 		String expectedParamValue = "QueryParam1 Value";
 		String expectedBodyText = "Body Text Value";
@@ -369,6 +451,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 				 .path(DEBUG_PLUGIN_PATH)
 				 .queryParam(expectedParamName, expectedParamValue)
 				 .request()
+				 .accept(MediaType.MULTIPART_FORM_DATA_TYPE)
 				 .post(Entity.text(expectedBodyText));
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
@@ -397,7 +480,84 @@ class ServicesEndpointTest implements EnvironmentAware {
 	}
 
 	@Test
-	void testInvokePostManyQueryParamsOneBodyParam() {
+	void testInvokePostOneQueryParamOneBodyParamAcceptJson() {
+		String expectedParamName = "QueryParam1";
+		String expectedParamValue = "QueryParam1 Value";
+		String expectedBodyText = "Body Text Value";
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .queryParam(expectedParamName, expectedParamValue)
+				 .request()
+				 .accept(MediaType.APPLICATION_JSON_TYPE)
+				 .post(Entity.text(expectedBodyText));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/json'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		
+		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
+
+		// Expecting a single entry called "Message"
+		assertEquals(1, jsonResultObj.entrySet().size());
+		JsonArray jsonResultArray = jsonResultObj.getJsonArray("Message");
+		int returnsCount = 0;
+		for (var entry : jsonResultArray) {
+			// Expecting 3 Strings with the messages in them.
+			String value = entry.toString();
+			returnsCount++;
+			if (value.contains(BODY_DS_NAME)) {
+				// Contains the body text because the body of the post was text.
+				assertTrue(value.contains(expectedBodyText), "Expected response body to contain '" + expectedBodyText + "', but was '" + value + "'.");
+			} else {
+				assertTrue(value.contains(expectedParamName), "Expected response body to contain '" + expectedParamName + "', but was '" + value + "'.");
+				assertTrue(value.contains(expectedParamValue), "Expected response body to contain '" + expectedParamValue + "', but was '" + value + "'.");
+			}
+		}
+		assertEquals(2, returnsCount);
+	}
+
+	@Test
+	void testInvokePostOneQueryParamOneBodyParamNoAccept() {
+		String expectedParamName = "QueryParam1";
+		String expectedParamValue = "QueryParam1 Value";
+		String expectedBodyText = "Body Text Value";
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .queryParam(expectedParamName, expectedParamValue)
+				 .request()
+				 .post(Entity.text(expectedBodyText));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/json'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		
+		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
+
+		// Expecting a single entry called "Message"
+		assertEquals(1, jsonResultObj.entrySet().size());
+		JsonArray jsonResultArray = jsonResultObj.getJsonArray("Message");
+		int returnsCount = 0;
+		for (var entry : jsonResultArray) {
+			// Expecting 3 Strings with the messages in them.
+			String value = entry.toString();
+			returnsCount++;
+			if (value.contains(BODY_DS_NAME)) {
+				// Contains the body text because the body of the post was text.
+				assertTrue(value.contains(expectedBodyText), "Expected response body to contain '" + expectedBodyText + "', but was '" + value + "'.");
+			} else {
+				assertTrue(value.contains(expectedParamName), "Expected response body to contain '" + expectedParamName + "', but was '" + value + "'.");
+				assertTrue(value.contains(expectedParamValue), "Expected response body to contain '" + expectedParamValue + "', but was '" + value + "'.");
+			}
+		}
+		assertEquals(2, returnsCount);
+	}
+
+	@Test
+	void testInvokePostManyQueryParamsOneBodyParamAcceptMultpartFormData() {
 		String expectedBodyText = "<root>Body Text Value</root>";
 		String queryParamString = "QueryParam";
 		String queryValueString = "Value";
@@ -415,6 +575,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 				 .queryParam(expectedParamName2, expectedParamValue2)
 				 .queryParam(expectedParamName3, expectedParamValue3)
 				 .request()
+				 .accept(MediaType.MULTIPART_FORM_DATA_TYPE)
 				 .post(Entity.xml(expectedBodyText));
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
@@ -437,6 +598,100 @@ class ServicesEndpointTest implements EnvironmentAware {
 					assertTrue(value.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + value + "'.");
 					assertTrue(value.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + value + "'.");
 				}
+			}
+		}
+		assertEquals(4, returnsCount);
+	}
+
+	@Test
+	void testInvokePostManyQueryParamsOneBodyParamAcceptJson() {
+		String expectedBodyText = "<root>Body Text Value</root>";
+		String queryParamString = "QueryParam";
+		String queryValueString = "Value";
+		String expectedParamName1 = queryParamString + "1";
+		String expectedParamValue1 = expectedParamName1 + " " + queryValueString;
+		String expectedParamName2 = queryParamString + "2";
+		String expectedParamValue2 = expectedParamName2 + " " + queryValueString;
+		String expectedParamName3 = queryParamString + "3";
+		String expectedParamValue3 = expectedParamName3 + " " + queryValueString;
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .queryParam(expectedParamName1, expectedParamValue1)
+				 .queryParam(expectedParamName2, expectedParamValue2)
+				 .queryParam(expectedParamName3, expectedParamValue3)
+				 .request()
+				 .accept(MediaType.APPLICATION_JSON)
+				 .post(Entity.xml(expectedBodyText));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/json'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		
+		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
+
+		// Expecting a single entry called "Message"
+		assertEquals(1, jsonResultObj.entrySet().size());
+		JsonArray jsonResultArray = jsonResultObj.getJsonArray("Message");
+		int returnsCount = 0;
+		for (var entry : jsonResultArray) {
+			// Expecting 3 Strings with the messages in them.
+			String value = entry.toString();
+			returnsCount++;
+			if (value.contains(BODY_DS_NAME)) {
+				// Contains the content type because the body of the post was not text.
+				assertTrue(value.contains(MediaType.APPLICATION_XML), "Expected response body to contain '" + MediaType.APPLICATION_XML + "', but was '" + value + "'.");
+			} else {
+				assertTrue(value.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + value + "'.");
+				assertTrue(value.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + value + "'.");
+			}
+		}
+		assertEquals(4, returnsCount);
+	}
+
+	@Test
+	void testInvokePostManyQueryParamsOneBodyParamNoAccept() {
+		String expectedBodyText = "<root>Body Text Value</root>";
+		String queryParamString = "QueryParam";
+		String queryValueString = "Value";
+		String expectedParamName1 = queryParamString + "1";
+		String expectedParamValue1 = expectedParamName1 + " " + queryValueString;
+		String expectedParamName2 = queryParamString + "2";
+		String expectedParamValue2 = expectedParamName2 + " " + queryValueString;
+		String expectedParamName3 = queryParamString + "3";
+		String expectedParamValue3 = expectedParamName3 + " " + queryValueString;
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .queryParam(expectedParamName1, expectedParamValue1)
+				 .queryParam(expectedParamName2, expectedParamValue2)
+				 .queryParam(expectedParamName3, expectedParamValue3)
+				 .request()
+				 .accept(MediaType.APPLICATION_JSON)
+				 .post(Entity.xml(expectedBodyText));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/json'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		
+		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
+
+		// Expecting a single entry called "Message"
+		assertEquals(1, jsonResultObj.entrySet().size());
+		JsonArray jsonResultArray = jsonResultObj.getJsonArray("Message");
+		int returnsCount = 0;
+		for (var entry : jsonResultArray) {
+			// Expecting 3 Strings with the messages in them.
+			String value = entry.toString();
+			returnsCount++;
+			if (value.contains(BODY_DS_NAME)) {
+				// Contains the content type because the body of the post was not text.
+				assertTrue(value.contains(MediaType.APPLICATION_XML), "Expected response body to contain '" + MediaType.APPLICATION_XML + "', but was '" + value + "'.");
+			} else {
+				assertTrue(value.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + value + "'.");
+				assertTrue(value.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + value + "'.");
 			}
 		}
 		assertEquals(4, returnsCount);

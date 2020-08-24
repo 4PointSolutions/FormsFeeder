@@ -1,0 +1,22 @@
+{
+  "id" : "885e61b8-6817-4a69-9d9c-8ec2f0ee8912",
+  "name" : "api_v1_debug",
+  "request" : {
+    "url" : "/api/v1/Debug?qpName1=qpValue10&qpName2=qpValue20&qpName3=qpValue30",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "base64Body" : "LS1Cb3VuZGFyeV8xNV8xMDAyNjE1MjE0XzE1OTgzMDE5MzA4MTUNCkNvbnRlbnQtVHlwZTogdGV4dC9wbGFpbjtjaGFyc2V0PVVURi04DQpDb250ZW50LURpc3Bvc2l0aW9uOiBmb3JtLWRhdGE7IG5hbWU9Ik1lc3NhZ2UiDQoNCkZvdW5kIGRhdGFzb3VyY2U6IG5hbWU9J3FwTmFtZTEnIHdpdGggdmFsdWUgJ3FwVmFsdWUxMCcgd2l0aCBjb250ZW50VHlwZSAndGV4dC9wbGFpbjsgY2hhcnNldD1VVEYtOCcuDQotLUJvdW5kYXJ5XzE1XzEwMDI2MTUyMTRfMTU5ODMwMTkzMDgxNQ0KQ29udGVudC1UeXBlOiB0ZXh0L3BsYWluO2NoYXJzZXQ9VVRGLTgNCkNvbnRlbnQtRGlzcG9zaXRpb246IGZvcm0tZGF0YTsgbmFtZT0iTWVzc2FnZSINCg0KRm91bmQgZGF0YXNvdXJjZTogbmFtZT0ncXBOYW1lMycgd2l0aCB2YWx1ZSAncXBWYWx1ZTMwJyB3aXRoIGNvbnRlbnRUeXBlICd0ZXh0L3BsYWluOyBjaGFyc2V0PVVURi04Jy4NCi0tQm91bmRhcnlfMTVfMTAwMjYxNTIxNF8xNTk4MzAxOTMwODE1DQpDb250ZW50LVR5cGU6IHRleHQvcGxhaW47Y2hhcnNldD1VVEYtOA0KQ29udGVudC1EaXNwb3NpdGlvbjogZm9ybS1kYXRhOyBuYW1lPSJNZXNzYWdlIg0KDQpGb3VuZCBkYXRhc291cmNlOiBuYW1lPSdxcE5hbWUyJyB3aXRoIHZhbHVlICdxcFZhbHVlMjAnIHdpdGggY29udGVudFR5cGUgJ3RleHQvcGxhaW47IGNoYXJzZXQ9VVRGLTgnLg0KLS1Cb3VuZGFyeV8xNV8xMDAyNjE1MjE0XzE1OTgzMDE5MzA4MTUtLQ0K",
+    "headers" : {
+      "x-correlation-id" : "{{request.headers.x-correlation-id}}",
+      "MIME-Version" : "1.0",
+      "Content-Type" : "multipart/form-data; boundary=Boundary_15_1002615214_1598301930815",
+      "Date" : "Mon, 24 Aug 2020 20:45:30 GMT",
+      "Keep-Alive" : "timeout=60"
+    }
+  },
+  "uuid" : "885e61b8-6817-4a69-9d9c-8ec2f0ee8912",
+  "persistent" : true,
+  "insertionIndex" : 16
+}
