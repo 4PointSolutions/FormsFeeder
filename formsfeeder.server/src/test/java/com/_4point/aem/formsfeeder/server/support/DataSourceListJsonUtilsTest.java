@@ -21,7 +21,9 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 
+import org.json.JSONException;
 import org.junit.jupiter.api.Test;
+import org.skyscreamer.jsonassert.JSONAssert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -266,4 +268,25 @@ class DataSourceListJsonUtilsTest {
 		return count;
 		
 	}
+	
+	@Test
+	void testAsJson_ArraysWithinDictionary() throws Exception {
+		String expectedResult = "{\"arrayEntry1\":[\"Single Array Entry\"],\"arrayEntry2\":[\"Double Array Entry #1\",\"Double Array Entry #2\"],\"arrayEntry3\":[\"Triple Array Entry #1\",\"Triple Array Entry #2\",\"Triple Array Entry #3\"]}";
+		DataSourceList array = DataSourceList.builder().add("", "Single Array Entry").build();
+		DataSourceList array2 = DataSourceList.builder()
+											  .add("", "Double Array Entry #1")
+											  .add("", "Double Array Entry #2")
+											  .build();
+		DataSourceList parent = DataSourceList.builder()
+											  .add("arrayEntry1", array)
+											  .add("arrayEntry2", array2)
+											  .add("arrayEntry3", "Triple Array Entry #1")
+											  .add("arrayEntry3", "Triple Array Entry #2")
+											  .add("arrayEntry3", "Triple Array Entry #3")
+											  .build();
+		JsonObject resultJson = asJson(parent, logger);
+//		System.out.println(resultJson.toString());
+		JSONAssert.assertEquals(expectedResult, resultJson.toString(), false);
+	}
+	
 }
