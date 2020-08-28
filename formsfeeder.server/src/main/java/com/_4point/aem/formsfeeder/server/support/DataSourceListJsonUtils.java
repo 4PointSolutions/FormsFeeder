@@ -34,6 +34,11 @@ public class DataSourceListJsonUtils {
 	/**
 	 * Convert a Json Object into the DataSourceList
 	 * 
+	 * It follows the following rules:
+	 *   * JsonObjects are turned into DataSourceLists
+	 *   * JsonArrays are turned into one or more DataSource entries with the same name (the name of the array entry in the parent object) 
+	 *   * JsonValues are turned into DataSource entries within a DataSourceList
+	 *     
 	 * @param document
 	 * @param logger
 	 * @return
