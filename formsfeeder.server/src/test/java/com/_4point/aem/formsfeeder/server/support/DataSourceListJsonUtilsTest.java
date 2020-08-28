@@ -5,14 +5,20 @@ import static com._4point.aem.formsfeeder.server.support.DataSourceListJsonUtils
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Base64.Decoder;
+import java.util.Base64.Encoder;
 import java.util.List;
 
 import javax.json.Json;
@@ -20,8 +26,9 @@ import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+import javax.json.JsonReader;
+import javax.json.JsonStructure;
 
-import org.json.JSONException;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.slf4j.Logger;
@@ -29,7 +36,9 @@ import org.slf4j.LoggerFactory;
 
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
+import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
+import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 
 class DataSourceListJsonUtilsTest {
 	private final static Logger logger = LoggerFactory.getLogger(DataSourceListJsonUtilsTest.class);
@@ -96,7 +105,7 @@ class DataSourceListJsonUtilsTest {
 		DataSourceList resultDsl = asDataSourceList(jsonData, logger);
 
 		Deconstructor deconstructor = resultDsl.deconstructor();
-		List<DataSource> arrayDsl = deconstructor.getDataSourceListByName(JSON_ARRAY_DATA_STR).get().list();
+		List<DataSource> arrayDsl = deconstructor.getDataSourcesByName(JSON_ARRAY_DATA_STR);
 		DataSourceList jsonObjDsl = deconstructor.getDataSourceListByName(JSON_OBJECT_DATA_STR).get();
 		Deconstructor jsonObjDeconstructor = jsonObjDsl.deconstructor();
 		// Main DataSourceList assertions.
@@ -109,7 +118,7 @@ class DataSourceListJsonUtilsTest {
 				()->assertEquals(LONG_DATA, deconstructor.getLongByName(LONG_DATA_STR).get()),
 				()->assertEquals(STRING_DATA, deconstructor.getStringByName(STRING_DATA_STR).get()),
 				()->assertTrue(deconstructor.getStringByName(NULL_DATA_STR).get().isEmpty()),
-				()->assertEquals(10, resultDsl.size())
+				()->assertEquals(17, resultDsl.size())
 				);
 		
 		// JsonArray assertions.
@@ -140,6 +149,37 @@ class DataSourceListJsonUtilsTest {
 		
 	}
 
+	@Test
+	void testAsDataSourceList_ComplexEmail() throws Exception {
+		final String EMAIL_BODY_NAME = "body";
+		final String ATTACHMENTS_OBJ_NAME = "attachments";
+		final String EMAIL_BCC_NAME = "bcc";
+		final String EMAIL_CC_NAME = "cc";
+		final String EMAIL_TO_NAME = "to";
+		final String EMAIL_FROM_NAME = "from";
+		final String EMAIL_SUBJECT_NAME = "subject";
+		final String ATTACHMENT_CONTENT_TYPE_NAME = "attachmentContentType";
+		final String ATTACHMENT_FILENAME_NAME = "attachmentFilename";
+		final String ATTACHMENT_BYTES_NAME = "attachmentBytes";
+
+		final Path jsonFile = Paths.get("src", "test", "resources", "SampleFiles", "SendEmailIntegrationTest_ComplexEmail.json");
+		JsonObject json = Json.createReader(Files.newInputStream(jsonFile)).readObject();
+		DataSourceList dsl = asDataSourceList(json, logger);
+		
+		Deconstructor deconstructor = dsl.deconstructor();
+		assertEquals(4, deconstructor.getDataSourcesByName(EMAIL_TO_NAME).size(), "Found the wrong number of to fields.");
+		assertEquals(4, deconstructor.getDataSourcesByName(EMAIL_CC_NAME).size(), "Found the wrong number of cc fields.");
+		assertEquals(4, deconstructor.getDataSourcesByName(EMAIL_BCC_NAME).size(), "Found the wrong number of bcc fields.");
+		assertEquals(1, deconstructor.getDataSourcesByName(EMAIL_BODY_NAME).size(), "Found the wrong number of body fields.");
+		assertEquals(1, deconstructor.getDataSourcesByName(EMAIL_FROM_NAME).size(), "Found the wrong number of from fields.");
+		assertEquals(1, deconstructor.getDataSourcesByName(EMAIL_SUBJECT_NAME).size(), "Found the wrong number of subject fields.");
+		List<DataSourceList> attachments = deconstructor.getDataSourceListsByName(ATTACHMENTS_OBJ_NAME);
+		assertEquals(4, attachments.size(), "Found the wrong number of attachments.");
+		for (DataSourceList attachment : attachments) {
+			assertEquals(3, attachment.size(), "Found the wrong number of entries within an attachment.");
+		}
+	}
+	
 	@Test
 	void testAsJson() {
 		
@@ -214,8 +254,6 @@ class DataSourceListJsonUtilsTest {
 		JsonObject result = asJson(srcDsl, logger);
 		
 		assertNotNull(result);
-		System.out.println(result.toString());
-		
 
 		validateJsonObjectScalarContents(result);
 		
@@ -288,5 +326,4 @@ class DataSourceListJsonUtilsTest {
 //		System.out.println(resultJson.toString());
 		JSONAssert.assertEquals(expectedResult, resultJson.toString(), false);
 	}
-	
 }

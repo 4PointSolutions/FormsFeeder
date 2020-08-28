@@ -1,0 +1,45 @@
+{
+	"to": [
+		"recipient1@example.com",
+		"recipient2@example.com",
+		"recipient3@example.com",
+		"recipient4@example.com"
+	],
+	"cc": [
+		"cc_recipient1@example.com",
+		"cc_recipient2@example.com",
+		"cc_recipient3@example.com",
+		"cc_recipient4@example.com"
+	],
+	"bcc": [
+		"bcc_recipient1@example.com",
+		"bcc_recipient2@example.com",
+		"bcc_recipient3@example.com",
+		"bcc_recipient4@example.com"
+	],
+	"body": "Body Text",
+	"from": "fromAddress@example.com",
+	"subject": "Subject Line",
+	"attachments": [
+		{
+			"attachmentBytes": "YXR0YWNobWVudDE=",
+			"attachmentFilename": "attachment1.txt",
+			"attachmentContentType": "text/plain"
+		},
+		{
+			"attachmentBytes": "YXR0YWNobWVudDI=",
+			"attachmentFilename": "attachment2.pdf",
+			"attachmentContentType": "application/pdf"
+		},
+		{
+			"attachmentFilename": "attachment3.doc",
+			"attachmentBytes": "YXR0YWNobWVudDM=",
+			"attachmentContentType": "application/msword"
+		},
+		{
+			"attachmentContentType": "application/octet-stream",
+			"attachmentBytes": "YXR0YWNobWVudDQ=",
+			"attachmentFilename": "attachment4"
+		}
+	]
+}

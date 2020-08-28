@@ -1031,7 +1031,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 				CharSequence expectedBodyParamValue = StandardMimeTypes.APPLICATION_OCTET_STREAM_STR;
 				assertTrue(value.contains(expectedBodyParamValue), "Expected response body to contain '" + expectedBodyParamValue + "', but was '" + value + "'.");
 			} else if (value.contains(expectedParamName5)) {
-				CharSequence expectedBodyParamValue = StandardMimeTypes.APPLICATION_VND_4POINT_DATASOURCELIST_STR;
+				CharSequence expectedBodyParamValue = StandardMimeTypes.TEXT_PLAIN_STR;
 				assertTrue(value.contains(expectedBodyParamValue), "Expected response body to contain '" + expectedBodyParamValue + "', but was '" + value + "'.");
 			} else if (value.contains(expectedParamName6)) {
 				CharSequence expectedBodyParamValue = StandardMimeTypes.APPLICATION_VND_4POINT_DATASOURCELIST_STR;

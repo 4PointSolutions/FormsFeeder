@@ -53,17 +53,12 @@ public class DataSourceListJsonUtils {
 		return builder;
 	}
 	
-	// Add JsonArray
-	private static DataSourceList.Builder addAsDataSource(DataSourceList.Builder builder, String key, JsonArray array, Logger logger) {
-		array.forEach(v->addAsDataSource(builder, "", v, logger));
-		return builder;
-	}
-	
 	// Add JsonValue
 	private static DataSourceList.Builder addAsDataSource(DataSourceList.Builder builder, String key, JsonValue value, Logger logger) {
 		switch (value.getValueType()) {
 		case ARRAY:
-			builder.add(key, addAsDataSource(DataSourceList.builder(), key, value.asJsonArray(), logger).build());
+			JsonArray array = value.asJsonArray();
+			array.forEach(v->addAsDataSource(builder, key, v, logger));
 			break;
 		case OBJECT:
 			builder.add(key, addAsDataSource(DataSourceList.builder(), value.asJsonObject(), logger).build());
