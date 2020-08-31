@@ -18,6 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Base64;
+import java.util.Base64.Decoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -101,6 +103,8 @@ class ServicesEndpointTest implements EnvironmentAware {
 		}
 	}
 
+	private static final Decoder DECODER = Base64.getDecoder();
+	
 	@LocalServerPort
 	private int port;
 
@@ -1373,6 +1377,92 @@ class ServicesEndpointTest implements EnvironmentAware {
 	}
 	
 	@Test
+	void testInvokePost_ReturnDataSourceListPlugin() throws Exception {
+		
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, "ReturnDataSourceList");
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'multipart/form-data'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		
+		//TODO: Further verify the response
+		
+		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
+		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
+		assertEquals(1, fields.size(), "Expected only one top level object");
+		
+		List<FormDataBodyPart> list = fields.get("DslResult");
+		assertEquals(1, list.size());
+		
+		FormDataBodyPart body = list.get(0);
+		MediaType mediaType = body.getMediaType();
+		assertEquals(MediaType.MULTIPART_FORM_DATA_TYPE, mediaType);
+		
+		// Jersey doesn't currently support decoding nested multipart/form-data, so we're not doing any further testing.
+		// If we were the code below would try and validate the contents of the nested multipart/form-data.
+		// For now, I'm not even sure we have a real use-case for this, so I am leaving it out.
+		
+//		FormDataMultiPart innerEntity = (FormDataMultiPart)body.getEntity();
+//		Map<String, List<FormDataBodyPart>> innerFields = innerEntity.getFields();
+//		assertEquals(2, innerFields.size(), "Expected only two embedded objects");
+//		String expectedKey1 = "DslEntry1";
+//		String expectedValue1 = "DslValue1";
+//		String expectedKey2 = "DslEntry2";
+//		String expectedValue2 = "DslValue2";
+//		List<FormDataBodyPart> dslEntry1List = innerFields.get(expectedKey1);
+//		assertEquals(1, dslEntry1List.size(), "Expected only one value for '" + expectedKey1 + "'.");
+//		assertEquals(expectedValue1, dslEntry1List.get(0).getValue(), "Expected value for '" + expectedKey1 + "' to be '" + expectedValue1 + "'.");
+//		List<FormDataBodyPart> dslEntry2List = innerFields.get(expectedKey2);
+//		assertEquals(1, dslEntry2List.size(), "Expected only one value for '" + expectedKey2 + "'.");
+//		assertEquals(expectedValue2, dslEntry2List.get(0).getValue(), "Expected value for '" + expectedKey2 + "' to be '" + expectedValue2 + "'.");
+	}
+				
+	@Test
+	void testInvokePost_ReturnDataSourceListPlugin_Json() throws Exception {
+		
+		JsonObject jsonData = Json.createObjectBuilder()
+				  .add(MOCK_PLUGIN_SCENARIO_NAME, "ReturnDataSourceList")
+				  .build();
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.json(jsonData));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/json'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+
+		// Verify the response contents
+		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
+
+		// Expecting a single entry called "Message"
+		String expectedKey1 = "DslEntry1";
+		String expectedValue1 = "DslValue1";
+		String expectedKey2 = "DslEntry2";
+		String expectedValue2 = "DslValue2";
+		
+		assertEquals(1, jsonResultObj.entrySet().size());
+		JsonObject jsonResultSubObj = jsonResultObj.getJsonObject("DslResult");
+		assertEquals(2, jsonResultSubObj.entrySet().size());
+
+		assertTrue(jsonResultSubObj.containsKey(expectedKey1), "Expected subObject 'DslResult' to contain key '" + expectedKey1 + "'.");
+		assertEquals(expectedValue1, jsonResultSubObj.getString(expectedKey1), "Expected subObject key '" + expectedKey1 + "' to have associated value of '" + expectedValue1 + "'.");
+		assertTrue(jsonResultSubObj.containsKey(expectedKey2), "Expected subObject 'DslResult' to contain key '" + expectedKey2 + "'.");
+		assertEquals(expectedValue2, jsonResultSubObj.getString(expectedKey2), "Expected subObject key '" + expectedKey2 + "' to have associated value of '" + expectedValue2 + "'.");
+	}
+				
+	@Test
 	void testInvokePost_ReturnManyOutputsFromPlugin() throws Exception {
 		
 		FormDataMultiPart bodyData = new FormDataMultiPart();
@@ -1389,6 +1479,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 		assertTrue(MediaType.MULTIPART_FORM_DATA_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
+		// Decode the response and check that it is correct.
 		FormDataMultiPart readEntity = response.readEntity(FormDataMultiPart.class);
 		Map<String, List<FormDataBodyPart>> fields = readEntity.getFields();
 		int returnsCount = 0;
@@ -1396,31 +1487,80 @@ class ServicesEndpointTest implements EnvironmentAware {
 			for (var body : field.getValue()) {
 				returnsCount++;
 				
+				InputStream is = body.getEntityAs(InputStream.class);
 				MediaType mediaType = body.getMediaType();
 				if (APPLICATION_PDF.isCompatible(mediaType)) {
 					ContentDisposition contentDisposition = body.getContentDisposition();
 					assertNotNull(contentDisposition);
 					assertEquals(SAMPLE_PDF.getFileName().toString(), contentDisposition.getFileName());
-					PDDocument pdf = PDDocument.load(body.getEntityAs(InputStream.class));
-					PDDocumentCatalog catalog = pdf.getDocumentCatalog();
-					assertNotNull(pdf);
-					assertNotNull(catalog);
+					validatePdf(is);
 				} else if (MediaType.APPLICATION_XML_TYPE.isCompatible(mediaType)) {
 					ContentDisposition contentDisposition = body.getContentDisposition();
 					assertNotNull(contentDisposition);
 					assertEquals(SAMPLE_DATA.getFileName().toString(), contentDisposition.getFileName());
-					XML xml = new XMLDocument(body.getEntityAs(InputStream.class));
-					assertEquals(2, Integer.valueOf(xml.xpath("count(//form1/*)").get(0)));
+					validateXml(is);
 				} else if (MediaType.APPLICATION_OCTET_STREAM_TYPE.isCompatible(mediaType)) {
 					ContentDisposition contentDisposition = body.getContentDisposition();
 					assertNull(contentDisposition.getFileName());
-					assertArrayEquals("SampleData".getBytes(StandardCharsets.UTF_8), body.getEntityAs(InputStream.class).readAllBytes());
+					assertArrayEquals("SampleData".getBytes(StandardCharsets.UTF_8), is.readAllBytes());
 				} else {
 					fail("Found unexpected mediaType in response '" + mediaType.toString() + "'.");
 				}
 			}
 		}
-		assertEquals(3, returnsCount, "Expected 2 parts in the response.");
+		assertEquals(3, returnsCount, "Expected 3 parts in the response.");
+	}
+
+	private void validateXml(InputStream is) throws IOException {
+		XML xml = new XMLDocument(is);
+		assertEquals(2, Integer.valueOf(xml.xpath("count(//form1/*)").get(0)));
+	}
+
+	private void validatePdf(InputStream is) throws IOException {
+		try (PDDocument pdf = PDDocument.load(is)) {
+			PDDocumentCatalog catalog = pdf.getDocumentCatalog();
+			assertNotNull(pdf);
+			assertNotNull(catalog);
+		}
+	}
+	
+	@Test
+	void testInvokePost_ReturnManyOutputsFromPlugin_Json() throws Exception {
+		JsonObject jsonData = Json.createObjectBuilder()
+				  .add(MOCK_PLUGIN_SCENARIO_NAME, "ReturnManyOutputs")
+				  .build();
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.json(jsonData));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/json'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		
+		// Verify the response contents
+		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
+
+		// Expecting a single entry called "Message"
+		String expectedKey1 = "PdfResult";
+		String expectedKey2 = "XmlResult";
+		String expectedKey3 = "ByteArrayResult";
+		
+		assertEquals(3, jsonResultObj.entrySet().size());
+
+		assertTrue(jsonResultObj.containsKey(expectedKey1), "Expected subObject 'DslResult' to contain key '" + expectedKey1 + "'.");
+		validatePdf(asInputStream(jsonResultObj.getString(expectedKey1)));
+		assertTrue(jsonResultObj.containsKey(expectedKey2), "Expected subObject 'DslResult' to contain key '" + expectedKey2 + "'.");
+		validateXml(asInputStream(jsonResultObj.getString(expectedKey2)));
+		assertTrue(jsonResultObj.containsKey(expectedKey3), "Expected subObject 'DslResult' to contain key '" + expectedKey3 + "'.");
+		assertArrayEquals("SampleData".getBytes(StandardCharsets.UTF_8), asInputStream(jsonResultObj.getString(expectedKey3)).readAllBytes());
+	}
+
+	private InputStream asInputStream(String base64String) {
+		return new ByteArrayInputStream(DECODER.decode(base64String));
 	}
 	
 	// There are a couple of ways to get an environment variable (through Environment or through ApplicationContext to get Environment bean).

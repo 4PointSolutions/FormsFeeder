@@ -38,6 +38,7 @@ import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerInternalErr
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
+import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.server.pf4j.FeedConsumers;
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com._4point.aem.formsfeeder.server.support.DataSourceListJaxRsUtils;
@@ -423,10 +424,10 @@ public class ServicesEndpoint {
 			// Nothing in the response, so return no content.
 	    	logger.debug("Returning no data sources.");
 			return buildResponse(Response.noContent(), correlationId);
-		} else if (dsList.size() == 1) {
-			// One data source, so return the contents in the body of the response.
+		} else if (dsList.size() == 1 && !dsList.get(0).contentType().equals(StandardMimeTypes.APPLICATION_VND_4POINT_DATASOURCELIST_TYPE)) {
+			// One data source that is not a DataSourceList, so return the contents in the body of the response.
 			return buildResponse(DataSourceListJaxRsUtils.asResponseBuilder(outputs.list().get(0), logger), correlationId);
-		} else { // More than one return.
+		} else { // More than one return or a single DataSourceList return.
 			ResponseData responsesData = multiReturnConverter.apply(outputs, logger);
 			return buildResponse(Response.ok(responsesData.data(), responsesData.mediaType()), correlationId);
 		}
