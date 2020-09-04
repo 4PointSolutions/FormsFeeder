@@ -1,0 +1,30 @@
+{
+  "id" : "3c0fd3bd-d400-4819-9036-cc7cecf5a6a1",
+  "name" : "api_v1_debug",
+  "request" : {
+    "url" : "/api/v1/Debug?qpName1=qpValue1&qpName2=qpValue2&qpName3=qpValue3",
+    "method" : "GET",
+    "queryParameters" : {
+      "qpName1" : {
+        "equalTo" : "qpValue1"
+      },
+      "qpName2" : {
+        "equalTo" : "qpValue2"
+      },
+      "qpName3" : {
+        "equalTo" : "qpValue3"
+      }
+    }
+  },
+  "response" : {
+    "status" : 204,
+    "headers" : {
+      "x-correlation-id" : "{{request.headers.x-correlation-id}}",
+      "Date" : "Tue, 30 Jun 2020 20:36:30 GMT",
+      "Keep-Alive" : "timeout=60"
+    }
+  },
+  "uuid" : "3c0fd3bd-d400-4819-9036-cc7cecf5a6a1",
+  "persistent" : true,
+  "insertionIndex" : 13
+}

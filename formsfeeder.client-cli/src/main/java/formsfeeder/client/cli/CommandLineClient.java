@@ -5,10 +5,13 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
+import formsfeeder.client.cli.parameters.AuthParameters.BasicAuthParameters;
 import org.apache.commons.cli.ParseException;
 
 
@@ -32,20 +35,38 @@ public class CommandLineClient {
 	public static void mainline(String[] args, InputStream in, PrintStream out, PrintStream err, FileSystem destFileSystem) {
 		try {
 			AppParameters cliParameters = CommandLineAppParameters.parseArgs(args);
-			
+
 			if (!cliParameters.verbose()) {	// If not verbose, then disable the INFO messages from FormsFeederClient object.
 				Logger clientLogger = Logger.getLogger("formsfeeder.client.FormsFeederClient");	// Turn off the INFO logging in FormsFeederClient id .
 				clientLogger.setLevel(Level.WARNING);
 			}
 			
-			
 			HostParameters hostParams = cliParameters.hostParameters();
-			FormsFeederClient ffClient = FormsFeederClient.builder()
+			FormsFeederClient.Builder ffClientBuilder = FormsFeederClient.builder()
 					  .machineName(hostParams.hostName())
 					  .port(hostParams.hostPort())
 					  .useSsl(hostParams.useSsl())
-					  .plugin(cliParameters.plugin())
-					  .build();	
+					  .plugin(cliParameters.plugin());
+
+			cliParameters.authParameters().ifPresent(
+					authParameters->{
+						if(authParameters instanceof BasicAuthParameters) {
+							ffClientBuilder.basicAuthentication(((BasicAuthParameters)authParameters).username(), ((BasicAuthParameters)authParameters).password());
+						}
+					}
+			);
+
+			cliParameters.contextRoot().ifPresent((contextRoot)->ffClientBuilder.contextRoot(contextRoot));
+
+			cliParameters.queryParams().entrySet().forEach(
+						queryParam -> queryParam.getValue().forEach(value -> ffClientBuilder.addQueryParam(queryParam.getKey(),()->value)));
+
+			cliParameters.headers().ifPresent(
+					(headers)->headers.entrySet().forEach(
+						header -> ffClientBuilder.addHeader(header.getKey(), ()->header.getValue())
+					));
+
+			FormsFeederClient ffClient = ffClientBuilder.build();
 
 			DataSourceList result = ffClient.accept(asDataSourceList(cliParameters.dataSourceInfos()));
 

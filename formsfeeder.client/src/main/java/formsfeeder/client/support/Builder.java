@@ -1,6 +1,12 @@
 package formsfeeder.client.support;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
 
@@ -21,14 +27,37 @@ public interface Builder {
 
 	public Builder useSsl(boolean useSsl);
 
+	public Builder contextRoot(String contextRoot);
+
 	public Builder clientFactory(Supplier<Client> clientFactory);
 
 	public Builder basicAuthentication(String username, String password);
 
+	public Map<String, List<Supplier<String>>> getQueryParams();
+
+	public Builder addQueryParam(String name, List<Supplier<String>> values);
+
+	public default Builder addQueryParam(String name, Supplier<String> value) {
+		this.addQueryParam(name, Collections.singletonList(value));	// List.of() would be better, but we're in Java 8 land here
+		return this;
+	}
+
+	public default Builder addQueryParam(final String name, final String... value) {
+		this.addQueryParam(name, Arrays.stream(value)
+									   .map(v->(Supplier<String>)(()->v))
+									   .collect(Collectors.toList()));
+		return this;
+	}
+
 	public Builder correlationId(Supplier<String> correlationIdFn);
+
+	public Builder addHeader(String header, Supplier<String> value);
+
+	public Map<String, Supplier<String>> getHeaderMap();
 
 	public Supplier<String> getCorrelationIdFn();
 
 	public WebTarget createLocalTarget();
+
 
 }

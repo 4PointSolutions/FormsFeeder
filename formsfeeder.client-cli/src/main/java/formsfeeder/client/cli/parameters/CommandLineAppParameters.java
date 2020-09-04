@@ -6,10 +6,16 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.AbstractMap;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.cli.CommandLine;
@@ -22,9 +28,15 @@ import org.apache.commons.cli.ParseException;
 
 public class CommandLineAppParameters implements AppParameters {
 	private static final String HOST_LOCATION_SHORT_OPTION = "h";
-	private static final String HOST_LOCATION_LONG_OPTION = "host";	
+	private static final String HOST_LOCATION_LONG_OPTION = "host";
+	private static final String CONTEXT_ROOT_SHORT_OPTION = "cr";
+	private static final String CONTEXT_ROOT_LONG_OPTION = "contextroot";
+	private static final String QUERY_PARAM_SHORT_OPTION = "qp";
+	private static final String QUERY_PARAM_LONG_OPTION = "queryparam";
 	private static final String USER_CREDENTIALS_SHORT_OPTION = "u";
-	private static final String USER_CREDENTIALS_LONG_OPTION = "user";	
+	private static final String USER_CREDENTIALS_LONG_OPTION = "user";
+	private static final String HEADER_SHORT_OPTION = "hdr";
+	private static final String HEADER_LONG_OPTION = "header";
 	private static final String DATA_SOURCE_SHORT_OPTION = "d";
 	private static final String DATA_SOURCE_LONG_OPTION = "data";	
 	private static final String OUTPUT_LOCATION_SHORT_OPTION = "o";
@@ -35,7 +47,10 @@ public class CommandLineAppParameters implements AppParameters {
 	private static final String VERBOSE_LONG_OPTION = "verbose";
 
 	private final HostParameters hostParameters;
+	private final String contextRoot;
+	private final Map<String, List<String>> queryParams;
 	private final AuthParameters authParameters;
+	private final Map<String, String> headers;
 	private final List<DataSourceInfo> dataSourceInfos;
 	private final Path outputPath;
 	private final boolean verbose;
@@ -43,15 +58,22 @@ public class CommandLineAppParameters implements AppParameters {
 	
 	/**
 	 * @param hostLocation
+	 * @param contextRoot
+	 * @param queryParams
 	 * @param authParameters
+	 * @param headers
 	 * @param dataSourceInfos
+	 * @param outputPath
+	 * @param plugin
 	 * @param verbose
-	 * @param plugin 
 	 */
-	private CommandLineAppParameters(HostParameters hostLocation, AuthParameters authParameters, List<DataSourceInfo> dataSourceInfos, Path outputPath, String plugin, boolean verbose) {
+	private CommandLineAppParameters(HostParameters hostLocation, String contextRoot, Map<String, List<String>> queryParams, AuthParameters authParameters, Map<String, String> headers, List<DataSourceInfo> dataSourceInfos, Path outputPath, String plugin, boolean verbose) {
 		super();
 		this.hostParameters = hostLocation;
+		this.contextRoot = contextRoot;
+		this.queryParams = queryParams;
 		this.authParameters = authParameters;
+		this.headers = headers;
 		this.dataSourceInfos = dataSourceInfos;
 		this.outputPath = outputPath;
 		this.plugin = plugin;
@@ -64,9 +86,16 @@ public class CommandLineAppParameters implements AppParameters {
 	}
 
 	@Override
-	public Optional<AuthParameters> authParameters() {
-		return Optional.ofNullable(this.authParameters);
-	}
+	public  Optional<String> contextRoot() { return Optional.ofNullable(this.contextRoot); }
+
+	@Override
+	public Map<String, List<String>> queryParams() { return this.queryParams != null ? this.queryParams : Collections.emptyMap(); }
+
+	@Override
+	public Optional<AuthParameters> authParameters() { return Optional.ofNullable(this.authParameters); }
+
+	@Override
+	public Optional<Map<String, String>> headers() { return Optional.ofNullable(this.headers); }
 
 	@Override
 	public List<DataSourceInfo> dataSourceInfos() {
@@ -92,12 +121,15 @@ public class CommandLineAppParameters implements AppParameters {
 		final Options options = generateOptions();
 		CommandLine cmd = generateCommandLine(options, args);
 		String hostLocation = cmd.getOptionValue(HOST_LOCATION_SHORT_OPTION);
+		String contextRoot = cmd.getOptionValue(CONTEXT_ROOT_SHORT_OPTION);
+		Map<String, List<String>> queryParams = asMultiValueMapParameters(cmd.getOptionValues(QUERY_PARAM_SHORT_OPTION));
 		AuthParameters authParameters = asAuthParameters(cmd.getOptionValue(USER_CREDENTIALS_SHORT_OPTION));
+		Map<String, String> headers = asMapParameters(cmd.getOptionValues(HEADER_SHORT_OPTION));
 		List<DataSourceInfo> dataSourceInfos = asDataSourceInfoList(cmd.getOptionValues(DATA_SOURCE_SHORT_OPTION));
 		Path outputPath = asPath(cmd.getOptionValue(OUTPUT_LOCATION_SHORT_OPTION));
 		String plugin = cmd.getOptionValue(PLUGIN_SHORT_OPTION);
 		boolean verbose = cmd.hasOption(VERBOSE_SHORT_OPTION);
-		return new CommandLineAppParameters(HostParameters.from(hostLocation), authParameters, dataSourceInfos, outputPath, plugin, verbose);
+		return new CommandLineAppParameters(HostParameters.from(hostLocation), contextRoot, queryParams, authParameters, headers, dataSourceInfos, outputPath, plugin, verbose);
 	}
 	
 	private static final AuthParameters asAuthParameters(String authParam) throws ParseException {
@@ -109,7 +141,37 @@ public class CommandLineAppParameters implements AppParameters {
 		}
 		return new AuthParameters.BasicAuthParameters(splitParam[0], splitParam[1]);
 	}
-	
+
+	private static final Map<String,String> asMapParameters(String[] mapParams) {
+		if(mapParams == null || mapParams.length == 0) {
+			return null;
+		}
+		return Arrays.stream(mapParams)
+					 .map(CommandLineAppParameters::asEntry)
+					 .collect(Collectors.toMap(e->e.getKey(), e->e.getValue() ));
+	}
+
+	private static final Map<String,List<String>> asMultiValueMapParameters(String[] mapParams) {
+		if(mapParams == null || mapParams.length == 0) {
+			return null;
+		}
+
+		Map<String,List<String>> params = new HashMap<>();
+		Arrays.stream(mapParams)
+				.map(CommandLineAppParameters::asEntry).forEach(entry -> {
+					if (params.containsKey(entry.getKey())) {
+						params.get(entry.getKey()).add(entry.getValue());
+					} else {
+						List<String> list = new ArrayList<>();
+						list.add(entry.getValue());
+						params.put(entry.getKey(), list);
+					}
+				}
+		);
+
+		return params;
+	}
+
 	private static final List<DataSourceInfo> asDataSourceInfoList(String[] dsParams) {
 		if (dsParams == null || dsParams.length == 0)
 			return null;
@@ -127,7 +189,7 @@ public class CommandLineAppParameters implements AppParameters {
 			return new AbstractMap.SimpleEntry<>(dsParam.substring(0, index).trim(), dsParam.substring(index+1).trim());
 		}
 	}
-	
+
 	private static final Path asPath(String path) {
 		if (path == null)
 			return null;
@@ -146,12 +208,30 @@ public class CommandLineAppParameters implements AppParameters {
 			      .longOpt(HOST_LOCATION_LONG_OPTION)  
 			      .desc("AEM Server Name and Port.")  
 			      .build();
+	   final Option contextRootParam = Option.builder(CONTEXT_ROOT_SHORT_OPTION)
+			      .required(false)
+			      .hasArg(true)
+			      .longOpt(CONTEXT_ROOT_LONG_OPTION)
+			   	  .desc("Context root if not /api/v1/")
+			      .build();
+		final Option queryParam = Option.builder(QUERY_PARAM_SHORT_OPTION)
+				.required(false)
+				.hasArg(true)
+				.longOpt(QUERY_PARAM_LONG_OPTION)
+				.desc("queryParams (paramName=paramValue1")
+				.build();
 	   final Option authParam = Option.builder(USER_CREDENTIALS_SHORT_OPTION)  
 			      .required(false)
 			      .hasArg(true)
 			      .longOpt(USER_CREDENTIALS_LONG_OPTION)  
 			      .desc("User credentials (user:password).")  
 			      .build();
+	   final Option headers = Option.builder(HEADER_SHORT_OPTION)
+			      .required(false)
+				  .hasArg(true)
+				  .longOpt(HEADER_LONG_OPTION)
+				  .desc("Headers (header=value).")
+				  .build();
 	   final Option dataSource = Option.builder(DATA_SOURCE_SHORT_OPTION)  
 			      .required(false)
 			      .hasArg(true)
@@ -179,7 +259,10 @@ public class CommandLineAppParameters implements AppParameters {
 
 	   final Options options = new Options();  
 	   options.addOption(hostLocation);
+	   options.addOption(contextRootParam);
+	   options.addOption(queryParam);
 	   options.addOption(authParam);
+	   options.addOption(headers);
 	   options.addOption(dataSource);
 	   options.addOption(outputLocation);
 	   options.addOption(plugin);
@@ -216,7 +299,7 @@ public class CommandLineAppParameters implements AppParameters {
 	/** 
 	 * Generate usage information with Apache Commons CLI. 
 	 * 
-	 * @param options Instance of Options to be used to prepare 
+	 * @param out Instance of Options to be used to prepare
 	 *    usage formatter. 
 	 * @return HelpFormatter instance that can be used to print 
 	 *    usage information. 
@@ -235,9 +318,9 @@ public class CommandLineAppParameters implements AppParameters {
 
 	/** 
 	 * Generate help information with Apache Commons CLI. 
-	 * 
-	 * @param options Instance of Options to be used to prepare 
-	 *    help formatter. 
+	 *
+	 * @param out Instance of Options to be used to prepare
+	 *    help formatter.
 	 * @return HelpFormatter instance that can be used to print 
 	 *    help information. 
 	 */  

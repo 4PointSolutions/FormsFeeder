@@ -1,10 +1,13 @@
 package formsfeeder.client.support;
 
-import java.util.function.Supplier;
-
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Supplier;
 
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -24,8 +27,11 @@ public class BuilderImpl implements Builder {
 	private String machineName = "localhost";
 	private int port = 4502;
 	private HttpAuthenticationFeature authFeature = null;
+	private Map<String, Supplier<String>> headerMap = new HashMap<>();
 	private boolean useSsl = false;
+	private String contextRoot = "/api/v1/";
 	private Supplier<Client> clientFactory = defaultClientFactory;
+	private Map<String, List<Supplier<String>>> queryParams = new LinkedHashMap<>();	// Linked Hashmap in order to maintain the order.
 	private Supplier<String> correlationIdFn = null;
 
 	public BuilderImpl() {
@@ -51,6 +57,12 @@ public class BuilderImpl implements Builder {
 	}
 
 	@Override
+	public BuilderImpl contextRoot(String contextRoot) {
+		this.contextRoot = contextRoot;
+		return this;
+	}
+
+	@Override
 	public BuilderImpl clientFactory(Supplier<Client> clientFactory) {
 		this.clientFactory = clientFactory;
 		return this;
@@ -61,6 +73,15 @@ public class BuilderImpl implements Builder {
 		this.authFeature = HttpAuthenticationFeature.basic(username, password);
 		return this;
 	}
+
+	@Override
+	public BuilderImpl addQueryParam(String name, List<Supplier<String>> value) {
+		this.queryParams.put(name,value);
+		return this;
+	}
+
+	@Override
+	public Map<String, List<Supplier<String>>> getQueryParams() { return this.queryParams; }
 
 	@Override
 	public BuilderImpl correlationId(Supplier<String> correlationIdFn) {
@@ -74,13 +95,24 @@ public class BuilderImpl implements Builder {
 	}
 
 	@Override
+	public BuilderImpl addHeader(String header, Supplier<String> value) {
+		this.headerMap.put(header, value);
+		return this;
+	}
+
+	@Override
+	public Map<String, Supplier<String>> getHeaderMap() {
+		return this.headerMap;
+	}
+
+	@Override
 	public WebTarget createLocalTarget() {
 		Client client = clientFactory.get();
 		client.register(MultiPartFeature.class);
 		if (this.authFeature != null) {
 			client.register(authFeature);
 		}
-		WebTarget localTarget = client.target("http" + (useSsl ? "s" : "") + "://" + machineName + ":" + Integer.toString(port));
+		WebTarget localTarget = client.target("http" + (useSsl ? "s" : "") + "://" + machineName + ":" + Integer.toString(port) + contextRoot);
 		return localTarget;
 	}
 

@@ -1,5 +1,10 @@
 package formsfeeder.client;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,6 +22,7 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -50,6 +56,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
 
+import formsfeeder.client.support.CorrelationId;
 import formsfeeder.client.FormsFeederClient.FormsFeederClientException;
 
 @ExtendWith(MockitoExtension.class)
@@ -181,7 +188,109 @@ class FormsFeederClientTest {
 	        wireMockServer.stop();
 		}
 	}
-	
+
+	@Test
+	void testAccept_HeadersAdded() throws Exception {
+		if (USE_WIREMOCK) {    // Perform this test when doing unit testing (using wiremock), but skip this test when doing integration testing
+			String correlationId = "correlationId";
+			String headerName1 = "headerName1";
+			String headerValue1 = "headerValue1";
+			String headerName2 = "headerName2";
+			String headerValue2 = "headerValue2";
+
+			FormsFeederClient underTest = FormsFeederClient.builder()
+					.machineName(formsfeederServerName)
+					.port(formsfeederServerPort)
+					.plugin("Debug")
+					.correlationId(() -> correlationId)
+					.addHeader(headerName1, () -> headerValue1)
+					.addHeader(headerName2, () -> headerValue2)
+					.build();
+			DataSourceList result = underTest.accept(DataSourceList.emptyList());
+
+			wireMockServer.verify(getRequestedFor(urlMatching("/api/v1/Debug"))
+					.withHeader(headerName1, matching(headerValue1))
+					.withHeader(headerName2, matching(headerValue2))
+					.withHeader(CorrelationId.CORRELATION_ID_HDR, matching(correlationId)));
+		}
+	}
+
+	@Test
+	void testAccept_MultiValueQueryParams() throws Exception {
+		if (USE_WIREMOCK) {    // Perform this test when doing unit testing (using wiremock), but skip this test when doing integration testing
+			String correlationId = "correlationId";
+			String qpName1 = "qpName1";
+			String qpValue1 = "qpValue1";
+			String qpValue2 = "qpValue2";
+			String qpName2 = "qpName2";
+			String qpValue3 = "qpValue3";
+			String qpValue4 = "qpValue4";
+
+			FormsFeederClient underTest = FormsFeederClient.builder()
+					.machineName(formsfeederServerName)
+					.port(formsfeederServerPort)
+					.plugin("Debug")
+					.correlationId(() -> correlationId)
+					.addQueryParam(qpName1, Arrays.asList(() -> qpValue1,()->qpValue2))
+					.addQueryParam(qpName2, qpValue3, qpValue4)
+					.build();
+			DataSourceList result = underTest.accept(DataSourceList.emptyList());
+
+			wireMockServer.verify(getRequestedFor(urlPathEqualTo("/api/v1/Debug"))
+					.withQueryParam(qpName1,matching(qpValue1) )
+					.withQueryParam(qpName1,matching(qpValue2) )
+					.withQueryParam(qpName2,matching(qpValue3) )
+					.withQueryParam(qpName2,matching(qpValue4) )
+					.withHeader(CorrelationId.CORRELATION_ID_HDR, matching(correlationId)));
+		}
+	}
+
+	@Test
+	void testAccept_QueryParams() throws Exception {
+		if (USE_WIREMOCK) {    // Perform this test when doing unit testing (using wiremock), but skip this test when doing integration testing
+			String correlationId = "correlationId";
+			String qpName1 = "qpName1";
+			String qpValue1 = "qpValue1";
+			String qpName2 = "qpName2";
+			String qpValue2 = "qpValue2";
+			String qpName3 = "qpName3";
+			String qpValue3 = "qpValue3";
+
+			FormsFeederClient underTest = FormsFeederClient.builder()
+					.machineName(formsfeederServerName)
+					.port(formsfeederServerPort)
+					.plugin("Debug")
+					.correlationId(() -> correlationId)
+					.addQueryParam(qpName1, Arrays.asList(() -> qpValue1))	// Use each of the three different addQueryParam overloads 
+					.addQueryParam(qpName2, ()->qpValue2)
+					.addQueryParam(qpName3, qpValue3)
+					.build();
+			DataSourceList result = underTest.accept(DataSourceList.emptyList());
+
+			wireMockServer.verify(getRequestedFor(urlPathEqualTo("/api/v1/Debug"))
+					.withQueryParam(qpName1,matching(qpValue1) )
+					.withQueryParam(qpName2,matching(qpValue2) )
+					.withQueryParam(qpName3,matching(qpValue3) )
+					.withHeader(CorrelationId.CORRELATION_ID_HDR, matching(correlationId)));
+		}
+	}
+
+	@Test
+	void testAccept_CustomContextRoot() throws Exception {
+		if (USE_WIREMOCK) {    // Perform this test when doing unit testing (using wiremock), but skip this test when doing integration testing
+			FormsFeederClient underTest = FormsFeederClient.builder()
+					.machineName(formsfeederServerName)
+					.port(formsfeederServerPort)
+					.plugin("Debug")
+					.contextRoot("/custom/context/root/")
+					.build();
+			DataSourceList result = underTest.accept(DataSourceList.emptyList());
+
+			wireMockServer.verify(getRequestedFor(urlMatching("/custom/context/root/Debug"))
+					.withHeader(CorrelationId.CORRELATION_ID_HDR, matching(underTest.returnedCorrelationId())));
+		}
+	}
+
 	@Test
 	void testAccept_OneParamReturned() throws Exception {
 		String expectedParamName = "Param1";
@@ -191,9 +300,9 @@ class FormsFeederClientTest {
 												  .machineName(formsfeederServerName)
 												  .port(formsfeederServerPort)
 												  .plugin("Debug")
-												  .build();	
+												  .build();
 		DataSourceList result = underTest.accept(DataSourceList.builder().add(expectedParamName,expectedParamValue).build());
-		
+
 		assertNotNull(underTest.returnedCorrelationId());
 		assertFalse(Jdk8Utils.isBlank(underTest.returnedCorrelationId()));
 		assertNotNull(result);
