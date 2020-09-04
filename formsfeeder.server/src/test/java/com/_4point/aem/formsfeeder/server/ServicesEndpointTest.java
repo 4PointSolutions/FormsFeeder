@@ -1,5 +1,9 @@
 package com._4point.aem.formsfeeder.server;
 
+import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.not;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -65,14 +69,15 @@ import com.jcabi.xml.XMLDocument;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
 class ServicesEndpointTest implements EnvironmentAware {
 
-	private static final String ENV_FORMSFEEDER_PLUGINS_AEM_PORT = "formsfeeder.plugins.aemPort";
-	private static final String ENV_FORMSFEEDER_PLUGINS_AEM_HOST = "formsfeeder.plugins.aemHost";
+	private static final String ENV_FORMSFEEDER_AEM_PORT = "formsfeeder.aem.port";
+	private static final String ENV_FORMSFEEDER_AEM_HOST = "formsfeeder.aem.host";
 	private static final MediaType APPLICATION_PDF = new MediaType("application", "pdf");
 	private static final MediaType APPLICATION_XDP = new MediaType("application", "vnd.adobe.xdp+xml");
 	private static final String API_V1_PATH = "/api/v1";
 	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
 	private static final String MOCK_PLUGIN_PATH = API_V1_PATH + "/Mock";
-	private static final String EXAMPLE_PLUGIN_PATH = API_V1_PATH + "/Example";
+	private static final String PDF_PLUGIN_PATH = API_V1_PATH + "/RenderPdf";
+	private static final String HTML5_PLUGIN_PATH = API_V1_PATH + "/RenderHtml5";
 
 	private static final String BODY_DS_NAME = "formsfeeder:BodyBytes";
 	private static final String MOCK_PLUGIN_SCENARIO_NAME = "scenario";
@@ -83,7 +88,19 @@ class ServicesEndpointTest implements EnvironmentAware {
 	private static final Path SAMPLE_XDP = SAMPLE_FILES_DIR.resolve("SampleForm.xdp");
 	private static final Path SAMPLE_DATA = SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
 	private static final Path SAMPLE_PDF = SAMPLE_FILES_DIR.resolve("SampleForm.pdf");
-	private static final boolean USE_WIREMOCK = true;
+
+	/*
+	 * Wiremock is used for unit testing.  It is not used for integration testing with a real AEM instance.
+	 * Set USE_WIREMOCK to false to perform integration testing with a real Forms Feeder instance running on
+	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and 
+	 * formsfeeder.plugins.aemHost settings. 
+	 */
+	private static final boolean USE_WIREMOCK = false;
+	/*
+	 * Set WIREMOCK_RECORDING to true in order to record the interaction with a real FormsFeeder instance running on
+	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and
+	 * formsfeeder.plugins.aemHost settings.  This is useful for recreating the Wiremock Mapping files. 
+	 */
 	private static final boolean WIREMOCK_RECORDING = false;
 	private static final boolean SAVE_RESULTS = false;
 	static {
@@ -114,8 +131,8 @@ class ServicesEndpointTest implements EnvironmentAware {
 	        wireMockServer.start();
 			System.out.println("Inside SetEnvironment wiremock block.");
 			if (WIREMOCK_RECORDING) {
-				String aemBaseUrl = "http://" + environment.getRequiredProperty(ENV_FORMSFEEDER_PLUGINS_AEM_HOST) + ":"
-						+ environment.getRequiredProperty(ENV_FORMSFEEDER_PLUGINS_AEM_PORT);
+				String aemBaseUrl = "http://" + environment.getRequiredProperty(ENV_FORMSFEEDER_AEM_HOST) + ":"
+						+ environment.getRequiredProperty(ENV_FORMSFEEDER_AEM_PORT);
 				System.out.println("Wiremock recording of '" + aemBaseUrl + "'.");
 				wireMockServer.startRecording(aemBaseUrl);
 			}
@@ -126,8 +143,8 @@ class ServicesEndpointTest implements EnvironmentAware {
 				ConfigurableEnvironment env1 = (ConfigurableEnvironment) environment;
 				MutablePropertySources propertySources = env1.getPropertySources();
 				Map<String, Object> myMap = new HashMap<>();
-				myMap.put(ENV_FORMSFEEDER_PLUGINS_AEM_HOST, "localhost");
-				myMap.put(ENV_FORMSFEEDER_PLUGINS_AEM_PORT, wiremockPort);
+				myMap.put(ENV_FORMSFEEDER_AEM_HOST, "localhost");
+				myMap.put(ENV_FORMSFEEDER_AEM_PORT, wiremockPort);
 				propertySources.addFirst(new MapPropertySource("WIREMOCK_MAP", myMap));
 			} else {
 				System.out.println("Unable to write to environment.");
@@ -1012,7 +1029,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 	
 	@ParameterizedTest
 	@EnumSource()
-	void testInvokeExamplePlugin(PdfScenario scenario) throws Exception {
+	void testInvokeExamplePdfPlugin(PdfScenario scenario) throws Exception {
 		final String TEMPLATE_PARAM_NAME = "template";
 		final String DATA_PARAM_NAME = "data";
 		final String INTERACTIVE_PARAM_NAME = "interactive";
@@ -1025,11 +1042,11 @@ class ServicesEndpointTest implements EnvironmentAware {
 		Response response = ClientBuilder.newClient()
 				 .register(MultiPartFeature.class)
 				 .target(uri)
-				 .path(EXAMPLE_PLUGIN_PATH)
+				 .path(PDF_PLUGIN_PATH)
 				 .request()
 				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
 		
-		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + EXAMPLE_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + PDF_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(APPLICATION_PDF.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/pdf'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		assertTrue(response.hasEntity(), "Expected response to have entity");
@@ -1046,7 +1063,35 @@ class ServicesEndpointTest implements EnvironmentAware {
 
 	}
 
+	@Test
+	void testInvokeExampleHtml5Plugin() throws Exception {
+		System.out.println("uri='" + uri.toString() + "' path='" + HTML5_PLUGIN_PATH + "'." );
+		Response response = ClientBuilder.newClient()
+				 .target(uri)
+				 .path(HTML5_PLUGIN_PATH)
+				 .queryParam("template", "crx:/content/dam/formsanddocuments/sample-forms/SampleForm.xdp")
+				 .request()
+				 .get();
 
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + HTML5_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.TEXT_HTML_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/html'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		assertTrue(response.hasEntity(), "Expected response to have entity");
+		byte[] resultBytes = ((InputStream)response.getEntity()).readAllBytes();
+		if (SAVE_RESULTS /* && USE_AEM */) {
+			try (var os = Files.newOutputStream(ACTUAL_RESULTS_DIR.resolve("testInvokeExampleHtml5Plugin_result.html"))) {
+				os.write(resultBytes);;
+			}
+		}
+		// Verify the result;
+		HtmlFormDocument htmlDoc = HtmlFormDocument.create(resultBytes, new URI("http://" + environment.getProperty(ENV_FORMSFEEDER_AEM_HOST) + ":" + environment.getProperty(ENV_FORMSFEEDER_AEM_PORT, "4502")));
+		assertEquals("LC Forms", htmlDoc.getTitle());
+
+		// Make sure the data wasn't populated.
+		String html = new String(resultBytes, StandardCharsets.UTF_8);
+		// Does not contain field data.
+		assertThat(html, not(anyOf(containsString("Text Field1 Data"), containsString("Text Field2 Data"))));
+	}
 	
 	private static URI getBaseUri(int port) throws URISyntaxException {
 		return new URI("http://localhost:" + port);
@@ -1070,7 +1115,6 @@ class ServicesEndpointTest implements EnvironmentAware {
 
 	@Override
 	public void setEnvironment(Environment environment) {
-		System.out.println("Inside SetEnvironment.");
 		this.environment = environment;
 	}
 
