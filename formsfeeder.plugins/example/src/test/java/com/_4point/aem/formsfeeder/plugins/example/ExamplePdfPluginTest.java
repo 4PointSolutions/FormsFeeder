@@ -28,6 +28,7 @@ import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerBadRequestE
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
+import com._4point.aem.formsfeeder.pf4j.spring.EnvironmentConsumer;
 
 class ExamplePdfPluginTest {
 	private static final Path RESOURCES_FOLDER = Paths.get("src", "test", "resources");
@@ -35,10 +36,6 @@ class ExamplePdfPluginTest {
 	private static final Path ACTUAL_RESULTS_DIR = RESOURCES_FOLDER.resolve("ActualResults");
 	private static final Path SAMPLE_XDP = SAMPLE_FILES_DIR.resolve("SampleForm.xdp");
 	private static final Path SAMPLE_DATA = SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
-
-	private static final String AEM_HOST_NAME_ENV = "formsfeeder.plugins.aemHost"; 
-	private static final String AEM_PORT_NAME_ENV = "formsfeeder.plugins.aemPort"; 
-	private static final String AEM_PORT_DEFAULT_VALUE = "4502";
 
 	private static final String TEMPLATE_PARAM_NAME = "template";
 	private static final String DATA_PARAM_NAME = "data";
@@ -221,7 +218,7 @@ class ExamplePdfPluginTest {
 			
 			@Override
 			public String getRequiredProperty(String key) throws IllegalStateException {
-				assertEquals(AEM_HOST_NAME_ENV, key);
+				assertEquals(EnvironmentConsumer.AEM_HOST_ENV_PARAM, key);
 				return aemHostName;
 			}
 			
@@ -237,8 +234,8 @@ class ExamplePdfPluginTest {
 			
 			@Override
 			public String getProperty(String key, String defaultValue) {
-				assertEquals(AEM_PORT_NAME_ENV, key);
-				assertEquals(AEM_PORT_DEFAULT_VALUE, defaultValue);
+				assertEquals(EnvironmentConsumer.AEM_PORT_ENV_PARAM, key);
+				assertEquals("4502", defaultValue);
 				return aemHostPort;
 			}
 			

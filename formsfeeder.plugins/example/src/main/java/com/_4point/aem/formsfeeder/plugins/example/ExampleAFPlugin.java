@@ -10,22 +10,23 @@ import org.pf4j.Extension;
 import org.pf4j.ExtensionPoint;
 import org.springframework.core.env.Environment;
 
+import com._4point.aem.docservices.rest_services.client.af.AdaptiveFormsService;
+import com._4point.aem.docservices.rest_services.client.af.AdaptiveFormsService.AdaptiveFormsServiceException;
 import com._4point.aem.docservices.rest_services.client.helpers.StandardFormsFeederUrlFilters;
-import com._4point.aem.docservices.rest_services.client.html5.Html5FormsService;
-import com._4point.aem.docservices.rest_services.client.html5.Html5FormsService.Html5FormsServiceException;
 import com._4point.aem.fluentforms.api.Document;
 import com._4point.aem.fluentforms.api.DocumentFactory;
 import com._4point.aem.fluentforms.impl.SimpleDocumentFactoryImpl;
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
+import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerInternalErrorException;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
-import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
 import com._4point.aem.formsfeeder.core.datasource.MimeType;
+import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
 import com._4point.aem.formsfeeder.pf4j.spring.EnvironmentConsumer;
 
 @Extension
-public class ExampleHtml5Plugin implements NamedFeedConsumer, EnvironmentConsumer, ExtensionPoint {
+public class ExampleAFPlugin implements NamedFeedConsumer, EnvironmentConsumer, ExtensionPoint {
 
-	private static final String PLUGIN_NAME = "RenderHtml5";
+	private static final String PLUGIN_NAME = "RenderAdaptiveForm";
 
 	private Environment environment;	// Initialized when the plugin is loaded by FeedConsumers.
 	private String aemHostName;			// Pulled from the Environment
@@ -39,27 +40,27 @@ public class ExampleHtml5Plugin implements NamedFeedConsumer, EnvironmentConsume
 	@Override
 	public DataSourceList accept(DataSourceList dataSources) throws FeedConsumerException {
 		
-		ExampleHtml5PluginInputParameters params = ExampleHtml5PluginInputParameters.from(dataSources, docFactorySupplier.get());
+		ExampleAFPluginInputParameters params= ExampleAFPluginInputParameters.from(dataSources, docFactorySupplier.get());
 		
 		try {
-			Html5FormsService html5Service = Html5FormsService.builder()
-															  .machineName(aemHostName())
-															  .port(aemHostPort())
-															  .basicAuthentication(aemUsername(), aemPassword())
-															  .useSsl(false)
-															  // Formsfeeder acts as reverse proxy for AEM, so this fixes up URLs to match the proxied location.
-															  .addRenderResultFilter(StandardFormsFeederUrlFilters::replaceAemUrls)	
-															  .build();
+			AdaptiveFormsService afService = AdaptiveFormsService.builder()
+																  .machineName(aemHostName())
+																  .port(aemHostPort())
+																  .basicAuthentication(aemUsername(), aemPassword())
+																  .useSsl(false)
+																  // Formsfeeder acts as reverse proxy for AEM, so this fixes up URLs to match the proxied location.
+																  .addRenderResultFilter(StandardFormsFeederUrlFilters::replaceAemUrls)
+																  .build();
 
-			Document result = params.getData().isEmpty() ? html5Service.renderHtml5Form(params.getTemplate())
-														 : html5Service.renderHtml5Form(params.getTemplate(), params.getData().get());
-			
+			Document result = params.getData().isEmpty() ? afService.renderAdaptiveForm(params.getTemplate())
+														 : afService.renderAdaptiveForm(params.getTemplate(), params.getData().get());
+
 			return DataSourceList.builder()
-								 .add("Result", result.getInputStream().readAllBytes(), MimeType.of(result.getContentType()))
-								 .build();
-		} catch (Html5FormsServiceException e) {
+					 .add("Result", result.getInputStream().readAllBytes(), MimeType.of(result.getContentType()))
+					 .build();
+		} catch (AdaptiveFormsServiceException e) {
 			String msg = e.getMessage();
-			throw new FeedConsumerInternalErrorException("Error while rendering Html. (" + (msg == null ? e.getClass().getName() : msg) + ").", e);
+			throw new FeedConsumerInternalErrorException("Error while rendering Adaptive Form. (" + (msg == null ? e.getClass().getName() : msg) + ").", e);
 		} catch (IOException e) {
 			String msg = e.getMessage();
 			throw new FeedConsumerInternalErrorException("Error while reading rendered Html.(" + (msg == null ? e.getClass().getName() : msg) + ").", e);
@@ -67,13 +68,13 @@ public class ExampleHtml5Plugin implements NamedFeedConsumer, EnvironmentConsume
 	}
 
 	@Override
-	public void accept(Environment environment) {
-		this.environment = environment;
+	public String name() {
+		return PLUGIN_NAME;
 	}
 
 	@Override
-	public String name() {
-		return PLUGIN_NAME;
+	public void accept(Environment environment) {
+		this.environment = environment;
 	}
 
 	/**
@@ -128,27 +129,22 @@ public class ExampleHtml5Plugin implements NamedFeedConsumer, EnvironmentConsume
 		}
 		return this.aemPassword;
 	}
-
 	/**
 	 * Internal object used for deconstructing the incoming DataSourceList into individual Java objects. 
 	 *
 	 * It has package visibility so that it can be unit tested separately.
 	 */
-	/* package */ static class ExampleHtml5PluginInputParameters {
+	/* package */ static class ExampleAFPluginInputParameters {
 		private static final String TEMPLATE_PARAM_NAME = "template";
 		private static final String DATA_PARAM_NAME = "data";
-		private static final String CONTENT_ROOT_PARAM_NAME = "contentRoot";
-		// private static final String SUBMIT_URL_PARAM_NAME = "submitUrl"; // Not currently supported.
 
 		private final String template;
 		private final Optional<Document> data;
-		private final Optional<String> contentRoot;
 
-		private ExampleHtml5PluginInputParameters(String template, Optional<Document> data, Optional<String> contentRoot) {
+		private ExampleAFPluginInputParameters(String template, Optional<Document> data) {
 			super();
 			this.template = template;
 			this.data = data;
-			this.contentRoot = contentRoot;
 		}
 
 		public final String getTemplate() {
@@ -159,18 +155,13 @@ public class ExampleHtml5Plugin implements NamedFeedConsumer, EnvironmentConsume
 			return data;
 		}
 
-		public final Optional<String> getContentRoot() {
-			return contentRoot;
-		}
-
-		public static ExampleHtml5PluginInputParameters from(DataSourceList dataSourceList, DocumentFactory docFactory) throws FeedConsumerBadRequestException {
+		public static ExampleAFPluginInputParameters from(DataSourceList dataSourceList, DocumentFactory docFactory) throws FeedConsumerBadRequestException {
 			Deconstructor deconstructor = dataSourceList.deconstructor();
 			// Pull the parameters out of the DataSourceList and throw a BadRequestException if they're not there.
 			String templateDoc = deconstructor.getStringByName(TEMPLATE_PARAM_NAME).orElseThrow(()->new FeedConsumerBadRequestException("'" + TEMPLATE_PARAM_NAME + "' Parameter must be supplied."));
 			Optional<Document> dataDoc = deconstructor.getStringByName(DATA_PARAM_NAME).map(Paths::get).map(docFactory::create);
-			Optional<String> contentRoot = deconstructor.getStringByName(CONTENT_ROOT_PARAM_NAME);
 			// Use what we've pulled out to construct the ExampleParameters object.
-			return new ExampleHtml5PluginInputParameters(templateDoc, dataDoc, contentRoot);
+			return new ExampleAFPluginInputParameters(templateDoc, dataDoc);
 		}
 		
 	}
