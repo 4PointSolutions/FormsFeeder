@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com._4point.aem</groupId>
 		<artifactId>formsfeeder.plugins</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.0.1</version>
 	</parent>
 	<artifactId>example</artifactId>
 	<name>Example Plug-in</name>
@@ -121,12 +121,12 @@
 		<dependency>
 			<groupId>com._4point.aem</groupId>
 			<artifactId>fluentforms.core</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.0.1</version>
 		</dependency>
 		<dependency>
 			<groupId>com._4point.aem.docservices</groupId>
 			<artifactId>rest-services.client</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>0.0.1</version>
 		</dependency>
 	</dependencies>
 
