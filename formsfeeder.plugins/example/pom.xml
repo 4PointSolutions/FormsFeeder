@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com._4point.aem</groupId>
 		<artifactId>formsfeeder.plugins</artifactId>
-		<version>0.0.1</version>
+		<version>0.0.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>example</artifactId>
 	<name>Example Plug-in</name>
@@ -23,7 +23,7 @@
 		<!-- PF4J Plugin properties for this plugin -->
 		<plugin.id>com._4point.aem.formsfeeder.plugins.example</plugin.id>
 		<plugin.class>com._4point.aem.formsfeeder.plugins.example.ExamplePlugin</plugin.class>
-		<plugin.version>0.0.1-SNAPSHOT</plugin.version>
+		<plugin.version>${project.version}</plugin.version>
 		<plugin.dependencies />
 		<plugin.description>Example Plug-in - Makes calls to AEM to render a form.</plugin.description>
 	</properties>

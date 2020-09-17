@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com._4point.aem</groupId>
 		<artifactId>formsfeeder.plugins</artifactId>
-		<version>0.0.1</version>
+		<version>0.0.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>debug</artifactId>
 	<name>Debug Plug-in </name>
@@ -25,7 +25,7 @@
 		<!-- PF4J Plugin properties for this plugin -->
 		<plugin.id>com._4point.aem.formsfeeder.plugins.debug</plugin.id>
 		<plugin.class>com._4point.aem.formsfeeder.plugins.debug.DebugPlugin</plugin.class>
-		<plugin.version>0.0.1-SNAPSHOT</plugin.version>
+		<plugin.version>${project.version}</plugin.version>
 		<plugin.dependencies />
 		<plugin.description>Debugging Plug-in - Displays the inputs to stdout.</plugin.description>
 	</properties>
