@@ -131,7 +131,17 @@ class FormsFeederClientTest {
 	private static final String stringData = "String Data";
 	private static final MimeType mimeType = StandardMimeTypes.APPLICATION_PDF_TYPE;
 
+	/*
+	 * Wiremock is used for unit testing.  It is not used for integration testing with a real FormsFeeder instance.
+	 * Set USE_WIREMOCK to false to perform integration testing with a real Forms Feeder instance running on
+	 * FF_SERVER_MACHINE_NAME and FF_SERVER_MACHINE_PORT. 
+	 */
 	private static final boolean USE_WIREMOCK = true;
+	
+	/*
+	 * Set WIREMOCK_RECORDING to true in order to record the interaction with a real FormsFeeder instance running on
+	 * FF_SERVER_MACHINE_NAME and FF_SERVER_MACHINE_PORT.  This is useful for recreating the Wiremock Mapping files. 
+	 */
 	private static final boolean WIREMOCK_RECORDING = false;
 
 	private WireMockServer wireMockServer;

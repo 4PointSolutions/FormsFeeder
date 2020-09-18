@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com._4point.aem</groupId>
 	<artifactId>formsfeeder</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.2-SNAPSHOT</version>
     <packaging>pom</packaging>
 	<name>AEM Forms Feeder Project</name>
 	<description>Project to create feeders for AEM Forms.</description>
@@ -34,11 +34,12 @@
         <maven.compiler.release>11</maven.compiler.release>
 
         <pf4j.version>3.3.1</pf4j.version>
-        <pf4j-spring.version>0.6.0</pf4j-spring.version>
         <slf4j.version>1.7.30</slf4j.version>
         <mockito.version>3.3.3</mockito.version>
         <jupiter.version>5.6.2</jupiter.version>
+        <jimfs.version>1.1</jimfs.version>
         <hamcrest.version>2.2</hamcrest.version>
+        <jsoup.version>1.13.1</jsoup.version>
 	</properties>
 
 	<build>
@@ -62,12 +63,6 @@
 				<groupId>org.junit.jupiter</groupId>
 				<artifactId>junit-jupiter</artifactId>
 				<version>${jupiter.version}</version>
-				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.hamcrest</groupId>
-				<artifactId>hamcrest</artifactId>
-				<version>${hamcrest.version}</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
@@ -105,10 +100,23 @@
 			<dependency>	<!-- In-memory File System for writing/reading during unit testing. -->
 				<groupId>com.google.jimfs</groupId>
 				<artifactId>jimfs</artifactId>
-				<version>1.1</version>
+				<version>${jimfs.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.hamcrest</groupId>
+				<artifactId>hamcrest-library</artifactId>
+				<version>${hamcrest.version}</version>
+				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.jsoup</groupId>
+				<artifactId>jsoup</artifactId>
+				<version>${jsoup.version}</version>
 				<scope>test</scope>
 			</dependency>
 		</dependencies>
+		
 	</dependencyManagement>
 
 </project>
