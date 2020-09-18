@@ -98,9 +98,12 @@ public class DataSourceListJsonUtils {
 	 *   * DataSourceLists get turned into JSON objects (with one exception, see below)
 	 *   * Within a DataSourceList, each data source with a unique name is turned into an property of the enclosing JSON object
 	 *   * Within a DataSourceList, if there are multiple data sources with the same name, they are turned into an array property with that name.
-	 *   * Within a JSON Array, a DataSourceList that contains entries that have empty Strings for names, that will be added as an array, otherwise
-	 *     it will be added as a JsonObject.  (So if the DataSourceList contains entries with the same non-empty names, they will be turned into
-	 *     a child array of the JsonObject.)
+	 *   * A DataSourceList that contains only entries that have empty Strings for names, the contents will be added as an array
+	 *   * A DataSourceList which has a single entry with name of an empty String will generate an error because JsonObjects should not have
+	 *   *    entrys without names.
+	 * 
+	 *  If you want to create a JSON object with an entry that is always an array, then wrap the array entries in a DataSourceList.  Leave
+	 *  the entry names as empty strings and set the containing DataSourceList name to the name of the array. 
 	 * 
 	 * @param dataSourceList
 	 * @return FormDataMultipart
