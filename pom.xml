@@ -16,9 +16,9 @@
 	 -->
 	<modules>
 		<module>formsfeeder.core</module>
+		<module>formsfeeder.pf4j-spring</module>
 		<module>formsfeeder.server</module>
 		<module>formsfeeder.plugins</module>
-		<module>formsfeeder.pf4j-spring</module>
 		<module>formsfeeder.client</module>
 		<module>formsfeeder.client-cli</module>
 	</modules>
@@ -105,7 +105,7 @@
 			</dependency>
 			<dependency>
 				<groupId>org.hamcrest</groupId>
-				<artifactId>hamcrest-library</artifactId>
+				<artifactId>hamcrest</artifactId>
 				<version>${hamcrest.version}</version>
 				<scope>test</scope>
 			</dependency>

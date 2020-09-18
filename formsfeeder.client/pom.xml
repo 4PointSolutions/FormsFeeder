@@ -28,7 +28,7 @@
 		<dependency>
 			<groupId>com._4point.aem</groupId>
 			<artifactId>formsfeeder.core</artifactId>
-			<version>0.0.2-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
