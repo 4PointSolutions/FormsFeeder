@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication(scanBasePackages = "com._4point.aem.formsfeeder")
 public class Application {
 	private final static Logger logger = LoggerFactory.getLogger(Application.class);
+	private static ApplicationContext applicationContext;
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
@@ -18,6 +19,7 @@ public class Application {
 
 	@Bean
 	public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
+		applicationContext = ctx;
 		return args -> {
 
 //			System.out.println("Let's inspect the beans provided by Spring Boot:");
@@ -50,4 +52,9 @@ public class Application {
 		    
 		};
 	}
+
+	public static final ApplicationContext getApplicationContext() {
+		return applicationContext;
+	}
+	
 }

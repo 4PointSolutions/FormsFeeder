@@ -2,7 +2,7 @@ package com._4point.aem.formsfeeder.server;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.Objects;
 
 import javax.naming.ConfigurationException;
 import javax.ws.rs.GET;
@@ -10,7 +10,6 @@ import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -18,9 +17,6 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
-import javax.ws.rs.ext.WriterInterceptor;
-import javax.ws.rs.ext.WriterInterceptorContext;
 
 import org.glassfish.jersey.client.ChunkedInput;
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
@@ -33,9 +29,8 @@ import org.slf4j.LoggerFactory;
 public class AemProxyEndpoint {
 	private final static Logger logger = LoggerFactory.getLogger(AemProxyEndpoint.class);
 
-	// TODO: Integrate with Spring Configuration.
-//	@Autowired
-	private AemConfigProperties aemConfig = new AemConfigProperties();
+	AemConfigProperties aemConfig = Objects.requireNonNull(Objects.requireNonNull(Application.getApplicationContext(), "Application Context cannot be null.")
+																  .getBean(AemConfigProperties.class), "AemConfigurationProperties cannot be null");
 	
 	private static final String AEM_APP_PREFIX = "/";
 	private Client httpClient;

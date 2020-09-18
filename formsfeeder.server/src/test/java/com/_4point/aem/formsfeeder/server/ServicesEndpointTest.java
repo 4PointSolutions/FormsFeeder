@@ -102,7 +102,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and 
 	 * formsfeeder.plugins.aemHost settings. 
 	 */
-	private static final boolean USE_WIREMOCK = false;
+	private static final boolean USE_WIREMOCK = true;
 	/*
 	 * Set WIREMOCK_RECORDING to true in order to record the interaction with a real FormsFeeder instance running on
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and
@@ -1026,7 +1026,8 @@ class ServicesEndpointTest implements EnvironmentAware {
 				 .post(Entity.json(jsonData));
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
-		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		System.out.println(getResponseBody(response));
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/json'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
 		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
@@ -1089,7 +1090,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 				 .post(Entity.json(jsonData));
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
-		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/json'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
 		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
@@ -1136,7 +1137,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 				 .post(Entity.json(jsonData));
 		
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
-		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/json'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		
 		JsonObject jsonResultObj = response.readEntity(JsonObject.class);

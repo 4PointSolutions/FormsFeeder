@@ -60,14 +60,14 @@ class AemProxyEndpointTest implements EnvironmentAware {
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and 
 	 * formsfeeder.plugins.aemHost settings. 
 	 */
-	private static final boolean USE_WIREMOCK = false;
+	private static final boolean USE_WIREMOCK = true;
 	/*
 	 * Set WIREMOCK_RECORDING to true in order to record the interaction with a real FormsFeeder instance running on
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and
 	 * formsfeeder.plugins.aemHost settings.  This is useful for recreating the Wiremock Mapping files. 
 	 */
 	private static final boolean WIREMOCK_RECORDING = false;
-	private static final boolean SAVE_RESULTS = true;
+	private static final boolean SAVE_RESULTS = false;
 	static {
 		if (SAVE_RESULTS) {
 			try {
