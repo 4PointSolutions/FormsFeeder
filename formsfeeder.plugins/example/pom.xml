@@ -19,7 +19,8 @@
 		because these plugins are not referenced as dependencies, so they do not 
 		need to be installed in the local maven repository. -->
 	<properties>
-		<wiremock.version>2.26.3</wiremock.version>
+		<wiremock.version>2.27.2</wiremock.version>
+		<fluentforms.version>0.0.1</fluentforms.version>
 		<!-- PF4J Plugin properties for this plugin -->
 		<plugin.id>com._4point.aem.formsfeeder.plugins.example</plugin.id>
 		<plugin.class>com._4point.aem.formsfeeder.plugins.example.ExamplePlugin</plugin.class>
@@ -121,12 +122,12 @@
 		<dependency>
 			<groupId>com._4point.aem</groupId>
 			<artifactId>fluentforms.core</artifactId>
-			<version>0.0.1</version>
+			<version>${fluentforms.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com._4point.aem.docservices</groupId>
 			<artifactId>rest-services.client</artifactId>
-			<version>0.0.1</version>
+			<version>${fluentforms.version}</version>
 		</dependency>
 	</dependencies>
 

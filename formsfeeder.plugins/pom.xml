@@ -23,7 +23,7 @@
 	maven repository.
 	 -->
 	<properties>
-		<spring-boot.version>2.2.6.RELEASE</spring-boot.version>
+		<spring-boot.version>2.3.4.RELEASE</spring-boot.version>
 		<formsfeeder.version>${project.version}</formsfeeder.version>
 		<maven.surefire.plugin.version>3.0.0-M4</maven.surefire.plugin.version>
 		<maven.jar.plugin.version>3.2.0</maven.jar.plugin.version>
