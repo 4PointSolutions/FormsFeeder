@@ -21,51 +21,30 @@ public class AemConfigProperties implements AemConfig, EnvironmentAware {
 
 	private Environment environment;
 	
-	private String host;
-	private Integer port;
-	private String username;
-	private String secret;
-	private Protocol protocol;
-
 	@Override
 	public String host() {
-		if (host == null) {
-			host = Objects.requireNonNull(environment, "Environment has not been populated!").getRequiredProperty(EnvironmentConsumer.AEM_HOST_ENV_PARAM); 
-		}
-		return host;
+		return Objects.requireNonNull(environment, "Environment has not been populated!").getRequiredProperty(EnvironmentConsumer.AEM_HOST_ENV_PARAM); 
 	}
 
 	@Override
 	public int port() {
-		if (port == null) {
-			port = Integer.valueOf(Objects.requireNonNull(environment, "Environment has not been populated!").getProperty(EnvironmentConsumer.AEM_PORT_ENV_PARAM, "4502")); 
-		}
-		return port;
+		return Integer.valueOf(Objects.requireNonNull(environment, "Environment has not been populated!").getProperty(EnvironmentConsumer.AEM_PORT_ENV_PARAM, "4502")); 
 	}
 
 	@Override
 	public String username() {
-		if (username == null) {
-			username = Objects.requireNonNull(environment, "Environment has not been populated!").getProperty(EnvironmentConsumer.AEM_USERNAME_ENV_PARAM, "admin"); 
-		}
-		return username;
+		return Objects.requireNonNull(environment, "Environment has not been populated!").getProperty(EnvironmentConsumer.AEM_USERNAME_ENV_PARAM, "admin"); 
 	}
 
 	@Override
 	public String secret() {
-		if (secret == null) {
-			secret = Objects.requireNonNull(environment, "Environment has not been populated!").getProperty(EnvironmentConsumer.AEM_SECRET_ENV_PARAM, "admin"); 
-		}
-		return secret;
+		return Objects.requireNonNull(environment, "Environment has not been populated!").getProperty(EnvironmentConsumer.AEM_SECRET_ENV_PARAM, "admin"); 
 	}
 
 	@Override
 	public Protocol protocol() {
-		if (protocol == null) {
-			String protocolStr = Objects.requireNonNull(environment, "Environment has not been populated!").getProperty(EnvironmentConsumer.AEM_USE_SSL_ENV_PARAM);
-			protocol = (protocolStr == null || protocolStr.isBlank()) ? Protocol.HTTP : Protocol.from(protocolStr); 
-		}
-		return protocol;
+		String protocolStr = Objects.requireNonNull(environment, "Environment has not been populated!").getProperty(EnvironmentConsumer.AEM_USE_SSL_ENV_PARAM);
+		return (protocolStr == null || protocolStr.isBlank()) ? Protocol.HTTP : Protocol.from(protocolStr); 
 	}
 
 	@Override
