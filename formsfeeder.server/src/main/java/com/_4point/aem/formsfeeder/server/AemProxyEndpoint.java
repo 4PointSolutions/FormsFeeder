@@ -25,12 +25,14 @@ import org.glassfish.jersey.server.ChunkedOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com._4point.aem.formsfeeder.core.api.AemConfig;
+
 @Path("/aem")
 public class AemProxyEndpoint {
 	private final static Logger logger = LoggerFactory.getLogger(AemProxyEndpoint.class);
 
-	AemConfigProperties aemConfig = Objects.requireNonNull(Objects.requireNonNull(Application.getApplicationContext(), "Application Context cannot be null.")
-																  .getBean(AemConfigProperties.class), "AemConfigurationProperties cannot be null");
+	AemConfig aemConfig = Objects.requireNonNull(Objects.requireNonNull(Application.getApplicationContext(), "Application Context cannot be null.")
+																  .getBean(AemConfig.class), "AemConfig cannot be null");
 	
 	private static final String AEM_APP_PREFIX = "/";
 	private Client httpClient;
