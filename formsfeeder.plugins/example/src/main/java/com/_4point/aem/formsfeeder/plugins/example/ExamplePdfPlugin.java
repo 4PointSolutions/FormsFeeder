@@ -2,14 +2,11 @@ package com._4point.aem.formsfeeder.plugins.example;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.function.Supplier;
 
 import org.pf4j.Extension;
 import org.pf4j.ExtensionPoint;
-import org.pf4j.Plugin;
-import org.pf4j.PluginWrapper;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com._4point.aem.docservices.rest_services.client.forms.RestServicesFormsServiceAdapter;
 import com._4point.aem.docservices.rest_services.client.output.RestServicesOutputServiceAdapter;
@@ -25,11 +22,11 @@ import com._4point.aem.fluentforms.impl.forms.FormsServiceImpl;
 import com._4point.aem.fluentforms.impl.forms.TraditionalFormsService;
 import com._4point.aem.fluentforms.impl.output.OutputServiceImpl;
 import com._4point.aem.fluentforms.impl.output.TraditionalOutputService;
+import com._4point.aem.formsfeeder.core.api.AemConfig;
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
 import com._4point.aem.formsfeeder.core.datasource.MimeType;
-import com._4point.aem.formsfeeder.pf4j.spring.EnvironmentConsumer;
 
 /**
  * This is an example plug-in that demonstrates how to call AEM from a plug-in.
@@ -40,17 +37,14 @@ import com._4point.aem.formsfeeder.pf4j.spring.EnvironmentConsumer;
  *
  */
 @Extension
-public class ExamplePdfPlugin implements NamedFeedConsumer, EnvironmentConsumer, ExtensionPoint {
+public class ExamplePdfPlugin implements NamedFeedConsumer, ExtensionPoint {
 
 	private static final String FEED_CONSUMER_NAME = "RenderPdf";
 	
 	private static final Supplier<DocumentFactory> docFactorySupplier = SimpleDocumentFactoryImpl::getFactory; 
 	
-	private Environment environment;	// Initialized when the plugin is loaded by FeedConsumers.
-	private String aemHostName;			// Pulled from the Environment
-	private Integer aemHostPort;		// Pulled from the Environment
-	private String aemUsername;			// Currently hard-coded to "admin"
-	private String aemPassword;			// Currently hard-coded to "admin"
+	@Autowired
+	AemConfig aemConfig;
 
 	// The services get created on first use and then cached here.
 	private FormsService formsService;
@@ -99,30 +93,6 @@ public class ExamplePdfPlugin implements NamedFeedConsumer, EnvironmentConsumer,
 	}
 
 	/**
-	 * Pull the Host name from the environment and cache it.
-	 * 
-	 * @return AEM Host Name
-	 */
-	private String aemHostName() {
-		if (this.aemHostName == null) {
-			this.aemHostName = Objects.requireNonNull(environment, "Plug-in's Environment has not been populated!").getRequiredProperty(EnvironmentConsumer.AEM_HOST_ENV_PARAM);
-		}
-		return this.aemHostName;
-	}
-
-	/**
-	 * Pull the Host port from the environment and cache it.
-	 * 
-	 * @return AEM Host Port
-	 */
-	private int aemHostPort() {
-		if (this.aemHostPort == null) {
-			this.aemHostPort = Integer.valueOf(Objects.requireNonNull(environment, "Plug-in's Environment has not been populated!").getProperty(EnvironmentConsumer.AEM_PORT_ENV_PARAM, "4502"));
-		}
-		return this.aemHostPort;
-	}
-
-	/**
 	 * Instantiate the AEM Forms FormsService and cache it.
 	 * 
 	 * @return AEM FormsService
@@ -143,9 +113,9 @@ public class ExamplePdfPlugin implements NamedFeedConsumer, EnvironmentConsumer,
 	 */
 	private TraditionalFormsService createRestServicesTraditionalFormsService() {
 		TraditionalFormsService formsAdapter = RestServicesFormsServiceAdapter.builder()
-					.machineName(aemHostName())
-					.port(aemHostPort())
-					.basicAuthentication(aemUsername(), aemPassword())
+					.machineName(aemConfig.host())
+					.port(aemConfig.port())
+					.basicAuthentication(aemConfig.username(), aemConfig.secret())
 					.useSsl(false)
 					.build();
 		return formsAdapter;
@@ -172,43 +142,14 @@ public class ExamplePdfPlugin implements NamedFeedConsumer, EnvironmentConsumer,
 	 */
 	private TraditionalOutputService createRestServicesTraditionalOutputService() {
 		TraditionalOutputService outputAdapter = RestServicesOutputServiceAdapter.builder()
-					.machineName(aemHostName())
-					.port(aemHostPort())
-					.basicAuthentication(aemUsername(), aemPassword())
+					.machineName(aemConfig.host())
+					.port(aemConfig.port())
+					.basicAuthentication(aemConfig.username(), aemConfig.secret())
 					.useSsl(false)
 					.build();
 		return outputAdapter;
 	}
 	
-	/**
-	 * Pull the AEM user name we will use to call AEM.
-	 * 
-	 * This is currently hardcoded but could just as easily be pulled from the environment.
-	 * 
-	 * @return AEM Host Port
-	 */
-	private String aemUsername() {
-		if (this.aemUsername == null) {
-			this.aemUsername = "admin";		// Hardcoded for now, may change this later 
-		}
-		return this.aemUsername;
-	}
-	
-	/**
-	 * Pull the AEM user name we will use to call AEM.
-	 * 
-	 * This is currently hardcoded but could just as easily be pulled from the environment.  If pulled from the
-	 * environment it should probably be encrypted in the environment and decrypted here.
-	 * 
-	 * @return AEM Host Port
-	 */
-	private String aemPassword() {
-		if (this.aemPassword == null) {
-			this.aemPassword = "admin";		// Hardcoded for now, may change this later 
-		}
-		return this.aemPassword;
-	}
-
 	/**
 	 * Getter for tradFormsServiceSupplier function.
 	 * 
@@ -257,17 +198,6 @@ public class ExamplePdfPlugin implements NamedFeedConsumer, EnvironmentConsumer,
 	@Override
 	public String name() {
 		return FEED_CONSUMER_NAME;
-	}
-
-	/**
-	 *  Implementation of the EnvironmentConsumer accept() method.
-	 *  
-	 *  This is called by the FormsFeeder server to provide the Spring Environment object. 
-	 *
-	 */
-	@Override
-	public void accept(Environment environment) {
-		this.environment = environment;
 	}
 
 	/**

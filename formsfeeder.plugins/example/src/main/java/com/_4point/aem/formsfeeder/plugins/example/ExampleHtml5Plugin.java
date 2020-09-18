@@ -2,13 +2,12 @@ package com._4point.aem.formsfeeder.plugins.example;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.pf4j.Extension;
 import org.pf4j.ExtensionPoint;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com._4point.aem.docservices.rest_services.client.helpers.StandardFormsFeederUrlFilters;
 import com._4point.aem.docservices.rest_services.client.html5.Html5FormsService;
@@ -16,22 +15,19 @@ import com._4point.aem.docservices.rest_services.client.html5.Html5FormsService.
 import com._4point.aem.fluentforms.api.Document;
 import com._4point.aem.fluentforms.api.DocumentFactory;
 import com._4point.aem.fluentforms.impl.SimpleDocumentFactoryImpl;
+import com._4point.aem.formsfeeder.core.api.AemConfig;
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
 import com._4point.aem.formsfeeder.core.datasource.MimeType;
-import com._4point.aem.formsfeeder.pf4j.spring.EnvironmentConsumer;
 
 @Extension
-public class ExampleHtml5Plugin implements NamedFeedConsumer, EnvironmentConsumer, ExtensionPoint {
+public class ExampleHtml5Plugin implements NamedFeedConsumer, ExtensionPoint {
 
 	private static final String PLUGIN_NAME = "RenderHtml5";
 
-	private Environment environment;	// Initialized when the plugin is loaded by FeedConsumers.
-	private String aemHostName;			// Pulled from the Environment
-	private Integer aemHostPort;		// Pulled from the Environment
-	private String aemUsername;			// Currently hard-coded to "admin"
-	private String aemPassword;			// Currently hard-coded to "admin"
+	@Autowired
+	AemConfig aemConfig;
 
 	// Creation of TraditionalxxxxxService is redirected through these lambdas so that we can replace them with mocks during unit testing.
 	private static final Supplier<DocumentFactory> docFactorySupplier = SimpleDocumentFactoryImpl::getFactory;
@@ -43,9 +39,9 @@ public class ExampleHtml5Plugin implements NamedFeedConsumer, EnvironmentConsume
 		
 		try {
 			Html5FormsService html5Service = Html5FormsService.builder()
-															  .machineName(aemHostName())
-															  .port(aemHostPort())
-															  .basicAuthentication(aemUsername(), aemPassword())
+															  .machineName(aemConfig.host())
+															  .port(aemConfig.port())
+															  .basicAuthentication(aemConfig.username(), aemConfig.secret())
 															  .useSsl(false)
 															  // Formsfeeder acts as reverse proxy for AEM, so this fixes up URLs to match the proxied location.
 															  .addRenderResultFilter(StandardFormsFeederUrlFilters::replaceAemUrls)	
@@ -67,66 +63,8 @@ public class ExampleHtml5Plugin implements NamedFeedConsumer, EnvironmentConsume
 	}
 
 	@Override
-	public void accept(Environment environment) {
-		this.environment = environment;
-	}
-
-	@Override
 	public String name() {
 		return PLUGIN_NAME;
-	}
-
-	/**
-	 * Pull the Host name from the environment and cache it.
-	 * 
-	 * @return AEM Host Name
-	 */
-	private String aemHostName() {
-		if (this.aemHostName == null) {
-			this.aemHostName = Objects.requireNonNull(environment, "Plug-in's Environment has not been populated!").getRequiredProperty(EnvironmentConsumer.AEM_HOST_ENV_PARAM);
-		}
-		return this.aemHostName;
-	}
-
-	/**
-	 * Pull the Host port from the environment and cache it.
-	 * 
-	 * @return AEM Host Port
-	 */
-	private int aemHostPort() {
-		if (this.aemHostPort == null) {
-			this.aemHostPort = Integer.valueOf(Objects.requireNonNull(environment, "Plug-in's Environment has not been populated!").getProperty(EnvironmentConsumer.AEM_PORT_ENV_PARAM, "4502"));
-		}
-		return this.aemHostPort;
-	}
-
-	/**
-	 * Pull the AEM user name we will use to call AEM.
-	 * 
-	 * This is currently hardcoded but could just as easily be pulled from the environment.
-	 * 
-	 * @return AEM Host Port
-	 */
-	private String aemUsername() {
-		if (this.aemUsername == null) {
-			this.aemUsername = "admin";		// Hardcoded for now, may change this later 
-		}
-		return this.aemUsername;
-	}
-	
-	/**
-	 * Pull the AEM user name we will use to call AEM.
-	 * 
-	 * This is currently hardcoded but could just as easily be pulled from the environment.  If pulled from the
-	 * environment it should probably be encrypted in the environment and decrypted here.
-	 * 
-	 * @return AEM Host Port
-	 */
-	private String aemPassword() {
-		if (this.aemPassword == null) {
-			this.aemPassword = "admin";		// Hardcoded for now, may change this later 
-		}
-		return this.aemPassword;
 	}
 
 	/**

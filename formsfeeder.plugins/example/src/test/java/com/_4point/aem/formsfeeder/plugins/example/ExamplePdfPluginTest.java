@@ -17,18 +17,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
 
 import com._4point.aem.fluentforms.api.Document;
 import com._4point.aem.fluentforms.impl.SimpleDocumentFactoryImpl;
 import com._4point.aem.fluentforms.testing.forms.MockTraditionalFormsService;
 import com._4point.aem.fluentforms.testing.output.MockTraditionalOutputService;
+import com._4point.aem.formsfeeder.core.api.AemConfig;
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerBadRequestException;
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
-import com._4point.aem.formsfeeder.pf4j.spring.EnvironmentConsumer;
 
 class ExamplePdfPluginTest {
 	private static final Path RESOURCES_FOLDER = Paths.get("src", "test", "resources");
@@ -76,8 +74,7 @@ class ExamplePdfPluginTest {
 	@ParameterizedTest
 	@EnumSource
 	void testAccept_Pdf(PdfScenario scenario) throws Exception {
-		final String expectedAemHostName = "localhost";
-		final String expectedAemPortNum = "4502";
+		AemConfig aemConfig = mockConfig("localhost", 4502);
 		final byte[] expectedResponse = "Expected Response Data".getBytes();
 		String expectedContentType = "application/pdf";
 		final Document expectedResponseDoc = SimpleDocumentFactoryImpl.getFactory().create(expectedResponse);
@@ -97,7 +94,9 @@ class ExamplePdfPluginTest {
 												.add(DATA_PARAM_NAME, SAMPLE_DATA.toString())
 												.add(INTERACTIVE_PARAM_NAME, scenario.isInteractiveFlag())
 												.build();
-		underTest.accept(getMockEnvironment(expectedAemHostName, expectedAemPortNum));	// Set up the environment
+
+		junitx.util.PrivateAccessor.setField(underTest,"aemConfig", aemConfig); 
+		
 		DataSourceList result = underTest.accept(testData);
 		assertNotNull(result);
 		assertFalse(result.isEmpty());
@@ -197,78 +196,34 @@ class ExamplePdfPluginTest {
 				()->assertTrue(msg.contains("Parameter must be supplied"), "Expected message '" + msg + "' to contain text 'Parameter must be supplied'.")
 				);
 	}
-	
-	private static Environment getMockEnvironment(String aemHostName, String aemHostPort) {
-		return new Environment() {
-			
+
+	private static AemConfig mockConfig(String host, int port) {
+		return new AemConfig() {
+
 			@Override
-			public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
-				throw new UnsupportedOperationException("Not implmented.");
+			public String host() {
+				return host;
 			}
-			
+
 			@Override
-			public String resolvePlaceholders(String text) {
-				throw new UnsupportedOperationException("Not implmented.");
+			public int port() {
+				return port;
 			}
-			
+
 			@Override
-			public <T> T getRequiredProperty(String key, Class<T> targetType) throws IllegalStateException {
-				throw new UnsupportedOperationException("Not implmented.");
+			public String username() {
+				return "admin";
 			}
-			
+
 			@Override
-			public String getRequiredProperty(String key) throws IllegalStateException {
-				assertEquals(EnvironmentConsumer.AEM_HOST_ENV_PARAM, key);
-				return aemHostName;
+			public String secret() {
+				return "admin";
 			}
-			
+
 			@Override
-			public <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public <T> T getProperty(String key, Class<T> targetType) {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public String getProperty(String key, String defaultValue) {
-				assertEquals(EnvironmentConsumer.AEM_PORT_ENV_PARAM, key);
-				assertEquals("4502", defaultValue);
-				return aemHostPort;
-			}
-			
-			@Override
-			public String getProperty(String key) {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public boolean containsProperty(String key) {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public String[] getDefaultProfiles() {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public String[] getActiveProfiles() {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public boolean acceptsProfiles(Profiles profiles) {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public boolean acceptsProfiles(String... profiles) {
-				throw new UnsupportedOperationException("Not implmented.");
+			public Protocol protocol() {
+				return null;
 			}
 		};
 	}
-
 }

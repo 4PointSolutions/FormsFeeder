@@ -25,13 +25,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
-import org.springframework.core.env.Environment;
-import org.springframework.core.env.Profiles;
 
+import com._4point.aem.formsfeeder.core.api.AemConfig;
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
-import com._4point.aem.formsfeeder.pf4j.spring.EnvironmentConsumer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
@@ -47,7 +45,7 @@ class ExampleHtml5PluginTest {
 	// into a subdirectory called sample-forms under Forms and Documents.
 	private static final String SAMPLE_FORM = "crx:/content/dam/formsanddocuments/sample-forms/SampleForm.xdp";
 	private static final String TEST_MACHINE_NAME = "localhost";
-	private static final String TEST_MACHINE_PORT = "4502";
+	private static final int TEST_MACHINE_PORT = 4502;
 	private static final String PLUGIN_NAME = "RenderHtml5";
 	private static final String TEMPLATE_PARAM_NAME = "template";
 	private static final String DATA_PARAM_NAME = "data";
@@ -86,7 +84,7 @@ class ExampleHtml5PluginTest {
 	}
 	private WireMockServer wireMockServer;
 	private static Integer wiremockPort = null;
-	private Environment environment;
+	private AemConfig aemConfig;
 
 	private ExampleHtml5Plugin underTest = new ExampleHtml5Plugin();
 
@@ -105,10 +103,10 @@ class ExampleHtml5PluginTest {
 			if (wiremockPort == null) {	// Save the port for subsequent invocations. 
 				wiremockPort = wireMockServer.port();
 			}
-			environment = getMockEnvironment("localhost", Integer.toString(wiremockPort));
+			aemConfig = mockConfig("localhost", wiremockPort);
 			System.out.println("Wiremock is up on port " + wiremockPort + " .");
 		} else {
-			environment = getMockEnvironment(TEST_MACHINE_NAME, TEST_MACHINE_PORT);
+			aemConfig = mockConfig(TEST_MACHINE_NAME, TEST_MACHINE_PORT);
 		}
 	}
 
@@ -159,7 +157,7 @@ class ExampleHtml5PluginTest {
 	void testAcceptDataSourceList(TestScenario scenario) throws Exception {
 		DataSourceList testData = scenario.dataFunction.apply(DataSourceList.builder()).build();
 				
-		underTest.accept(this.environment);	// Pass in the environment before performing the test
+		junitx.util.PrivateAccessor.setField(underTest,"aemConfig", aemConfig); 
 		
 		DataSourceList result = underTest.accept(testData);
 		assertNotNull(result);
@@ -197,77 +195,33 @@ class ExampleHtml5PluginTest {
 		assertEquals(PLUGIN_NAME, underTest.name());
 	}
 
-	private static Environment getMockEnvironment(String aemHostName, String aemHostPort) {
-		return new Environment() {
-			
+	private static AemConfig mockConfig(String host, int port) {
+		return new AemConfig() {
+
 			@Override
-			public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public String resolvePlaceholders(String text) {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public <T> T getRequiredProperty(String key, Class<T> targetType) throws IllegalStateException {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public String getRequiredProperty(String key) throws IllegalStateException {
-				assertEquals(EnvironmentConsumer.AEM_HOST_ENV_PARAM, key);
-				return aemHostName;
-			}
-			
-			@Override
-			public <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public <T> T getProperty(String key, Class<T> targetType) {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public String getProperty(String key, String defaultValue) {
-				assertEquals(EnvironmentConsumer.AEM_PORT_ENV_PARAM, key);
-				assertEquals("4502", defaultValue);
-				return aemHostPort;
-			}
-			
-			@Override
-			public String getProperty(String key) {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public boolean containsProperty(String key) {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public String[] getDefaultProfiles() {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public String[] getActiveProfiles() {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public boolean acceptsProfiles(Profiles profiles) {
-				throw new UnsupportedOperationException("Not implmented.");
-			}
-			
-			@Override
-			public boolean acceptsProfiles(String... profiles) {
-				throw new UnsupportedOperationException("Not implmented.");
+			public String host() {
+				return host;
 			}
 
+			@Override
+			public int port() {
+				return port;
+			}
+
+			@Override
+			public String username() {
+				return "admin";
+			}
+
+			@Override
+			public String secret() {
+				return "admin";
+			}
+
+			@Override
+			public Protocol protocol() {
+				return null;
+			}
 		};
 	}
 }
