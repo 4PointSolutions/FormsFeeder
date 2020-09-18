@@ -131,7 +131,17 @@ class FormsFeederClientTest {
 	private static final String stringData = "String Data";
 	private static final MimeType mimeType = StandardMimeTypes.APPLICATION_PDF_TYPE;
 
+	/*
+	 * Wiremock is used for unit testing.  It is not used for integration testing with a real FormsFeeder instance.
+	 * Set USE_WIREMOCK to false to perform integration testing with a real Forms Feeder instance running on
+	 * FF_SERVER_MACHINE_NAME and FF_SERVER_MACHINE_PORT. 
+	 */
 	private static final boolean USE_WIREMOCK = true;
+	
+	/*
+	 * Set WIREMOCK_RECORDING to true in order to record the interaction with a real FormsFeeder instance running on
+	 * FF_SERVER_MACHINE_NAME and FF_SERVER_MACHINE_PORT.  This is useful for recreating the Wiremock Mapping files. 
+	 */
 	private static final boolean WIREMOCK_RECORDING = false;
 
 	private WireMockServer wireMockServer;
@@ -279,6 +289,45 @@ class FormsFeederClientTest {
 			wireMockServer.verify(getRequestedFor(urlMatching("/custom/context/root/Debug"))
 					.withHeader(CorrelationId.CORRELATION_ID_HDR, matching(underTest.returnedCorrelationId())));
 		}
+	}
+
+	// Test the fact that we get a multpart/form-data response even though we sent no body with the request.
+	@Test
+	void testAccept_ManyQueryParamsNoBody() throws Exception {
+		String correlationId = "correlationId";
+		String qpName1 = "qpName1";
+		String qpValue1 = "qpValue10";
+		String qpName2 = "qpName2";
+		String qpValue2 = "qpValue20";
+		String qpName3 = "qpName3";
+		String qpValue3 = "qpValue30";
+
+		FormsFeederClient underTest = FormsFeederClient.builder()
+				.machineName(formsfeederServerName)
+				.port(formsfeederServerPort)
+				.plugin("Debug")
+				.correlationId(() -> correlationId)
+				.addQueryParam(qpName1, Arrays.asList(() -> qpValue1))	// Use each of the three different addQueryParam overloads 
+				.addQueryParam(qpName2, ()->qpValue2)
+				.addQueryParam(qpName3, qpValue3)
+				.build();
+		DataSourceList result = underTest.accept(DataSourceList.emptyList());
+		
+		assertNotNull(underTest.returnedCorrelationId());
+		assertFalse(Jdk8Utils.isBlank(underTest.returnedCorrelationId()));
+		assertNotNull(result);
+		assertEquals(3, result.list().size());
+		
+		List<String> resultStrList = result.stream().map(FormsFeederClientTest::toString).collect(Collectors.toList());
+		Collections.sort(resultStrList);	// Sort them so that they are in a predictable order 
+		assertAll(
+				()->assertTrue(resultStrList.get(0).contains(qpName1), "Expected '" + resultStrList.get(0) + "' to contain '" + qpName1 + "', but it didn't."),
+				()->assertTrue(resultStrList.get(0).contains(qpValue1), "Expected '" + resultStrList.get(0) + "' to contain '" + qpValue1 + "', but it didn't."),
+				()->assertTrue(resultStrList.get(1).contains(qpName2), "Expected '" + resultStrList.get(1) + "' to contain '" + qpName2 + "', but it didn't."),
+				()->assertTrue(resultStrList.get(1).contains(qpValue2), "Expected '" + resultStrList.get(1) + "' to contain '" + qpValue2 + "', but it didn't."),
+				()->assertTrue(resultStrList.get(2).contains(qpName3), "Expected '" + resultStrList.get(2) + "' to contain '" + qpName3 + "', but it didn't."),
+				()->assertTrue(resultStrList.get(2).contains(qpValue3), "Expected '" + resultStrList.get(2) + "' to contain '" + qpValue3 + "', but it didn't.")
+				);
 	}
 
 	@Test

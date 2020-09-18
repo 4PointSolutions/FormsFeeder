@@ -1,5 +1,6 @@
 package com._4point.aem.formsfeeder.core.datasource;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
@@ -7,20 +8,29 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Spliterator;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.stream.XMLStreamException;
+
+import com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListDecoder;
+import com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListEncoder;
 import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
 /**
  * Wraps a list of DataSource objects and provides common functions for operating on that list.
  *
  */
-public class DataSourceList {
+public class DataSourceList implements Iterable<DataSource> {
 	private static final DataSourceList EMPTY_LIST = new DataSourceList();
 	
 	private final List<DataSource> list;
@@ -58,6 +68,15 @@ public class DataSourceList {
 	 */
 	public final List<DataSource> list() {
 		return list;
+	}
+
+	/**
+	 * Returns the number of items in the DataSourceList.
+	 * 
+	 * @return
+	 */
+	public final int size() {
+		return list.size();
 	}
 
 	/**
@@ -165,12 +184,81 @@ public class DataSourceList {
 	/**
 	 * Returns true if the list is empty.
 	 * 
+	 * @see List.isEmpty()
+	 * 
 	 * @return true if list is empty otherwise false
 	 */
 	public final boolean isEmpty() {
 		return this.list().isEmpty();
 	}
 	
+	/**
+	 * Performs the given action for each element of the Iterable until all elements have been processed or the action throws an exception.
+	 * 
+	 * @see Iterable.forEach()
+	 * 
+	 * @param action
+	 */
+	public void forEach(Consumer<? super DataSource> action) {
+		this.list.forEach(action);
+	}
+
+	/**
+	 * Returns an iterator over elements of type DataSource.
+	 * 
+	 * @see Iterable.iterator()
+	 * 
+	 * @return
+	 */
+	public Iterator<DataSource> iterator() {
+		return this.list.iterator();
+	}
+
+	/**
+	 * Returns the element at the specified position in this list.
+	 * 
+	 * @see List.get()
+	 * 
+	 * @param index
+	 * @return
+	 */
+	public DataSource get(int index) {
+		return this.list.get(index);
+	}
+
+	/**
+	 * Creates a Spliterator over the elements described by this Iterable.
+	 * 
+	 * @see Iterable.spliterator()
+	 * 
+	 * @return
+	 */
+	public Spliterator<DataSource> spliterator() {
+		return this.list.spliterator();
+	}
+
+	/**
+	 * Returns a sequential Stream with this collection as its source.
+	 * 
+	 * @see Collection.stream()
+	 * 
+	 * @return
+	 */
+	public Stream<DataSource> stream() {
+		return this.list.stream();
+	}
+
+	/**
+	 * Returns a possibly parallel Stream with this collection as its source.
+	 * 
+	 * @see List.parallelStream()
+	 * 
+	 * @return
+	 */
+	public Stream<DataSource> parallelStream() {
+		return this.list.parallelStream();
+	}
+
 	/**
 	 * Create a DataSourceList.Builder for building a DataSourceList.
 	 * 
@@ -268,6 +356,11 @@ public class DataSourceList {
 			return this;
 		}
 
+		public Builder add(String name, DataSourceList dsl) {
+			underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(dsl), Objects.requireNonNull(name, "Name cannot be null."), XmlDataSourceListEncoder.DSL_MIME_TYPE));
+			return this;
+		}
+
 		public Builder add(String name, String s, Map<String, String> attributes) {
 			underConstruction.add(new StringDataSource(s, Objects.requireNonNull(name, "Name cannot be null."), attributes));
 			return this;
@@ -327,6 +420,11 @@ public class DataSourceList {
 			return this;
 		}
 
+		public Builder add(String name, DataSourceList dsl, Map<String, String> attributes) {
+			underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(dsl), Objects.requireNonNull(name, "Name cannot be null."), XmlDataSourceListEncoder.DSL_MIME_TYPE, attributes));
+			return this;
+		}
+
 		public Builder addDataSources(List<DataSource> dsList) {
 			dsList.forEach(ds->underConstruction.add(ds));
 			return this;
@@ -376,6 +474,12 @@ public class DataSourceList {
 			lList.forEach(l->underConstruction.add(new StringDataSource(l.toString(), Objects.requireNonNull(name, "Name cannot be null."))));
 			return this;
 		}
+
+		public Builder addDataSourceLists(String name, List<DataSourceList> lList) {
+			lList.forEach(l->underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(l), Objects.requireNonNull(name, "Name cannot be null."), XmlDataSourceListEncoder.DSL_MIME_TYPE)));
+			return this;
+		}
+
 		public Builder addStrings(String name, List<String> sList, Map<String, String> attributes) {
 			sList.forEach(s->underConstruction.add(new StringDataSource(s, Objects.requireNonNull(name, "Name cannot be null."), attributes)));
 			return this;
@@ -419,6 +523,23 @@ public class DataSourceList {
 		public Builder addLongs(String name, List<Long> lList, Map<String, String> attributes) {
 			lList.forEach(l->underConstruction.add(new StringDataSource(l.toString(), Objects.requireNonNull(name, "Name cannot be null."), attributes)));
 			return this;
+		}
+		
+		public Builder addDataSourceLists(String name, List<DataSourceList> lList, Map<String, String> attributes) {
+			lList.forEach(l->underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(l), Objects.requireNonNull(name, "Name cannot be null."), XmlDataSourceListEncoder.DSL_MIME_TYPE, attributes)));
+			return this;
+		}
+		
+		private byte[] dataSourceListToByteArray(DataSourceList dsl) {
+			ByteArrayOutputStream contents = new ByteArrayOutputStream();
+			try (XmlDataSourceListEncoder encoder = XmlDataSourceListEncoder.wrap(contents)) {
+				encoder.encode(dsl);
+			} catch (IOException | XMLStreamException | FactoryConfigurationError e) {
+				// This should never happen.
+				String msg = e.getMessage();
+				throw new IllegalStateException("Error while encoding DataSourceList (" + (msg != null ? msg : "null") + ").", e);
+			}
+			return contents.toByteArray();
 		}
 	}
 	
@@ -685,6 +806,38 @@ public class DataSourceList {
 					.collect(Collectors.toList());
 		}
 
+		public static final Optional<DataSourceList> dsToDataSourceList(DataSource ds) {
+			if (!XmlDataSourceListDecoder.DSL_MIME_TYPE.equals(ds.contentType())) {
+				throw new IllegalArgumentException("Cannot convert DataSource with contentType '" + ds.contentType().asString() + "' to a DataSourceList.");
+			}
+			try(XmlDataSourceListDecoder decoder = XmlDataSourceListDecoder.wrap(ds.inputStream())) {
+				return decoder.decode();
+			} catch (XMLStreamException | IOException | FactoryConfigurationError e) {
+				String msg = e.getMessage();
+				throw new IllegalStateException("Error while decoding DataSourceList (" + (msg == null ? "null" : msg) + ").", e);
+			}
+		}
 
+		public final Optional<DataSourceList> getDataSourceListByName(String name) {
+			return dsList.getDataSourceByName(name).flatMap(Deconstructor::dsToDataSourceList);
+		}
+
+		public final Optional<DataSourceList> getDataSourceList(Predicate<DataSource> predicate) {
+			return dsList.getDataSource(predicate).flatMap(Deconstructor::dsToDataSourceList);
+		}
+
+		public final List<DataSourceList> getDataSourceListsByName(String name) {
+			return dsList.getDataSourcesByName(name).stream()
+					.map(Deconstructor::dsToDataSourceList)
+					.flatMap(Jdk8Utils::optionalStream)
+					.collect(Collectors.toList());
+		}
+
+		public final List<DataSourceList> getDataSourceLists(Predicate<DataSource> predicate) {
+			return dsList.getDataSources(predicate).stream()
+					.map(Deconstructor::dsToDataSourceList)
+					.flatMap(Jdk8Utils::optionalStream)
+					.collect(Collectors.toList());
+		}
 	}
 }

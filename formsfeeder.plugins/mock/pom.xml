@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com._4point.aem</groupId>
 		<artifactId>formsfeeder.plugins</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.0.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>mock</artifactId>
 	<name>Mock Plugin for Unit Tests</name>
@@ -25,7 +25,7 @@
 		<!-- PF4J Plugin properties for this plugin -->
 		<plugin.id>com._4point.aem.formsfeeder.plugins.mock</plugin.id>
 		<plugin.class>com._4point.aem.formsfeeder.plugins.mock.MockPlugin</plugin.class>
-		<plugin.version>0.0.1-SNAPSHOT</plugin.version>
+		<plugin.version>${project.version}</plugin.version>
 		<plugin.dependencies />
 		<plugin.description>Mock Plug-in - Required by formsfeeder.server unit tests.</plugin.description>
 	</properties>

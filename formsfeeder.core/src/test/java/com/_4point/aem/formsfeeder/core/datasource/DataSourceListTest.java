@@ -2,9 +2,11 @@ package com._4point.aem.formsfeeder.core.datasource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -131,4 +133,56 @@ class DataSourceListTest {
 				);
 		
 	}
+
+	@Test
+	void testIterable() {
+		List<DataSource> list = new ArrayList<>();
+		for (DataSource ds : underTest) {
+			list.add(ds);
+		}
+		assertIterableEquals(underTest.list(), list);
+	}
+
+
+	@Test
+	void testForEach() {
+		List<DataSource> list = new ArrayList<>();
+		underTest.forEach(list::add);
+		assertIterableEquals(underTest.list(), list);
+	}
+
+	@Test
+	void testStream() {
+		List<DataSource> list = underTest.stream().collect(Collectors.toList());
+		assertIterableEquals(underTest.list(), list);
+	}
+
+	@Test
+	void testParallelStream() {
+		List<DataSource> list = underTest.parallelStream().collect(Collectors.toList());
+		assertIterableEquals(underTest.list(), list);
+	}
+
+	@Test
+	void testSize() {
+		assertEquals(4, underTest.size());
+	}
+
+	@Test
+	void testGet() {
+		assertAll(
+				()->assertEquals(DS1, underTest.get(0)),
+				()->assertEquals(DS2, underTest.get(1)),
+				()->assertEquals(DS3, underTest.get(2)),
+				()->assertEquals(DS4, underTest.get(3))
+				);
+	}
+
+	@Test
+	void testSpliterator() {
+		List<DataSource> list = new ArrayList<>();
+		underTest.spliterator().forEachRemaining(list::add);
+		assertIterableEquals(underTest.list(), list);
+	}
+
 }

@@ -59,6 +59,7 @@ public class MockPlugin extends Plugin {
 		private static final String SCENARIO_OTHER_FEED_CONSUMER_EXCEPTION = "OtherFeedConsumerException";
 		private static final String SCENARIO_RETURN_PDF = "ReturnPdf";
 		private static final String SCENARIO_RETURN_XML = "ReturnXml";
+		private static final String SCENARIO_RETURN_DSL = "ReturnDataSourceList";
 		private static final String SCENARIO_RETURN_MANY_OUTPUTS = "ReturnManyOutputs";
 		private static final String SCENARIO_RETURN_CONFIG_VALUE = "ReturnConfigValue";
 		private static final String SCENARIO_RETURN_APPLICATION_CONTEXT_CONFIG_VALUE = "ReturnApplicationContextConfigValue";
@@ -160,6 +161,13 @@ public class MockPlugin extends Plugin {
 				break;
 			case SCENARIO_RETURN_PDF:
 				builder.add("PdfResult", getResourcePath("SampleForm.pdf"), Map.of("formsfeeder:Content-Disposition", "attachment"));
+				break;
+			case SCENARIO_RETURN_DSL:
+				builder.add("DslResult", DataSourceList.builder()
+							.add("DslEntry1", "DslValue1")
+							.add("DslEntry2", "DslValue2")
+							.build()
+						);
 				break;
 			case SCENARIO_OTHER_FEED_CONSUMER_EXCEPTION:
 				throw new FeedConsumerException() {

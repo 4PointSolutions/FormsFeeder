@@ -14,10 +14,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Utilities class to help smooth the transition back to JDK 8 from JDK 11.
@@ -174,5 +176,21 @@ public class Jdk8Utils {
 	        return Collectors.collectingAndThen(
 	                Collectors.toMap(keyMapper, valueMapper),
 	                map -> (Map<K,U>)mapOfEntries(map.entrySet().toArray(new Map.Entry[0])));
-	    }
+	 }
+	
+	
+	/**
+	 * Replaces Optional.stream()
+	 * 
+	 * @param <T>
+	 * @param opt
+	 * @return
+	 */
+	public static <T> Stream<T> optionalStream(Optional<T> opt) {
+		if (opt.isPresent()) {
+			return Stream.of(opt.get());
+		} else {
+			return Stream.empty();
+		}
+	}
 }

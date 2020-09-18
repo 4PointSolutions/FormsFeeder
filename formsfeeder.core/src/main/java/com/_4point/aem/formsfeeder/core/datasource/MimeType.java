@@ -39,11 +39,11 @@ public class MimeType {
 	}
 
 	public String asString() {
-		String result = type + TYPE_SEPARATOR + subtype;
-		if (charset != null) {
-			result = result + CHARSET_SEPARATOR + " charset=" + charset.name();
-		}
-		return result; 
+		return charset == null ? asTypeString() : asTypeString() + CHARSET_SEPARATOR + " charset=" + charset.name();
+	}
+
+	public String asTypeString() {
+		return type + TYPE_SEPARATOR + subtype;
 	}
 	
 	public static MimeType of(String mimeType) {
