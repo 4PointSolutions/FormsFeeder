@@ -78,7 +78,7 @@ public class FormsFeederClient implements FeedConsumer {
 					}
 				}
 			}
-			javax.ws.rs.client.Invocation.Builder invocBuilder = webTarget.request().header(CorrelationId.CORRELATION_ID_HDR, correlationIdSent);
+			javax.ws.rs.client.Invocation.Builder invocBuilder = webTarget.request(MediaType.MULTIPART_FORM_DATA_TYPE).header(CorrelationId.CORRELATION_ID_HDR, correlationIdSent);
 			if(headerMap!=null && !headerMap.isEmpty()) {
 				headerMap.keySet().stream().forEach(header -> invocBuilder.header(header, headerMap.get(header).get()));
 			}

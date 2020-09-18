@@ -14,6 +14,8 @@ import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.xml.stream.FactoryConfigurationError;
+import javax.xml.stream.XMLStreamException;
 
 import org.glassfish.jersey.media.multipart.ContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -25,6 +27,7 @@ import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.MimeType;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
+import com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListDecoder;
 
 /**
  * This class provides support classes for translating formsfeeder.core object (i.e. DataSourceList and DataSources)
@@ -127,11 +130,26 @@ public class DataSourceListJaxRsUtils {
 	 * @return FormDataMultipart
 	 */
 	public static FormDataMultiPart asFormDataMultipart(final DataSourceList dataSourceList) {
-		FormDataMultiPart responsesData = new FormDataMultiPart();
-		for(var dataSource : dataSourceList.list()) {
-			addFormDataPart(responsesData, dataSource);
+		try {
+			FormDataMultiPart responsesData = new FormDataMultiPart();
+			for(var dataSource : dataSourceList) {
+				if (XmlDataSourceListDecoder.DSL_MIME_TYPE_STR.equals(dataSource.contentType().asTypeString())) {
+					// We've found a serialized DataSourceList, so deserialize it, turn it into a MultipartFormData object
+					// and add it into the MultipartFormData object we're building.
+					XmlDataSourceListDecoder.wrap(dataSource.inputStream())
+											.decode()
+											.map(DataSourceListJaxRsUtils::asFormDataMultipart)
+											.ifPresent(dsl->addFormDataPart(responsesData, dsl, dataSource.name()));
+				} else {
+					// We've found something else, so just add it into the MultipartFormData object we're building.
+					addFormDataPart(responsesData, dataSource);
+				}
+			}
+			return responsesData;
+		} catch (XMLStreamException | FactoryConfigurationError e) {
+			String msg = e.getMessage();
+			throw new IllegalStateException("Encountered Exception while decoding DataSourceList Xml Serialization (" + (msg != null ? msg : "null") + ").", e);
 		}
-		return responsesData;
 	}
 
 	/**
@@ -150,6 +168,19 @@ public class DataSourceListJaxRsUtils {
 		} else {
 			responsesData.field(dataSource.name(), dataSource.inputStream(), asMediaType(dataSource.contentType()));
 		}
+		return responsesData;
+	}
+
+	/**
+	 * Add FormDataPart to the FormDataMultiPart response based on the DataSource.
+	 * 
+	 * @param responsesData
+	 * @param dataSourceList
+	 * @param name
+	 * @return
+	 */
+	private static final FormDataMultiPart addFormDataPart(FormDataMultiPart responsesData, FormDataMultiPart dataSourceList, String name) {
+		responsesData.field(name, dataSourceList, dataSourceList.getMediaType());
 		return responsesData;
 	}
 
