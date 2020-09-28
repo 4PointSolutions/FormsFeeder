@@ -122,6 +122,8 @@ public class MockPlugin extends Plugin {
 			switch(scenario)
 			{
 			case SCENARIO_CALL_ANOTHER_PLUGIN:
+				// This tests (and demonstrates) how one plugin can call another plugin.  The calling plugin needs to call PluginConsumer and then
+				// locate the other plugin in the list of NamedFeedConsumers that are passed in from the FormsFeeder server.
 				logger.debug("pluginsList is " + (this.pluginsList() == null ? "" : "not ") + "null.");
 				NamedFeedConsumer debugPlugin = this.pluginsList().stream()
 																  .filter(c->"Debug".equals(c.name()))
@@ -134,6 +136,11 @@ public class MockPlugin extends Plugin {
 				builder.addDataSources(debugResult.getDataSources(x->true));	// return all the debug-pluing outputs to the caller.
 				break;
 			case SCENARIO_RETURN_APPLICATION_CONTEXT_CONFIG_VALUE:
+				// This scenario tests access to the Spring ApplicationContext.  This is intended to be a "keys to the kingdom" interface that allows
+				// a plugin access to everything in Spring.  In general, if there is a more specialized interface (such as EnvironmentConsumer) that
+				// more specialized interface should be used in preference to this one.
+				// NB: while this sample demonstrates getting an environment variable, this is not intended to be used for that specific purpose. Please
+				//     use EnvironmentConsumer instead.
 				logger.debug("applicationContext is " + (this.applicationContext() == null ? "" : "not ") + "null.");
 				String ctxConfigValue = this.applicationContext().getBean(Environment.class).getProperty(FORMSFEEDER_PLUGINS_ENV_PARAM_PREFIX + "mock.configValue");
 				logger.debug("setting ConfigValue to '" + ctxConfigValue + "'.");
@@ -143,6 +150,8 @@ public class MockPlugin extends Plugin {
 				builder.add("ConfigValue", ctxConfigValue);
 				break;
 			case SCENARIO_RETURN_CONFIG_VALUE:
+				// This scenario tests the EnvironmentConsumer interface and demonstrates how to get access to a property in the Spring "Environment".
+				// In this case, the property is contained in the application.properties file.
 				logger.debug("environment is " + (this.environment() == null ? "" : "not ") + "null.");
 				String envConfigValue = this.environment().getProperty(FORMSFEEDER_PLUGINS_ENV_PARAM_PREFIX + "mock.configValue");
 				logger.debug("setting ConfigValue to '" + envConfigValue + "'.");
@@ -152,17 +161,21 @@ public class MockPlugin extends Plugin {
 				builder.add("ConfigValue", envConfigValue);
 				break;
 			case SCENARIO_RETURN_MANY_OUTPUTS:
+				// This scenario produces multiple non0string outputs (i.e. more that just the one returned in the following two scenarios) 
 				builder.add("PdfResult", getResourcePath("SampleForm.pdf"));
 				builder.add("XmlResult", getResourcePath("SampleForm_data.xml"));
 				builder.add("ByteArrayResult", "SampleData".getBytes(StandardCharsets.UTF_8));
 				break;
 			case SCENARIO_RETURN_XML:
+				// This scenario returns a single XML file.
 				builder.add("XmlResult", getResourcePath("SampleForm_data.xml"));
 				break;
 			case SCENARIO_RETURN_PDF:
+				// This scenario returns a single PDF file.
 				builder.add("PdfResult", getResourcePath("SampleForm.pdf"), Map.of("formsfeeder:Content-Disposition", "attachment"));
 				break;
 			case SCENARIO_RETURN_DSL:
+				// This scenario returns a DataSource list with multiple String values.
 				builder.add("DslResult", DataSourceList.builder()
 							.add("DslEntry1", "DslValue1")
 							.add("DslEntry2", "DslValue2")
@@ -170,6 +183,7 @@ public class MockPlugin extends Plugin {
 						);
 				break;
 			case SCENARIO_OTHER_FEED_CONSUMER_EXCEPTION:
+				// This scenarion returns some new kind of FeedConsumerException.
 				throw new FeedConsumerException() {
 
 					@Override
@@ -179,14 +193,19 @@ public class MockPlugin extends Plugin {
 					
 				};
 			case SCENARIO_NAME_BAD_REQUEST_EXCEPTION:
+				// This scenarion returns a FeedConsumerBadRequestException.
 				throw new FeedConsumerBadRequestException("Throwing FeedConsumerBadRequestException because scenario was '" + scenario + "'.");
 			case SCENARIO_NAME_INTERNAL_ERROR_EXCEPTION:
+				// This scenarion returns a FeedConsumerInternalErrorException.
 				throw new FeedConsumerInternalErrorException("Throwing FeedConsumerInternalErrorException because scenario was '" + scenario + "'.");
 			case SCENARIO_NAME_UNCHECKED_EXCEPTION:
+				// This scenarion returns an exception not derived from FeedConsumerException.
 				throw new IllegalStateException("Throwing IllegalStateException because scenario was '" + scenario + "'.");
 			case SCENARIO_NAME_UNKNOWN:
+				// This should never happen and only happens if the caller doesn't provide a scenario in the input Dsl.
 				throw new FeedConsumerBadRequestException("No scenario name was provided.");
 			default:
+				// This should never happen and only happens if the caller provides a scenario that this plugin does not recognize.
 				throw new FeedConsumerBadRequestException("Unexpected scenario name was provided (" + scenario + ").");
 			}
 			
