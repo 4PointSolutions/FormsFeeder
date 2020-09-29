@@ -22,5 +22,6 @@ public class JerseyConfig extends ResourceConfig {
     	// Internal classes that contain JAX-RS Annotations
     	register(ServicesEndpoint.class);
     	register(AemProxyEndpoint.class);
+    	register(CorsResponseFilter.class);
     }
 }
