@@ -23,9 +23,9 @@ public class CorsResponseFilter implements ContainerResponseFilter {
 	public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext)
 			throws IOException {
 		String corsProperty = Objects.requireNonNull(environment).getProperty(FF_ENABLE_CORS_PROPERTY);
-		if (null != corsProperty && Boolean.valueOf(corsProperty.toLowerCase())) {
-			responseContext.getHeaders().add("Access-Control-Allow-Origin", "*");
-			responseContext.getHeaders().add("Access-Control-Allow-Methods", "GET, POST");
+		if (null != corsProperty) {
+			responseContext.getHeaders().add("Access-Control-Allow-Origin", corsProperty);
+			responseContext.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
 			// Other possible headers:
 			// Not required because authentication is not implemented: responseContext.getHeaders().add("Access-Control-Allow-Credentials", "true");
 			// Not sure if the following will be required: responseContext.getHeaders().add("Access-Control-Allow-Headers","origin, content-type, accept, authorization");

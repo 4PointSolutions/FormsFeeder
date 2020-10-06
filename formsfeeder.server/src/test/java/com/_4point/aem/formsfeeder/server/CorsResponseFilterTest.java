@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
@@ -27,10 +28,11 @@ class CorsResponseFilterTest {
 	private static final String ACCESS_CONTROL_ALLOW_METHODS_HEADER = "Access-Control-Allow-Methods";
 	private static final String API_V1_PATH = "/api/v1";
 	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
+	private static final Set<String> ALLOWED_METHODS = Set.of("GET", "POST", "OPTIONS", "HEAD");
 	
 	@Nested
 	@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
-	@TestPropertySource(properties = {"formsfeeder.enable_cors=true"})
+	@TestPropertySource(properties = {"formsfeeder.enable_cors=*"})
 	class PositiveTests {
 		@LocalServerPort
 		private int port;
@@ -52,8 +54,14 @@ class CorsResponseFilterTest {
 			
 			assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 			assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
-			assertNotNull(response.getHeaderString(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER));
-			assertNotNull(response.getHeaderString(ACCESS_CONTROL_ALLOW_METHODS_HEADER));
+			String originsAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER);
+			assertNotNull(originsAllowed);
+			assertEquals("*", originsAllowed);
+			String methodsAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_METHODS_HEADER);
+			assertNotNull(methodsAllowed);
+			for (String method : ALLOWED_METHODS) {
+				assertTrue(methodsAllowed.contains(method));
+			}
 		}
 	}
 	
@@ -81,8 +89,14 @@ class CorsResponseFilterTest {
 			
 			assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 			assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
-			assertNull(response.getHeaderString(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER));
-			assertNull(response.getHeaderString(ACCESS_CONTROL_ALLOW_METHODS_HEADER));
+			String originsAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER);
+			assertNotNull(originsAllowed);
+			assertEquals("foobar", originsAllowed);
+			String methodsAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_METHODS_HEADER);
+			assertNotNull(methodsAllowed);
+			for (String method : ALLOWED_METHODS) {
+				assertTrue(methodsAllowed.contains(method));
+			}
 		}
 	}
 
