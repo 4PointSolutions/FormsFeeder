@@ -63,6 +63,33 @@ class CorsResponseFilterTest {
 				assertTrue(methodsAllowed.contains(method));
 			}
 		}
+
+		/**
+		 *  Calling OPTIONS with a Wildcard was causing a JAX-B error.  Apparently, with a wildcard accept it was causing
+		 *  Jersey to try and generate WADL.  WADL generation apparently requires JAX-B, which is not included in the 
+		 *  formsfeeder .jar.  This created and error and caused a 404 to be returned.
+		 *  
+		 *  We're now disabling the WASDL generation.  This test makes sure that we've disabled WADL and aren't generating a 404.
+		 */
+		@Test
+		void testFilter_OptionsWithSetting() {
+			Response response = ClientBuilder.newClient()
+					 .target(uri)
+					 .path(DEBUG_PLUGIN_PATH)
+					 .request()
+					 .accept(MediaType.WILDCARD_TYPE)
+					 .options();
+			
+			assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+			String originsAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER);
+			assertNotNull(originsAllowed);
+			assertEquals("*", originsAllowed);
+			String methodsAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_METHODS_HEADER);
+			assertNotNull(methodsAllowed);
+			for (String method : ALLOWED_METHODS) {
+				assertTrue(methodsAllowed.contains(method));
+			}
+		}
 	}
 	
 	@Nested

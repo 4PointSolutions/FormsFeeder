@@ -1,5 +1,7 @@
 package com._4point.aem.formsfeeder.server;
 
+import java.util.Map;
+
 import org.glassfish.jersey.jsonp.JsonProcessingFeature;
 import org.glassfish.jersey.logging.LoggingFeature;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -23,5 +25,8 @@ public class JerseyConfig extends ResourceConfig {
     	register(ServicesEndpoint.class);
     	register(AemProxyEndpoint.class);
     	register(CorsResponseFilter.class);
+    	
+    	// Add properties that we want set
+    	addProperties(Map.of("jersey.config.server.wadl.disableWadl", "true"));
     }
 }
