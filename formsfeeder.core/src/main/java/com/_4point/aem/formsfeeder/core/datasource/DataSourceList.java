@@ -270,9 +270,15 @@ public class DataSourceList implements Iterable<DataSource> {
 	}
 	
 	/**
-	 * Create a DataSourceList using a function that accepts and returns a DataSourceList.Builder
+	 * Create a DataSourceList using a function that accepts a DataSourceList.Builder, (presumably) adds items to the DataSourceList via that builder and returns a DataSourceList.Builder
 	 * 
-	 * @param fieldBuilder
+	 * This function is a convenience function that allows an object to add its properties into a DataSourceList using a DataSourceList.Builder.
+	 * This is handy for serializing objects.  The object can define a ${code Function<DataSourceList.Builder, DataSourceList.Builder>} that
+	 * adds itself to a DataSourceList.  This function can then be called to generate a DataSourceList using that function.
+	 * 
+	 * It performs the following: ${code fieldBuilder.apply(DataSourceList.builder()).build()}
+	 * 
+	 * @param fieldBuilder function that adds to the data source list via the supplied builder and returns a builder.
 	 * @return
 	 */
 	public static DataSourceList build(Function<DataSourceList.Builder, DataSourceList.Builder> fieldBuilder) {
