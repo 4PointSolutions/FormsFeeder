@@ -15,6 +15,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Spliterator;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -266,6 +267,10 @@ public class DataSourceList implements Iterable<DataSource> {
 	 */
 	public static Builder builder() {
 		return Builder.newBuilder();
+	}
+	
+	public static DataSourceList build(Function<DataSourceList.Builder, DataSourceList.Builder> fieldBuilder) {
+		return fieldBuilder.apply(DataSourceList.builder()).build();
 	}
 	
 	/**

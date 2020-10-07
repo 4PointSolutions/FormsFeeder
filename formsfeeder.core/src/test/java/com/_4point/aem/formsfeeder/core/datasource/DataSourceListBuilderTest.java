@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
+import org.opentest4j.MultipleFailuresError;
 
 import com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListDecoderTest;
 import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
@@ -97,24 +98,40 @@ class DataSourceListBuilderTest {
 
 
 	@Test
-	void testBuildAll() throws Exception{
+	void testBuildAllWithBuilder() throws Exception{
 		// Construct a DataSourceList with one of each and every type
-		DataSourceList result = DataSourceList.builder()
-				.add(dummyDS)
-				.add(BOOLEAN_DS_NAME, booleanData)
-				.add(BYTE_ARRAY_DS_NAME, byteArrayData)
-				.add(DOUBLE_DS_NAME, doubleData)
-				.add(FLOAT_DS_NAME, floatData)
-				.add(INTEGER_DS_NAME, intData)
-				.add(LONG_DS_NAME, longData)
-				.add(FILE_DS_NAME, pathData)
-				.add(STRING_DS_NAME, stringData)
-				.add(BYTE_ARRAY_W_CT_DS_NAME, byteArrayData, mimeType)
-				.add(DSL_DS_NAME, dslData)
-				.build();
+		DataSourceList result = addAllDsTypes(DataSourceList.builder()).build();
 		
 		List<DataSource> resultList = result.list();
 		
+		validateResultList(resultList);
+	}
+
+	@Test
+	void testBuildAllWithBuild() throws Exception{
+		// Construct a DataSourceList with one of each and every type
+		DataSourceList result = DataSourceList.build(DataSourceListBuilderTest::addAllDsTypes);
+		
+		List<DataSource> resultList = result.list();
+		
+		validateResultList(resultList);
+	}
+
+	private static DataSourceList.Builder addAllDsTypes(DataSourceList.Builder builder) {
+		return builder.add(dummyDS)
+					  .add(BOOLEAN_DS_NAME, booleanData)
+					  .add(BYTE_ARRAY_DS_NAME, byteArrayData)
+					  .add(DOUBLE_DS_NAME, doubleData)
+					  .add(FLOAT_DS_NAME, floatData)
+					  .add(INTEGER_DS_NAME, intData)
+					  .add(LONG_DS_NAME, longData)
+					  .add(FILE_DS_NAME, pathData)
+					  .add(STRING_DS_NAME, stringData)
+					  .add(BYTE_ARRAY_W_CT_DS_NAME, byteArrayData, mimeType)
+					  .add(DSL_DS_NAME, dslData);
+
+	}
+	private void validateResultList(List<DataSource> resultList) throws MultipleFailuresError {
 		assertAll(
 				()->assertEquals(11, resultList.size()),	// 10 DSes were added.
 				()->assertSame(dummyDS, resultList.get(0)),
