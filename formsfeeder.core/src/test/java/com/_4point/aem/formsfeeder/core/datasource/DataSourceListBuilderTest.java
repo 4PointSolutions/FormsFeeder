@@ -2,6 +2,7 @@ package com._4point.aem.formsfeeder.core.datasource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -52,7 +53,7 @@ class DataSourceListBuilderTest {
 		
 		@Override
 		public InputStream inputStream() {
-			return null;
+			return new ByteArrayInputStream(new byte[0]);
 		}
 		
 		@Override
@@ -78,7 +79,7 @@ class DataSourceListBuilderTest {
 	private static final float floatData = Float.MAX_VALUE;
 	private static final int intData = Integer.MAX_VALUE;
 	private static final long longData = Long.MAX_VALUE;
-	private static final Path pathData = Paths.get("FileDS.txt");
+	private static final Path pathData = Paths.get("src", "test", "resources", "TestFiles", "FileDS.txt");
 	private static final String stringData = "String Data";
 	private static final MimeType mimeType = StandardMimeTypes.APPLICATION_PDF_TYPE;
  
@@ -104,7 +105,7 @@ class DataSourceListBuilderTest {
 		
 		List<DataSource> resultList = result.list();
 		
-		validateResultList(resultList);
+		validateResultList(resultList, false);
 	}
 
 	@Test
@@ -114,7 +115,18 @@ class DataSourceListBuilderTest {
 		
 		List<DataSource> resultList = result.list();
 		
-		validateResultList(resultList);
+		validateResultList(resultList, false);
+	}
+
+	@Test
+	void testBuildAllWithAddDataSourceList() throws Exception{
+		String dslEntryName = "TestDsl";
+		// Construct a DataSourceList with one of each and every type
+		DataSourceList result = DataSourceList.build(b->b.addDataSourceList(dslEntryName, DataSourceListBuilderTest::addAllDsTypes));
+		
+		List<DataSource> resultList = result.deconstructor().getDataSourceListByName(dslEntryName).get().list();
+		
+		validateResultList(resultList, true);
 	}
 
 	private static DataSourceList.Builder addAllDsTypes(DataSourceList.Builder builder) {
@@ -131,10 +143,11 @@ class DataSourceListBuilderTest {
 					  .add(DSL_DS_NAME, dslData);
 
 	}
-	private void validateResultList(List<DataSource> resultList) throws MultipleFailuresError {
+	
+	private void validateResultList(List<DataSource> resultList, boolean skipDummyDS) throws MultipleFailuresError {
 		assertAll(
 				()->assertEquals(11, resultList.size()),	// 10 DSes were added.
-				()->assertSame(dummyDS, resultList.get(0)),
+				()->assertSame(dummyDS,  skipDummyDS ? dummyDS : resultList.get(0)),
 				()->assertEquals(BOOLEAN_DS_NAME, resultList.get(1).name()),
 				()->assertEquals(Boolean.toString(booleanData), readIntoString(resultList.get(1).inputStream())),
 				()->assertEquals(BYTE_ARRAY_DS_NAME, resultList.get(2).name()),

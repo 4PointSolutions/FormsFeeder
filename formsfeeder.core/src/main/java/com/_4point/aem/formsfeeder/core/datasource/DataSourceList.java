@@ -269,6 +269,12 @@ public class DataSourceList implements Iterable<DataSource> {
 		return Builder.newBuilder();
 	}
 	
+	/**
+	 * Create a DataSourceList using a function that accepts and returns a DataSourceList.Builder
+	 * 
+	 * @param fieldBuilder
+	 * @return
+	 */
 	public static DataSourceList build(Function<DataSourceList.Builder, DataSourceList.Builder> fieldBuilder) {
 		return fieldBuilder.apply(DataSourceList.builder()).build();
 	}
@@ -428,6 +434,10 @@ public class DataSourceList implements Iterable<DataSource> {
 		public Builder add(String name, DataSourceList dsl, Map<String, String> attributes) {
 			underConstruction.add(new ByteArrayDataSource(dataSourceListToByteArray(dsl), Objects.requireNonNull(name, "Name cannot be null."), XmlDataSourceListEncoder.DSL_MIME_TYPE, attributes));
 			return this;
+		}
+
+		public Builder addDataSourceList(String name, Function<DataSourceList.Builder, DataSourceList.Builder> fieldBuilder) {
+			return this.add(name, DataSourceList.build(fieldBuilder));
 		}
 
 		public Builder addDataSources(List<DataSource> dsList) {
