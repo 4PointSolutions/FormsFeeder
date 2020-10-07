@@ -22,13 +22,18 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
 
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
+import com._4point.aem.formsfeeder.server.support.CorrelationId;
 
 class CorsResponseFilterTest {
 	private static final String ACCESS_CONTROL_ALLOW_ORIGIN_HEADER = "Access-Control-Allow-Origin";
 	private static final String ACCESS_CONTROL_ALLOW_METHODS_HEADER = "Access-Control-Allow-Methods";
+	private static final String ACCESS_CONTROL_ALLOW_HEADERS_HEADER = "Access-Control-Allow-Headers";
+	private static final String ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER = "Access-Control-Allow-Credentials";
+	
 	private static final String API_V1_PATH = "/api/v1";
 	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
 	private static final Set<String> ALLOWED_METHODS = Set.of("GET", "POST", "OPTIONS", "HEAD");
+	private static final Set<String> ALLOWED_HEADERS = Set.of("origin", "content-type", "accept", "authorization", CorrelationId.CORRELATION_ID_HDR);
 	
 	@Nested
 	@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
@@ -62,6 +67,14 @@ class CorsResponseFilterTest {
 			for (String method : ALLOWED_METHODS) {
 				assertTrue(methodsAllowed.contains(method));
 			}
+			String headersAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_HEADERS_HEADER);
+			assertNotNull(headersAllowed);
+			for (String header : ALLOWED_HEADERS) {
+				assertTrue(headersAllowed.contains(header));
+			}
+			String credentialsAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER);
+			assertNotNull(credentialsAllowed);
+			assertTrue(Boolean.valueOf(credentialsAllowed));
 		}
 
 		/**
@@ -89,6 +102,14 @@ class CorsResponseFilterTest {
 			for (String method : ALLOWED_METHODS) {
 				assertTrue(methodsAllowed.contains(method));
 			}
+			String headersAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_HEADERS_HEADER);
+			assertNotNull(headersAllowed);
+			for (String header : ALLOWED_HEADERS) {
+				assertTrue(headersAllowed.contains(header));
+			}
+			String credentialsAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER);
+			assertNotNull(credentialsAllowed);
+			assertTrue(Boolean.valueOf(credentialsAllowed));
 		}
 	}
 	

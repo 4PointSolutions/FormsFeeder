@@ -11,10 +11,14 @@ import javax.ws.rs.ext.Provider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 
+import com._4point.aem.formsfeeder.server.support.CorrelationId;
+
 @Provider
 public class CorsResponseFilter implements ContainerResponseFilter {
 
 	private static final String FF_ENABLE_CORS_PROPERTY = "formsfeeder.enable_cors";
+	private static final String ALLOWED_METHODS = String.join(", ", "GET", "POST", "OPTIONS", "HEAD");
+	private static final String ALLOWED_HEADERS = String.join(", ", "origin", "content-type", "accept", "authorization", CorrelationId.CORRELATION_ID_HDR);
 	
 	@Autowired
 	Environment environment;
@@ -25,10 +29,9 @@ public class CorsResponseFilter implements ContainerResponseFilter {
 		String corsProperty = Objects.requireNonNull(environment).getProperty(FF_ENABLE_CORS_PROPERTY);
 		if (null != corsProperty) {
 			responseContext.getHeaders().add("Access-Control-Allow-Origin", corsProperty);
-			responseContext.getHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
-			// Other possible headers:
-			// Not required because authentication is not implemented: responseContext.getHeaders().add("Access-Control-Allow-Credentials", "true");
-			// Not sure if the following will be required: responseContext.getHeaders().add("Access-Control-Allow-Headers","origin, content-type, accept, authorization");
+			responseContext.getHeaders().add("Access-Control-Allow-Methods", ALLOWED_METHODS);
+			responseContext.getHeaders().add("Access-Control-Allow-Credentials", "true");
+			responseContext.getHeaders().add("Access-Control-Allow-Headers", ALLOWED_HEADERS);
 		}
 	}
 }
