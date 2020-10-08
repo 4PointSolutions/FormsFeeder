@@ -1,0 +1,66 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com._4point.aem</groupId>
+		<artifactId>formsfeeder.plugins</artifactId>
+		<version>0.0.2-SNAPSHOT</version>
+	</parent>
+	<artifactId>jdbc</artifactId>
+	<name>Sample plugin that demonstrates JDBC connectivity</name>
+
+	<!--
+	In order to build this project, you just need to always clean.  For some reason the plug-in that generates the extensions.idx
+	file that is required by the pf4j framework does not get executed when a clean is not performed (i.e. when classes are not compiled).
+	
+	Therefore this project should always be build with the following goals:
+	clean verify
+	 
+	There is no need to install because these plugins are not referenced as dependencies, so they do not need to be installed in the local
+	maven repository.
+	 -->
+	<properties>
+		<!-- PF4J Plugin properties for this plugin -->
+		<plugin.id>com._4point.aem.formsfeeder.plugins.jdbc</plugin.id>
+		<plugin.class>com._4point.aem.formsfeeder.plugins.jdbc.JdbcPlugin</plugin.class>
+		<plugin.version>${project.version}</plugin.version>
+		<plugin.dependencies />
+		<plugin.description>Jdbc Demonstration Plug-in - Required by formsfeeder.server unit tests.</plugin.description>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
+			<version>${spring-boot.version}</version>
+		</dependency>
+<!-- 		<dependency> -->
+<!-- 			<groupId>com.h2database</groupId> -->
+<!-- 			<artifactId>h2</artifactId> -->
+<!-- 			<scope>runtime</scope> -->
+<!-- 		</dependency> -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<version>1.4.200</version>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit-addons</groupId>
+			<artifactId>junit-addons</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+
+</project>

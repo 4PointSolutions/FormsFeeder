@@ -33,6 +33,7 @@
 		<module>example</module>
 		<module>debug</module>
 		<module>mock</module>
+		<module>jdbc</module>
 	</modules>
 
 	<dependencies>
