@@ -25,8 +25,10 @@ public class JerseyConfig extends ResourceConfig {
     	register(ServicesEndpoint.class);
     	register(AemProxyEndpoint.class);
     	register(CorsResponseFilter.class);
+    	register(Html5SubmitProxy.class);
     	
     	// Add properties that we want set
+    	// Turn of Wadl generation (this was interfering with some CORS functionality
     	addProperties(Map.of("jersey.config.server.wadl.disableWadl", "true"));
     }
 }

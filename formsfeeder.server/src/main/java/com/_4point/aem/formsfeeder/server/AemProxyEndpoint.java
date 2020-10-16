@@ -31,7 +31,7 @@ import com._4point.aem.formsfeeder.core.api.AemConfig;
 public class AemProxyEndpoint {
 	private final static Logger logger = LoggerFactory.getLogger(AemProxyEndpoint.class);
 
-	AemConfig aemConfig = Objects.requireNonNull(Objects.requireNonNull(Application.getApplicationContext(), "Application Context cannot be null.")
+	private final AemConfig aemConfig = Objects.requireNonNull(Objects.requireNonNull(Application.getApplicationContext(), "Application Context cannot be null.")
 																  .getBean(AemConfig.class), "AemConfig cannot be null");
 	
 	private static final String AEM_APP_PREFIX = "/";
