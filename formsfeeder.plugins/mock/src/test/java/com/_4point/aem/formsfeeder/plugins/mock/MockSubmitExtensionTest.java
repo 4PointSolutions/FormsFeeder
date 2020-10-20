@@ -76,6 +76,15 @@ class MockSubmitExtensionTest {
 	}
 
 	@Test
+	void testAccept_ReturnRedirect() throws Exception {
+		final String scenarioName = "ReturnRedirect";
+		DataSourceList result = underTest.accept(InputDslBuilder.build(scenarioName));
+		assertNotNull(result);
+		assertEquals(1, result.list().size());
+		assertEquals("RedirectUrl", result.deconstructor().getStringByName(REDIRECT_LOCATION_DS_NAME).get());
+	}
+	
+	@Test
 	void testScenario_BadRequestException() {
 		final String scenarioName = "BadRequestException";
 		FeedConsumerBadRequestException ex = assertThrows(FeedConsumerBadRequestException.class, ()->underTest.accept(InputDslBuilder.build(scenarioName)));

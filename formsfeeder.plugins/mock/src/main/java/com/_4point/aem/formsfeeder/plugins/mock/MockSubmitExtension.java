@@ -58,7 +58,12 @@ public class MockSubmitExtension implements NamedFeedConsumer, ExtensionPoint {
 	private static final String SCENARIO_RETURN_PDF = "ReturnPdf";
 	private static final String SCENARIO_NO_RETURNS = "NoReturns";
 	private static final String SCENARIO_RETURN_HTML5_PARAMS = "ReturnHtml5Parameters";
+	private static final String SCENARIO_RETURN_REDIRECT = "ReturnRedirect";
 
+	// Other constants
+	private static final String FORMSFEEDER_PREFIX = "formsfeeder:";
+	private static final String REDIRECT_LOCATION_DS_NAME = FORMSFEEDER_PREFIX + "RedirectLocation";
+	
 	private FileSystem zipfs = null;	// Used to hold ZipFs so that we can read our .jar resources using FileSystem
 	
 	public MockSubmitExtension() {
@@ -91,6 +96,9 @@ public class MockSubmitExtension implements NamedFeedConsumer, ExtensionPoint {
 												iparams.submitUrl().map(s->"SubmitUrl='" + s + "'").orElse("No Submit Url")
 											);
 			builder.add("Result", returnValue);
+			break;
+		case SCENARIO_RETURN_REDIRECT:
+			builder.add(REDIRECT_LOCATION_DS_NAME, "RedirectUrl");
 			break;
 		case SCENARIO_OTHER_FEED_CONSUMER_EXCEPTION:
 			// This scenarion returns some new kind of FeedConsumerException.
@@ -128,12 +136,10 @@ public class MockSubmitExtension implements NamedFeedConsumer, ExtensionPoint {
 	}
 
 	private static class InputParameters {
-		private static final String FORMSFEEDER_PREFIX = "formsfeeder:";
 		private static final String SUBMITTED_DATA_DS_NAME = FORMSFEEDER_PREFIX + "SubmittedData";
 		private static final String TEMPLATE_DS_NAME = FORMSFEEDER_PREFIX + "Template";
 		private static final String CONTENT_ROOT_DS_NAME = FORMSFEEDER_PREFIX + "ContentRoot";
 		private static final String SUBMIT_URL_DS_NAME = FORMSFEEDER_PREFIX + "SubmitUrl";
-		private static final String REDIRECT_LOCATION_DS_NAME = FORMSFEEDER_PREFIX + "RedirectLocation";
 
 		private final Deconstructor deconstructor;
 		
