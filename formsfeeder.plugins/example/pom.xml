@@ -20,10 +20,9 @@
 		need to be installed in the local maven repository. -->
 	<properties>
 		<wiremock.version>2.27.2</wiremock.version>
-		<fluentforms.version>0.0.1</fluentforms.version>
+		<fluentforms.version>0.0.2-SNAPSHOT</fluentforms.version>
 		<!-- PF4J Plugin properties for this plugin -->
 		<plugin.id>com._4point.aem.formsfeeder.plugins.example</plugin.id>
-		<plugin.class>com._4point.aem.formsfeeder.plugins.example.ExamplePlugin</plugin.class>
 		<plugin.version>${project.version}</plugin.version>
 		<plugin.dependencies />
 		<plugin.description>Example Plug-in - Makes calls to AEM to render a form.</plugin.description>
