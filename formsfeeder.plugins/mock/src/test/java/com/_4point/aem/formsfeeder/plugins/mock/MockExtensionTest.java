@@ -46,7 +46,7 @@ class MockExtensionTest {
 		FeedConsumerBadRequestException ex = assertThrows(FeedConsumerBadRequestException.class, ()->underTest.accept(createBuilder(scenarioName).build()));
 		String msg = ex.getMessage();
 		assertNotNull(msg);
-		assertTrue(msg.contains(scenarioName), "Expected msg to contain '" + scenarioName + "' but didn't (" + msg + ").");
+		assertTrue(msg.contains("because scenario was '" + scenarioName + "'"), "Expected msg to contain \"because scenario was '" + scenarioName + "'\" but didn't (" + msg + ").");
 	}
 	
 	@Test
@@ -74,6 +74,7 @@ class MockExtensionTest {
 		String msg = ex.getMessage();
 		assertNotNull(msg);
 		assertTrue(msg.contains(scenarioName), "Expected msg to contain '" + scenarioName + "' but didn't (" + msg + ").");
+		assertTrue(msg.contains("Throwing anonymous FeedConsumerException"), "Expected msg to contain 'Throwing anonymous FeedConsumerException' but didn't (" + msg + ").");
 	}
 	
 	@Test
