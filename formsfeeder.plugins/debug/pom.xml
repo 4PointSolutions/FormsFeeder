@@ -24,7 +24,6 @@
 	<properties>
 		<!-- PF4J Plugin properties for this plugin -->
 		<plugin.id>com._4point.aem.formsfeeder.plugins.debug</plugin.id>
-		<plugin.class>com._4point.aem.formsfeeder.plugins.debug.DebugPlugin</plugin.class>
 		<plugin.version>${project.version}</plugin.version>
 		<plugin.dependencies />
 		<plugin.description>Debugging Plug-in - Displays the inputs to stdout.</plugin.description>

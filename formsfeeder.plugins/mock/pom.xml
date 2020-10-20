@@ -24,7 +24,6 @@
 	<properties>
 		<!-- PF4J Plugin properties for this plugin -->
 		<plugin.id>com._4point.aem.formsfeeder.plugins.mock</plugin.id>
-		<plugin.class>com._4point.aem.formsfeeder.plugins.mock.MockPlugin</plugin.class>
 		<plugin.version>${project.version}</plugin.version>
 		<plugin.dependencies />
 		<plugin.description>Mock Plug-in - Required by formsfeeder.server unit tests.</plugin.description>

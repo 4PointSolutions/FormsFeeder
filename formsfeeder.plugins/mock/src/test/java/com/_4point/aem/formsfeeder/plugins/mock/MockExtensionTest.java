@@ -35,11 +35,10 @@ import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
-import com._4point.aem.formsfeeder.plugins.mock.MockPlugin.MockExtension;
 
-class MockPluginTest {
+class MockExtensionTest {
 
-	MockExtension underTest = new MockPlugin.MockExtension();
+	MockExtension underTest = new MockExtension();
 
 	@Test
 	void testScenario_BadRequestException() {

@@ -18,10 +18,10 @@ import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.MimeType;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 
-class DebugPluginTest {
+class DebugFeedConsumerExtensionTest {
 	private static final String RESULT_DS_NAME = "Message";	// Use the same name for all DSes in result.
 	
-	private DebugPlugin.DebugFeedConsumerExtension underTest = new DebugPlugin.DebugFeedConsumerExtension();
+	private DebugFeedConsumerExtension underTest = new DebugFeedConsumerExtension();
 	
 	@Test
 	void testAccept() throws Exception {
