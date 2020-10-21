@@ -59,6 +59,7 @@ public class MockSubmitExtension implements NamedFeedConsumer, ExtensionPoint {
 	private static final String SCENARIO_NO_RETURNS = "NoReturns";
 	private static final String SCENARIO_RETURN_HTML5_PARAMS = "ReturnHtml5Parameters";
 	private static final String SCENARIO_RETURN_REDIRECT = "ReturnRedirect";
+	private static final String SCENARIO_RETURN_TOOMANY = "ReturnTooMany";
 
 	// Other constants
 	private static final String FORMSFEEDER_PREFIX = "formsfeeder:";
@@ -110,6 +111,16 @@ public class MockSubmitExtension implements NamedFeedConsumer, ExtensionPoint {
 				}
 				
 			};
+		case SCENARIO_RETURN_TOOMANY:
+			// This scenario returns a single PDF file.
+			builder.add("PdfResult", getResourcePath("SampleForm.pdf"), Map.of("formsfeeder:Content-Disposition", "attachment"));
+			String returnValue2 = String.join(", ",
+					iparams.templateUrl().map(s->"TemplateUrl='" + s + "'").orElse("No Template Url"),
+					iparams.contentRoot().map(s->"ContentRoot='" + s + "'").orElse("No Content Root"),
+					iparams.submitUrl().map(s->"SubmitUrl='" + s + "'").orElse("No Submit Url")
+				);
+			builder.add("Result", returnValue2);
+			break;
 		case SCENARIO_NAME_BAD_REQUEST_EXCEPTION:
 			// This scenarion returns a FeedConsumerBadRequestException.
 			throw new FeedConsumerBadRequestException("Throwing FeedConsumerBadRequestException because scenario was '" + scenario + "'.");

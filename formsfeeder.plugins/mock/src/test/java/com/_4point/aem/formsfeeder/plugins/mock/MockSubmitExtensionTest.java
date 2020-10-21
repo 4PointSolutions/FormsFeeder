@@ -13,6 +13,7 @@ import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerException;
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerInternalErrorException;
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
+import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 
 class MockSubmitExtensionTest {
@@ -84,6 +85,37 @@ class MockSubmitExtensionTest {
 		assertEquals("RedirectUrl", result.deconstructor().getStringByName(REDIRECT_LOCATION_DS_NAME).get());
 	}
 	
+	@Test
+	void testAccept_ReturnTooMany() throws Exception {
+		final String scenarioName = "ReturnTooMany";
+		final String expectedTemplateUrl = "sampleTemplateUrl";
+		final String expectedContentRoot = "sampleContentRoot";
+		final String expectedSubmitUrl = "sampleSubmitUrl";
+		DataSourceList result = underTest.accept(InputDslBuilder.createBuilder(scenarioName)
+				.template(expectedTemplateUrl)
+				.contentRoot(expectedContentRoot)
+				.submitUrl(expectedSubmitUrl)
+				.build()
+				);
+		assertNotNull(result);
+		assertEquals(2, result.list().size());
+		final Deconstructor deconstructor = result.deconstructor();
+		String output = deconstructor.getStringByName("Result").get();
+		assertAll(
+				()->assertTrue(output.contains(expectedTemplateUrl), "Expected '" + output + "' to contain template url '" + expectedTemplateUrl + "'."),
+				()->assertTrue(output.contains(expectedContentRoot), "Expected '" + output + "' to contain content root '" + expectedContentRoot + "'."),
+				()->assertTrue(output.contains(expectedSubmitUrl), "Expected '" + output + "' to contain submit url '" + expectedSubmitUrl + "'.")
+				);
+		DataSource pdfDataSource = deconstructor.getDataSourceByName("PdfResult").get();
+		assertAll(
+				()->assertEquals(StandardMimeTypes.APPLICATION_PDF_TYPE, pdfDataSource.contentType()),
+				()->assertEquals("SampleForm.pdf", pdfDataSource.filename().get().getFileName().toString()),
+				()->assertEquals("PdfResult", pdfDataSource.name()),
+				()->assertEquals(1, pdfDataSource.attributes().size()),	// We add a content disposition for this test.
+				()->assertEquals("attachment", pdfDataSource.attributes().get("formsfeeder:Content-Disposition"))
+				);
+	}
+
 	@Test
 	void testScenario_BadRequestException() {
 		final String scenarioName = "BadRequestException";
