@@ -25,7 +25,7 @@
 		<plugin.id>com._4point.aem.formsfeeder.plugins.example</plugin.id>
 		<plugin.version>${project.version}</plugin.version>
 		<plugin.dependencies />
-		<plugin.description>Example Plug-in - Makes calls to AEM to render a form.</plugin.description>
+		<plugin.description>Example Plug-in - Makes calls to AEM to render various forms (PDF, HTML5, Adaptive).</plugin.description>
 	</properties>
 
 	<build>
