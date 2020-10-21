@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -46,6 +47,7 @@ import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
+import com.github.tomakehurst.wiremock.extension.responsetemplating.ResponseTemplateTransformer;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.github.tomakehurst.wiremock.recording.SnapshotRecordResult;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
@@ -56,7 +58,6 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
  */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
 @Tag("Integration")
-@TestPropertySource(properties = {"formsfeeder.aem.port=4502"})
 class Html5SubmitProxyTest {
 	private final static Logger baseLogger = LoggerFactory.getLogger(Html5SubmitProxyTest.class);
 	
@@ -75,7 +76,7 @@ class Html5SubmitProxyTest {
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and 
 	 * formsfeeder.plugins.aemHost settings. 
 	 */
-	private static final boolean USE_WIREMOCK = false;
+	private static final boolean USE_WIREMOCK = true;
 	/*
 	 * Set WIREMOCK_RECORDING to true in order to record the interaction with a real FormsFeeder instance running on
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and
@@ -109,7 +110,7 @@ class Html5SubmitProxyTest {
 		
 		if (USE_WIREMOCK) {
 			// Let wiremock choose the port for the first test, but re-use the same port for all subsequent tests.
-			wireMockServer = new WireMockServer(wiremockPort == null ? new WireMockConfiguration().dynamicPort() : new WireMockConfiguration().port(wiremockPort));
+			wireMockServer = new WireMockServer(wiremockPort == null ? new WireMockConfiguration().dynamicPort().extensions(new ResponseTemplateTransformer(true)) : new WireMockConfiguration().port(wiremockPort).extensions(new ResponseTemplateTransformer(true)));
 	        wireMockServer.start();
 			System.out.println("Inside SetEnvironment wiremock block.");
 			if (WIREMOCK_RECORDING) {

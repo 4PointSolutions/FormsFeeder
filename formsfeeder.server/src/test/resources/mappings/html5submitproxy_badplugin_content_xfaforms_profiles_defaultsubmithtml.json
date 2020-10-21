@@ -1,0 +1,26 @@
+{
+  "id" : "9a2d6a84-7c19-44c6-9bdf-f40988ec9c08",
+  "name" : "content_xfaforms_profiles_defaultsubmithtml",
+  "request" : {
+    "url" : "/content/xfaforms/profiles/default.submit.html",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "doesNotMatch" : ".*MockSubmit.*"
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "<?xml version='1.0' encoding='UTF-8'?>\n<xdp:xdp uuid=\"31e01e60-4ed2-4a1a-a71a-4583243d6ba0\" timeStamp=\"2020-10-20T15:05:10Z\" xmlns:xdp=\"http://ns.adobe.com/xdp/\">\n<xfa:datasets xmlns:xfa=\"http://www.xfa.org/schema/xfa-data/1.0/\"><xfa:data><form1><TextField1>Text Field 1 Data</TextField1><TextField2>Text Field 2 Data</TextField2><FormsFeeder><Plugin>{{regexExtract request.body '(\\{\"_class\"\\:\"subform\",\"name\"\\:\"FormsFeeder\",\"children\"\\:\\[\\{\"_class\"\\:\"field\",\"name\"\\:\"Plugin\",\"children\"\\:\\[\\{\"_class\"\\:\"value\",\"children\"\\:\\[\\{\"_class\"\\:\"text\",\"_value\"\\:\"(\\w*)\"\\}\\]\\}\\]\\}\\]\\})' 'myjsondata'}}{{myjsondata.1}}</Plugin></FormsFeeder><Scenario/></form1></xfa:data></xfa:datasets></xdp:xdp>",
+    "headers" : {
+      "Date" : "Wed, 21 Oct 2020 19:16:04 GMT",
+      "X-Content-Type-Options" : "nosniff",
+      "Set-Cookie" : "cq-authoring-mode=TOUCH; Path=/; Expires=Wed, 28-Oct-2020 19:16:04 GMT; Max-Age=604800",
+      "Expires" : "Thu, 01 Jan 1970 00:00:00 GMT",
+      "Content-Type" : "application/xml; charset=UTF-8"
+    },
+    "transformers" : [ "response-template" ]
+  },
+  "uuid" : "9a2d6a84-7c19-44c6-9bdf-f40988ec9c08",
+  "persistent" : true,
+  "insertionIndex" : 6
+}
