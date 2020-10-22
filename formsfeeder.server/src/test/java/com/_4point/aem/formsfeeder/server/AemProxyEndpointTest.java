@@ -32,6 +32,8 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -86,6 +88,14 @@ class AemProxyEndpointTest implements EnvironmentAware {
 	private static Integer wiremockPort = null;
 	private Environment environment;
 
+	@DynamicPropertySource
+    static void registerPgProperties(DynamicPropertyRegistry registry) {
+		if (USE_WIREMOCK) {
+			registry.add(TestConstants.ENV_FORMSFEEDER_AEM_HOST, ()->"localhost");
+			registry.add(TestConstants.ENV_FORMSFEEDER_AEM_PORT, ()->wiremockPort);
+		}		
+	}
+
 	@BeforeEach
 	public void setUp() throws Exception {
 		uri = getBaseUri(port);
@@ -103,16 +113,6 @@ class AemProxyEndpointTest implements EnvironmentAware {
 			}
 			if (wiremockPort == null) {	// Save the port for subsequent invocations. 
 				wiremockPort = wireMockServer.port();
-			}
-			if (environment instanceof ConfigurableEnvironment) {
-				ConfigurableEnvironment env1 = (ConfigurableEnvironment) environment;
-				MutablePropertySources propertySources = env1.getPropertySources();
-				Map<String, Object> myMap = new HashMap<>();
-				myMap.put(ENV_FORMSFEEDER_AEM_HOST, "localhost");
-				myMap.put(ENV_FORMSFEEDER_AEM_PORT, wiremockPort);
-				propertySources.addFirst(new MapPropertySource("WIREMOCK_MAP", myMap));
-			} else {
-				System.out.println("Unable to write to environment.");
 			}
 			System.out.println("Wiremock is up on port " + wiremockPort + " .");
 		}
