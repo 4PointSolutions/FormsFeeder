@@ -6,7 +6,6 @@ import java.text.ParseException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.function.BiFunction;
 
 import javax.json.JsonObject;
@@ -30,10 +29,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
-import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.server.PluginInvoker.PluginInvokerBadRequestException;
 import com._4point.aem.formsfeeder.server.PluginInvoker.PluginInvokerInternalErrorException;
 import com._4point.aem.formsfeeder.server.PluginInvoker.PluginInvokerPluginNotFoundException;
@@ -179,7 +176,7 @@ public class ServicesEndpoint {
 		} catch (ContentDispositionHeaderException e) {
 			// If we encounter Parse Errors while determining ContentDisposition, it must be a BadRequest.
 			logger.error(e.getMessage() + ", Returning \"Bad Request\" status code.", e);
-			return buildResponse(Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).type(MediaType.TEXT_PLAIN_TYPE), correlationId);
+			return PluginInvoker.buildResponse(Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).type(MediaType.TEXT_PLAIN_TYPE), correlationId);
 		}
 	}
 
@@ -299,7 +296,7 @@ public class ServicesEndpoint {
 		} catch (ContentDispositionHeaderException e) {
 			// If we encounter Parse Errors while determining ContentDisposition, it must be a BadRequest.
 			logger.error(e.getMessage() + ", Returning \"Bad Request\" status code.", e);
-			return buildResponse(Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).type(MediaType.TEXT_PLAIN_TYPE), correlationId);
+			return PluginInvoker.buildResponse(Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).type(MediaType.TEXT_PLAIN_TYPE), correlationId);
 		}
 	}
 
@@ -315,7 +312,7 @@ public class ServicesEndpoint {
 	 * @return
 	 */
 	private final Response invokePluginConvertResponse(final String remainder, final DataSourceList dataSourceList, final Logger logger, final String correlationId, final BiFunction<DataSourceList, Logger, ResponseData> multiReturnConverter) {
-		return buildResponse(invokePluginCreateResponse(determineConsumerName(remainder), dataSourceList, logger, multiReturnConverter), correlationId);
+		return PluginInvoker.buildResponse(invokePluginCreateResponse(determineConsumerName(remainder), dataSourceList, logger, multiReturnConverter), correlationId);
 	}
 
 	/**
@@ -334,7 +331,7 @@ public class ServicesEndpoint {
 	 */
 	protected final ResponseBuilder invokePluginCreateResponse(final String consumerName, final DataSourceList dataSourceList, final Logger logger, final BiFunction<DataSourceList, Logger, ResponseData> multiReturnConverter) {
 		try {
-			return convertToResponseBuilder(pluginInvoker.invokePlugin(consumerName, dataSourceList, logger), logger, multiReturnConverter);
+			return PluginInvoker.convertToResponseBuilder(pluginInvoker.invokePlugin(consumerName, dataSourceList, logger), logger, (dsl, l)->PluginInvoker.multipleDsHandler(dsl, l, multiReturnConverter), ()->Response.noContent());
 		} catch (PluginInvokerPluginNotFoundException e) {
 			String msg = e.getMessage();
 			logger.error(msg + " Returning \"Not Found\" status code.");
@@ -347,30 +344,6 @@ public class ServicesEndpoint {
 			String msg = e.getMessage();
 			logger.error(msg + ", Returning \"Bad Request\" status code.", e);
 			return Response.status(Response.Status.BAD_REQUEST).entity(msg).type(MediaType.TEXT_PLAIN_TYPE);
-		}
-	}
-	
-	
-	/**
-	 * Converts the DataSourceList returned by a plug-in to a Response that will get sent back to the caller
-	 * 
-	 * @param outputs  List of DataSources that will be returned in the Response.
-	 * @param logger   Logger for method to log to.
-	 * @param multiReturnConverter  Function for converting multiple DataSources into a single Response.  Can be null when multiple DataSource responses is not allowed (for example, when processing a submission).
-	 * @return
-	 */
-	private static final ResponseBuilder convertToResponseBuilder(final DataSourceList outputs, final Logger logger, final BiFunction<DataSourceList, Logger, ResponseData> multiReturnConverter) {
-		List<DataSource> dsList = Objects.requireNonNull(outputs, "Plugin returned null DataSourceList!").list();
-		if (dsList.isEmpty()) {
-			// Nothing in the response, so return no content.
-	    	logger.debug("Returning no data sources.");
-			return Response.noContent();
-		} else if (dsList.size() == 1 && !dsList.get(0).contentType().equals(StandardMimeTypes.APPLICATION_VND_4POINT_DATASOURCELIST_TYPE)) {
-			// One data source that is not a DataSourceList, so return the contents in the body of the response.
-			return DataSourceListJaxRsUtils.asResponseBuilder(outputs.list().get(0), logger);
-		} else { // More than one return or a single DataSourceList return.
-			ResponseData responsesData = Objects.requireNonNull(multiReturnConverter, "Multiple Returns not supported for this type of request.").apply(outputs, logger);
-			return Response.ok(responsesData.data(), responsesData.mediaType());
 		}
 	}
 
@@ -424,18 +397,6 @@ public class ServicesEndpoint {
 	}
 
 	/**
-	 * Build a response from a ResponseBuilder.  This is mainly to make sure that all responses contain the correlationId in them.
-	 * 
-	 * @param builder
-	 * @param correlationId
-	 * @return
-	 */
-	private static final Response buildResponse(final ResponseBuilder builder, final String correlationId) {
-		builder.header(CorrelationId.CORRELATION_ID_HDR, correlationId);
-		return builder.build();
-	}
-	
-	/**
 	 * Generates a DataSourceList containing variables that are generated by the FormsFeeder server.
 	 * 
 	 * @param correlationId
@@ -447,6 +408,13 @@ public class ServicesEndpoint {
 				.build();
 	}
 	
+	/**
+	 * Convert a DataSourceList to MultipartFormData and return that in a ResponseData object. 
+	 * 
+	 * @param outputs
+	 * @param logger
+	 * @return
+	 */
 	private static ResponseData toMultipartFormData(DataSourceList outputs, Logger logger) {
 		// Convert DataSourceList to MultipartFormData.
     	FormDataMultiPart responsesData = DataSourceListJaxRsUtils.asFormDataMultipart(outputs);
@@ -469,6 +437,13 @@ public class ServicesEndpoint {
 		};
 	}
 
+	/**
+	 * Convert a DataSourceList to a Json object and return that in a ResponseData object. 
+	 * 
+	 * @param outputs
+	 * @param logger
+	 * @return
+	 */
 	private static ResponseData toJson(DataSourceList outputs, Logger logger) {
 		JsonObject json = DataSourceListJsonUtils.asJson(outputs, logger);
 		return new ResponseData() {

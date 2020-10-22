@@ -33,7 +33,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.web.server.LocalServerPort;
@@ -41,7 +40,8 @@ import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.MutablePropertySources;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
 
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -104,6 +104,14 @@ class Html5SubmitProxyTest {
 	private static Integer wiremockPort = null;
 	private Environment environment;
 
+	@DynamicPropertySource
+    static void registerPgProperties(DynamicPropertyRegistry registry) {
+		if (USE_WIREMOCK) {
+			registry.add(TestConstants.ENV_FORMSFEEDER_AEM_HOST, ()->"localhost");
+			registry.add(TestConstants.ENV_FORMSFEEDER_AEM_PORT, ()->wiremockPort);
+		}		
+	}
+
 	@BeforeEach
 	public void setUp() throws Exception {
 		uri = TestConstants.getBaseUri(port);
@@ -121,16 +129,6 @@ class Html5SubmitProxyTest {
 			}
 			if (wiremockPort == null) {	// Save the port for subsequent invocations. 
 				wiremockPort = wireMockServer.port();
-			}
-			if (environment instanceof ConfigurableEnvironment) {
-				ConfigurableEnvironment env1 = (ConfigurableEnvironment) environment;
-				MutablePropertySources propertySources = env1.getPropertySources();
-				Map<String, Object> myMap = new HashMap<>();
-				myMap.put(TestConstants.ENV_FORMSFEEDER_AEM_HOST, "localhost");
-				myMap.put(TestConstants.ENV_FORMSFEEDER_AEM_PORT, wiremockPort);
-				propertySources.addFirst(new MapPropertySource("WIREMOCK_MAP", myMap));
-			} else {
-				System.out.println("Unable to write to environment.");
 			}
 			System.out.println("Wiremock is up on port " + wiremockPort + " .");
 		}

@@ -1,10 +1,7 @@
 package com._4point.aem.formsfeeder.server;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,14 +29,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com._4point.aem.formsfeeder.core.api.AemConfig;
-import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.server.PluginInvoker.PluginInvokerBadRequestException;
 import com._4point.aem.formsfeeder.server.PluginInvoker.PluginInvokerInternalErrorException;
 import com._4point.aem.formsfeeder.server.PluginInvoker.PluginInvokerPluginNotFoundException;
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
-import com._4point.aem.formsfeeder.server.support.DataSourceListJaxRsUtils;
 import com._4point.aem.formsfeeder.server.support.FfLoggerFactory;
 import com._4point.aem.formsfeeder.server.support.FormsFeederData;
 import com._4point.aem.formsfeeder.server.support.XmlDataFile;
@@ -57,7 +52,6 @@ public class Html5SubmitProxy extends AbstractSubmitProxy {
 	private static final String TEMPLATE_DS_NAME = PluginInvoker.FORMSFEEDER_PREFIX + "Template";
 	private static final String CONTENT_ROOT_DS_NAME = PluginInvoker.FORMSFEEDER_PREFIX + "ContentRoot";
 	private static final String SUBMIT_URL_DS_NAME = PluginInvoker.FORMSFEEDER_PREFIX + "SubmitUrl";
-	private static final String REDIRECT_LOCATION_DS_NAME = PluginInvoker.FORMSFEEDER_PREFIX + "RedirectLocation";
 
 	private static final String AEM_URL = "/content/xfaforms/profiles/";
 	private static final String AEM_APP_PREFIX = "/";
@@ -140,17 +134,35 @@ public class Html5SubmitProxy extends AbstractSubmitProxy {
 												.map(name->invokePluginCreateResponse(name, createInputDsl(extractedXmlData), logger))	// Invoke the plugin and get a ResponseBuilder
 												.orElse(Response.status(Response.Status.NOT_FOUND).entity("Plugin name could not be found.").type(MediaType.TEXT_PLAIN_TYPE));;
 			
-			return buildResponse(pluginResult, correlationId);
+			return PluginInvoker.buildResponse(pluginResult, correlationId);
 		} else  { 
 			logger.debug("AEM returned status code '" + result.getStatus() + "'. Returning response from AEM.");
 			return Response.fromResponse(result).build();
 		}
     }
 
+    /**
+     * Creates a DataSourceList from the incoming XML data.  This is intended to be passed to the plugin we call.
+     * 
+     * @param xmlData
+     * @return
+     */
     private DataSourceList createInputDsl(byte[] xmlData) {
 		return DataSourceList.build(b->this.populateInputDsl(b, xmlData));
     }
 
+    /**
+     * Populate the DataSourceList used for input to the plugin we're going to call.  Add things that 
+     * the plugin might want to use like:
+     *   - the data
+     *   - the template
+     *   - the contentRoot
+     *   - the submit Url
+     * 
+     * @param builder
+     * @param xmlData
+     * @return
+     */
     private DataSourceList.Builder populateInputDsl(DataSourceList.Builder builder, byte[] xmlData) {
     	return builder.add(SUBMITTED_DATA_DS_NAME, xmlData, StandardMimeTypes.APPLICATION_XML_TYPE)
     				  .add(TEMPLATE_DS_NAME, this.template)
@@ -158,6 +170,12 @@ public class Html5SubmitProxy extends AbstractSubmitProxy {
     				  .add(SUBMIT_URL_DS_NAME, this.submitUrl);
     }
     
+	/**
+	 * Extract the plugin name from the incoming XML.
+	 * 
+	 * @param xmlData
+	 * @return the name (if we find it in the data)
+	 */
 	private Optional<String> extractPluginName(byte[] xmlData) {
 		return FormsFeederData.from(xmlData).flatMap(FormsFeederData::pluginName);
 	}
@@ -178,7 +196,7 @@ public class Html5SubmitProxy extends AbstractSubmitProxy {
 	 */
 	protected final ResponseBuilder invokePluginCreateResponse(final String consumerName, final DataSourceList dataSourceList, final Logger logger) {
 		try {
-			return convertToResponseBuilder(pluginInvoker.invokePlugin(consumerName, dataSourceList, logger), logger);
+			return PluginInvoker.convertToResponseBuilder(pluginInvoker.invokePlugin(consumerName, dataSourceList, logger), logger, Html5SubmitProxy::multipleDsHandler, ()->Response.ok("Form submission processed.", MediaType.TEXT_PLAIN_TYPE));
 		} catch (PluginInvokerPluginNotFoundException e) {
 			String msg = e.getMessage();
 			logger.error(msg + " Returning \"Not Found\" status code.");
@@ -195,54 +213,19 @@ public class Html5SubmitProxy extends AbstractSubmitProxy {
 	}
 	
 	/**
-	 * Converts the DataSourceList returned by a plug-in to a Response that will get sent back to the client.
+	 * This method it passed to the PluginInvoker code to translate a result from the plugin that contains
+	 * multiple datasources.  In this case, we generate an internal error response because we're  assuming that
+	 * the caller is a user using a browser and therefore can't handle a "compound" format like JSON or multipart/formdata.
+	 * We return an error so that at least we return something (instead of "No content" which is what happens in 
+	 * other cases when invoking plugins).
 	 * 
-	 * Note: The assumption here is that the client is a user using a browser, so we return something (rather than no content) even if there is nothing in the output DataSourceList
-	 * 
-	 * @param outputs  List of DataSources that will be returned in the Response.
-	 * @param logger   Logger for method to log to.
-	 * @param multiReturnConverter  Function for converting multiple DataSources into a single Response.  Can be null when multiple DataSource responses is not allowed (for example, when processing a submission).
+	 * @param dataSources
+	 * @param logger
 	 * @return
 	 */
-	private static final ResponseBuilder convertToResponseBuilder(final DataSourceList outputs, final Logger logger) {
-		try {
-			List<DataSource> dsList = Objects.requireNonNull(outputs, "Plugin returned null DataSourceList!").list();
-			if (dsList.isEmpty()) {
-				// Nothing in the response, so return OK and a test message so that the .
-				logger.debug("Returning thank you message because there were no datasources in the output.");
-				return Response.ok("Form submission processed.", MediaType.TEXT_PLAIN_TYPE);
-			} else if (dsList.size() == 1 && !dsList.get(0).contentType().equals(StandardMimeTypes.APPLICATION_VND_4POINT_DATASOURCELIST_TYPE)) {
-				Optional<String> redirectUrl = outputs.deconstructor().getStringByName(REDIRECT_LOCATION_DS_NAME);
-				if (redirectUrl.isPresent()) {
-					// The plugin is asking for a redirect.
-					return Response.seeOther(new URI(redirectUrl.get()));
-				} else {
-					// One data source that is not a DataSourceList and not a redirect, so return the contents in the body of the response.
-					return DataSourceListJaxRsUtils.asResponseBuilder(dsList.get(0), logger);
-				}
-			} else { // More than one return or a single DataSourceList return.
-				String msg = "Plugin returned multiple datasources which cannot be turned into a valid response.";
-				logger.error(msg);
-				return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).type(MediaType.TEXT_PLAIN_TYPE);
-			}
-		} catch (URISyntaxException e) {
-			throw new IllegalArgumentException("Invalid Redirect URI returned from plugin.",e);
-		}
-	}
-
-	
-
-	
-	/**
-	 * Build a response from a ResponseBuilder.  This is mainly to make sure that all responses contain the correlationId in them.
-	 * 
-	 * @param builder
-	 * @param correlationId
-	 * @return
-	 */
-	private static final Response buildResponse(final ResponseBuilder builder, final String correlationId) {
-		builder.header(CorrelationId.CORRELATION_ID_HDR, correlationId);
-		return builder.build();
-	}
-
+	private static ResponseBuilder multipleDsHandler(DataSourceList dataSources, Logger logger) {
+		String msg = "Plugin returned multiple datasources which cannot be turned into a valid response.";
+		logger.error(msg);
+		return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(msg).type(MediaType.TEXT_PLAIN_TYPE);
+	}	
 }
