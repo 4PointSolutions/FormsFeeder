@@ -1,4 +1,4 @@
-package com._4point.aem.formsfeeder.plugins.example;
+package com._4point.aem.formsfeeder.plugins.example.helper;
 
 
 import static org.junit.jupiter.api.Assertions.assertNotEquals;

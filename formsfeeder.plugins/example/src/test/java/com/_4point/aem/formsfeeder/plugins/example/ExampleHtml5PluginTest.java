@@ -30,6 +30,7 @@ import com._4point.aem.formsfeeder.core.api.AemConfig;
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
+import com._4point.aem.formsfeeder.plugins.example.helper.HtmlFormDocument;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
