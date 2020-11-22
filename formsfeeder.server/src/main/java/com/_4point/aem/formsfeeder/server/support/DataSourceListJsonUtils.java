@@ -126,7 +126,7 @@ public class DataSourceListJsonUtils {
 			if (child.size() > 1) {
 				JsonArrayBuilder jsonBuilder = Json.createArrayBuilder();
 				JsonParent arrayParent = toJsonParent(jsonBuilder);
-				child.forEach(ds->addtoJsonParent(arrayParent, ds, logger));
+				child.forEach(ds->addDstoJsonParent(arrayParent, ds, logger));
 				jsonObjBuilder.add(firstDs.name(), jsonBuilder);
 			} else {
 				if (firstDs.name().isBlank()) {
@@ -134,7 +134,7 @@ public class DataSourceListJsonUtils {
 				}
 				// Get the one and only DataSource in the list.
 				JsonParent objectParent = toJsonParent(jsonObjBuilder, firstDs.name());
-				addtoJsonParent(objectParent, firstDs, logger);
+				addDstoJsonParent(objectParent, firstDs, logger);
 			}
 		}
 	}
@@ -149,13 +149,13 @@ public class DataSourceListJsonUtils {
 	}
 
 	// Adds a single DataSource into an JsonObject or JsonArray. 
-	private static void addtoJsonParent(JsonParent jsonParent, final DataSource dataSource, Logger logger) {
+	private static void addDstoJsonParent(JsonParent jsonParent, final DataSource dataSource, Logger logger) {
 		try {
 			switch(dataSource.contentType().asTypeString()) {
 			case XmlDataSourceListDecoder.DSL_MIME_TYPE_STR:
 				XmlDataSourceListDecoder.wrap(dataSource.inputStream())
 										.decode()
-										.ifPresent(dsl->addToJsonParent(jsonParent, dsl, logger));
+										.ifPresent(dsl->addDslToJsonParent(jsonParent, dsl, logger));
 				break;
 			case StandardMimeTypes.TEXT_PLAIN_STR:
 				Charset charset = dataSource.contentType().charset();
@@ -172,7 +172,7 @@ public class DataSourceListJsonUtils {
 	}
 	
 	// Add a DataSourceList into an JsonObject or JsonArray.
-	private static void addToJsonParent(JsonParent jsonParent, final DataSourceList dataSourceList, Logger logger) {
+	private static void addDslToJsonParent(JsonParent jsonParent, final DataSourceList dataSourceList, Logger logger) {
 		if (dataSourceList.stream().filter(Predicate.not(d->d.name().isBlank())).count() == 0) {
 			JsonArrayBuilder jsonBuilder = Json.createArrayBuilder();
 			addDslToJsonArray(jsonBuilder, dataSourceList.list(), logger);
@@ -187,7 +187,7 @@ public class DataSourceListJsonUtils {
 	// Only called when an DataSourceList full of DataSources with no name.
 	private static void addDslToJsonArray(JsonArrayBuilder jsonArrayBuilder, final List<DataSource> dataSourceList, Logger logger) {
 			JsonParent arrayParent = toJsonParent(jsonArrayBuilder);
-			dataSourceList.forEach(ds->addtoJsonParent(arrayParent, ds, logger));
+			dataSourceList.forEach(ds->addDstoJsonParent(arrayParent, ds, logger));
 	}
 	
 	// Define an interface that we will use for both JsonObjects and JsonArrays for adding children
