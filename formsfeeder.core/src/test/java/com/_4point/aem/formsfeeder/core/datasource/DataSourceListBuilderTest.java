@@ -197,6 +197,12 @@ class DataSourceListBuilderTest {
 	}
 
 	@Test
+	void testBuildSeedDsl() {
+		DataSourceList result = addAllDsTypes(DataSourceList.builder()).build();
+		validateResultList(result.list(), false);
+	}
+
+	@Test
 	void testBuildAllLists() throws Exception{
 		// Construct a DataSourceList with one or more of each and every type
 		List<DataSource> dsList = Jdk8Utils.listOf(dummyDS, dummyDS);

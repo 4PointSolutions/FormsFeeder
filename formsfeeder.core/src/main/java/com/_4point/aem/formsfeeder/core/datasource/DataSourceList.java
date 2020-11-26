@@ -270,6 +270,15 @@ public class DataSourceList implements Iterable<DataSource> {
 	}
 	
 	/**
+	 * Create a DataSourceList.Builder for building a DataSourceList.
+	 * 
+	 * @return new DataSourceList.Builder object
+	 */
+	public static Builder builder(DataSourceList dsl) {
+		return Builder.newBuilder(dsl);
+	}
+	
+	/**
 	 * Create a DataSourceList using a function that accepts a DataSourceList.Builder, (presumably) adds items to the DataSourceList via that builder and returns a DataSourceList.Builder
 	 * 
 	 * This function is a convenience function that allows an object to add its properties into a DataSourceList using a DataSourceList.Builder.
@@ -303,6 +312,14 @@ public class DataSourceList implements Iterable<DataSource> {
 		
 		private static Builder newBuilder() {
 			return new Builder();
+		}
+
+		private static Builder newBuilder(DataSourceList dsl) {
+			final Builder builder = new Builder();
+			for (DataSource ds : dsl.list()) {	// transfer data from seed Dsl into new builder
+				builder.add(ds);
+			}
+			return builder;
 		}
 
 		public DataSourceList build() {
