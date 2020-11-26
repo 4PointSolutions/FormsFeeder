@@ -56,7 +56,7 @@ class ExampleHtml5SubmitPluginTest {
 		if (!USE_AEM) {
 			underTest.tradOutputServiceSupplier(()->MockTraditionalOutputService.createDocumentMock(expectedResponseDoc));
 		}
-		junitx.util.PrivateAccessor.setField(underTest,"aemConfig", mockConfig("localhost", 4502)); 
+		junitx.util.PrivateAccessor.setField(underTest,"aemConfig", mockConfig("localhost", 4502, Protocol.HTTP)); 
 		
 		DataSourceList result = underTest.accept(DataSourceList.build(ExampleHtml5SubmitPluginTest::buildInputs));
 
@@ -88,7 +88,7 @@ class ExampleHtml5SubmitPluginTest {
 					  .add(CONTENT_ROOT_DS_NAME, "crx:///content/dam/formsanddocuments/sample-forms");
 	}
 	
-	private static AemConfig mockConfig(String host, int port) {
+	private static AemConfig mockConfig(String host, int port, Protocol protocol) {
 		return new AemConfig() {
 
 			@Override
@@ -113,7 +113,7 @@ class ExampleHtml5SubmitPluginTest {
 
 			@Override
 			public Protocol protocol() {
-				return null;
+				return protocol;
 			}
 		};
 	}

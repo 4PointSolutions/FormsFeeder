@@ -86,7 +86,7 @@ public class ExampleHtml5SubmitPlugin implements NamedFeedConsumer, ExtensionPoi
 					.machineName(aemConfig.host())
 					.port(aemConfig.port())
 					.basicAuthentication(aemConfig.username(), aemConfig.secret())
-					.useSsl(false)
+					.useSsl(aemConfig.protocol() == AemConfig.Protocol.HTTPS)
 					.build();
 		return outputAdapter;
 	}
