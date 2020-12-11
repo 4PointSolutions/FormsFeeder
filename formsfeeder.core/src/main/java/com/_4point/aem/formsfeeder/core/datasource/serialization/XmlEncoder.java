@@ -13,6 +13,7 @@ import javax.xml.stream.XMLStreamWriter;
 
 public abstract class XmlEncoder implements Closeable {
 	protected final XMLStreamWriter xsw;
+	private static XMLOutputFactory factory = XMLOutputFactory.newFactory();
 
 	protected XmlEncoder(XMLStreamWriter xsw) {
 		super();
@@ -24,10 +25,10 @@ public abstract class XmlEncoder implements Closeable {
 	}
 
 	public static XMLStreamWriter toXmlStreamWriter(OutputStream os) throws XMLStreamException, FactoryConfigurationError {
-		return XMLOutputFactory.newFactory().createXMLStreamWriter(Objects.requireNonNull(os, "Output Stream cannot be null."));
+		return factory.createXMLStreamWriter(Objects.requireNonNull(os, "Output Stream cannot be null."));
 	}
 
 	public static XMLStreamWriter toXmlStreamWriter(Writer writer) throws XMLStreamException, FactoryConfigurationError {
-		return XMLOutputFactory.newFactory().createXMLStreamWriter(Objects.requireNonNull(writer, "Writer cannot be null."));
+		return factory.createXMLStreamWriter(Objects.requireNonNull(writer, "Writer cannot be null."));
 	}
 }

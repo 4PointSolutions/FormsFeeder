@@ -13,6 +13,7 @@ import javax.xml.stream.XMLStreamReader;
 
 public abstract class XmlDecoder implements Closeable {
 	protected final XMLStreamReader xsr;
+	private	static final XMLInputFactory factory = XMLInputFactory.newFactory();
 
 	protected XmlDecoder(XMLStreamReader xsw) {
 		super();
@@ -24,11 +25,11 @@ public abstract class XmlDecoder implements Closeable {
 	}
 
 	public static XMLStreamReader toXmlStreamReader(InputStream is) throws XMLStreamException, FactoryConfigurationError {
-		return XMLInputFactory.newFactory().createXMLStreamReader(Objects.requireNonNull(is, "Input Stream cannot be null."));
+		return factory.createXMLStreamReader(Objects.requireNonNull(is, "Input Stream cannot be null."));
 	}
 	
 	public static XMLStreamReader toXmlStreamReader(Reader reader) throws XMLStreamException, FactoryConfigurationError {
-		return XMLInputFactory.newFactory().createXMLStreamReader(Objects.requireNonNull(reader, "Input Reader cannot be null."));
+		return factory.createXMLStreamReader(Objects.requireNonNull(reader, "Input Reader cannot be null."));
 	}
 
 }
