@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Base64.Encoder;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Predicate;
@@ -13,6 +14,7 @@ import java.util.function.Predicate;
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
+import javax.json.JsonBuilderFactory;
 import javax.json.JsonNumber;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -30,6 +32,9 @@ import com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceLi
 
 public class DataSourceListJsonUtils {
 	static final Encoder BYTE_ENCODER = Base64.getEncoder();
+	
+	// We pre-create and cache the jsonFactory to speed up the creation of JsonObjects.
+	private static final JsonBuilderFactory jsonFactory = Json.createBuilderFactory(Collections.emptyMap());
 
 	/**
 	 * Convert a Json Object into the DataSourceList
@@ -109,7 +114,7 @@ public class DataSourceListJsonUtils {
 	 * @return FormDataMultipart
 	 */
 	public static JsonObject asJson(final DataSourceList dataSourceList, Logger logger) {
-		JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+		JsonObjectBuilder jsonBuilder = jsonFactory.createObjectBuilder();
 		addDslToJsonObject(jsonBuilder, dataSourceList.list(), logger);
 		return jsonBuilder.build();
 	}
@@ -124,7 +129,7 @@ public class DataSourceListJsonUtils {
 		for (List<DataSource> child : childList.values()) {
 			DataSource firstDs = child.get(0);
 			if (child.size() > 1) {
-				JsonArrayBuilder jsonBuilder = Json.createArrayBuilder();
+				JsonArrayBuilder jsonBuilder = jsonFactory.createArrayBuilder();
 				JsonParent arrayParent = toJsonParent(jsonBuilder);
 				child.forEach(ds->addDstoJsonParent(arrayParent, ds, logger));
 				jsonObjBuilder.add(firstDs.name(), jsonBuilder);
@@ -173,15 +178,20 @@ public class DataSourceListJsonUtils {
 	
 	// Add a DataSourceList into an JsonObject or JsonArray.
 	private static void addDslToJsonParent(JsonParent jsonParent, final DataSourceList dataSourceList, Logger logger) {
-		if (dataSourceList.stream().filter(Predicate.not(d->d.name().isBlank())).count() == 0) {
-			JsonArrayBuilder jsonBuilder = Json.createArrayBuilder();
+		if (hasOnlyBlankNames(dataSourceList)) {
+			JsonArrayBuilder jsonBuilder = jsonFactory.createArrayBuilder();
 			addDslToJsonArray(jsonBuilder, dataSourceList.list(), logger);
 			jsonParent.add(jsonBuilder);
 		} else {
-			JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
+			JsonObjectBuilder jsonBuilder = jsonFactory.createObjectBuilder();
 			addDslToJsonObject(jsonBuilder, dataSourceList.list(), logger);
 			jsonParent.add(jsonBuilder);
 		}
+	}
+
+	// Check to see if the entire DataSourceList is composed DataSources with blank names.
+	private static boolean hasOnlyBlankNames(final DataSourceList dataSourceList) {
+		return dataSourceList.stream().filter(Predicate.not(d->d.name().isBlank())).findAny().isEmpty();
 	}
 
 	// Only called when an DataSourceList full of DataSources with no name.

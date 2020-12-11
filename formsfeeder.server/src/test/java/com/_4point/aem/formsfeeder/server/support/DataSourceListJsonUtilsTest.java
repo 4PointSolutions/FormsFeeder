@@ -29,6 +29,7 @@ import javax.json.JsonObjectBuilder;
 import javax.json.JsonReader;
 import javax.json.JsonStructure;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.slf4j.Logger;
@@ -326,4 +327,26 @@ class DataSourceListJsonUtilsTest {
 //		System.out.println(resultJson.toString());
 		JSONAssert.assertEquals(expectedResult, resultJson.toString(), false);
 	}
+
+	@Test
+	void testAsJson_EmptyArray() throws Exception {
+		String expectedResult = "{\"data\":[]}";
+		DataSourceList array = DataSourceList.builder().add("data", DataSourceList.emptyList()).build();
+		JsonObject resultJson = asJson(array, logger);
+		System.out.println(resultJson.toString());
+		JSONAssert.assertEquals(expectedResult, resultJson.toString(), false);
+	}
+
+	// We can't currently generate an empty object.  I would like to at some point in the future however
+	// we would first need to decide what the DSL structure would look like to generate such an object.
+	// We would also have to weigh that against breaking existing code.
+	@Disabled("We can't currently generate and empty object.")
+	void testAsJson_EmptyObject() throws Exception {
+		String expectedResult = "{\"data\":{}}";
+		DataSourceList object = DataSourceList.builder().add("data", DataSourceList.emptyList()).build();// This is not correct, but there is currently no correct structure.
+		JsonObject resultJson = asJson(object, logger);
+		System.out.println(resultJson.toString());
+		JSONAssert.assertEquals(expectedResult, resultJson.toString(), false);
+	}
+
 }
