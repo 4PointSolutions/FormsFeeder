@@ -99,7 +99,7 @@ public class AemProxyEndpoint {
 		   .get();
 		
 //		System.out.println("Received GET response from target '" + webTarget.getUri().toString() + "'. contentType='" + result.getMediaType().toString() + "'.  transfer-encoding='" + result.getHeaderString("Transfer-Encoding") + "'.");
-		logger.debug("Returning GET response from target '" + webTarget.getUri().toString() + "'.");
+		logger.debug("Returning GET response from target '" + webTarget.getUri().toString() + "' status code=" + result.getStatus() + ".");
 		
 		return Response.fromResponse(result).build();
     }
