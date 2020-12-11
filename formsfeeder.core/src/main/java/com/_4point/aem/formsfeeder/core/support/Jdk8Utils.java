@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  *
  */
 public class Jdk8Utils {
-	private static final int DEFAULT_BUFFER_SIZE = 8192;
+	private static final int DEFAULT_BUFFER_SIZE = 8192 * 4;	// 32Kb buffer
 	/**
 	 * Used to replace the JDK11 InputStream.readAllBytes() routine.
 	 * 
