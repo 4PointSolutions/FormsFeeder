@@ -450,6 +450,16 @@ class MockExtensionTest {
 			public String getApplicationName() {
 				throw new UnsupportedOperationException("Not implmented.");
 			}
+
+			@Override
+			public <T> ObjectProvider<T> getBeanProvider(Class<T> requiredType, boolean allowEagerInit) {
+				throw new UnsupportedOperationException("Not implmented.");
+			}
+
+			@Override
+			public <T> ObjectProvider<T> getBeanProvider(ResolvableType requiredType, boolean allowEagerInit) {
+				throw new UnsupportedOperationException("Not implmented.");
+			}
 		};
 	}
 
