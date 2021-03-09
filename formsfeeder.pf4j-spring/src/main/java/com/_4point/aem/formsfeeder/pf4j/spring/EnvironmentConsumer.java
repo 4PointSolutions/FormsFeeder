@@ -16,6 +16,7 @@ public interface EnvironmentConsumer {
 	public static final String AEM_USERNAME_ENV_PARAM = FORMSFEEDER_AEM_ENV_PARAM_PREFIX + "username";
 	public static final String AEM_SECRET_ENV_PARAM = FORMSFEEDER_AEM_ENV_PARAM_PREFIX + "secret";
 	public static final String AEM_USE_SSL_ENV_PARAM = FORMSFEEDER_AEM_ENV_PARAM_PREFIX + "protocol";
+	public static final String AEM_SERVER_TYPE_PARAM = FORMSFEEDER_AEM_ENV_PARAM_PREFIX + "serverType";
 	// The following are for backwards compatibility
 	public static final String AEM_USE_SSL_PARAM = AEM_USE_SSL_ENV_PARAM;
 	public static final String AEM_USERNAME_PARAM = AEM_USERNAME_ENV_PARAM;

@@ -115,6 +115,11 @@ class ExampleHtml5SubmitPluginTest {
 			public Protocol protocol() {
 				return protocol;
 			}
+
+			@Override
+			public AemServerType serverType() {
+				return null;
+			}
 		};
 	}
 }

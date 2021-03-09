@@ -1,5 +1,7 @@
 package com._4point.aem.formsfeeder.core.api;
 
+import java.util.Optional;
+
 public interface AemConfig {
 	public enum Protocol {
 		HTTP("http"), HTTPS("https");
@@ -14,21 +16,38 @@ public interface AemConfig {
 			return protocolString;
 		}
 		
-		public static final Protocol from(String string) {
+		public static final Optional<Protocol> from(String string) {
 			for (Protocol value : Protocol.values()) {
 				if (value.protocolString.equalsIgnoreCase(string)) {
-					return value;
+					return Optional.of(value);
 				}
 			}
-			throw new IllegalArgumentException("Invalid protocol string (" + string + ").");
+			return Optional.empty();
 		}
 	};
 	
+	public enum AemServerType {
+		JEE, 
+		OSGI;
+
+		public static Optional<AemServerType> from(String typeString) {
+			if (typeString != null && !typeString.isEmpty()) {
+				for (AemServerType st : values()) {
+					if (typeString.equalsIgnoreCase(st.name())) {
+						return Optional.of(st);
+					}
+				}
+			}
+			return Optional.empty();
+		}
+	}
+
 	public String   host();
 	public int      port();
 	public String   username();
 	public String   secret();
 	public Protocol protocol();
+	public AemServerType serverType();
 	
 	default public String url() {
 		return protocol().toProtocolString() + "://" + host() + (port() != 80 ? ":" + port() : "") + "/";

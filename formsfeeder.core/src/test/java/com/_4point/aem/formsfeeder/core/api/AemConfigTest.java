@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import com._4point.aem.formsfeeder.core.api.AemConfig.AemServerType;
 import com._4point.aem.formsfeeder.core.api.AemConfig.Protocol;
 
 class AemConfigTest {
@@ -40,7 +41,12 @@ class AemConfigTest {
 
 			@Override
 			public Protocol protocol() {
-				return Protocol.from(protocol);
+				return Protocol.from(protocol).get();
+			}
+
+			@Override
+			public AemServerType serverType() {
+				return null;
 			}
 			
 		};
@@ -51,25 +57,37 @@ class AemConfigTest {
 	@ParameterizedTest
 	@ValueSource(strings = {"HTTP", "http", "HttP"})
 	void testProtocol_Http(String testString) {
-		assertEquals(Protocol.HTTP, Protocol.from(testString));
+		assertEquals(Protocol.HTTP, Protocol.from(testString).get());
 	}
 	
 	@ParameterizedTest
 	@ValueSource(strings = {"HTTPS", "https", "HttPs"})
 	void testProtocol_Https(String testString) {
-		assertEquals(Protocol.HTTPS, Protocol.from(testString));
+		assertEquals(Protocol.HTTPS, Protocol.from(testString).get());
 	}
 
 	@ParameterizedTest
 	@ValueSource(strings = {"ftp", "foobar", "Httpf"})
 	@NullAndEmptySource
 	void testProtocol_Invalid(String testString) {
-		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, ()->Protocol.from(testString));
-		String msg = ex.getMessage();
-		assertNotNull(msg);
-		assertAll(
-				()->assertTrue(msg.contains("Invalid protocol string"), "Expected '" + msg + "' to contain 'Invalid protocol string'"),
-				()->assertTrue(msg.contains(testString != null ? testString : "null"), "Expected '" + msg + "' to contain '" + (testString != null ? testString : "null") + "'")
-				);
+		assertFalse(Protocol.from(testString).isPresent());
+	}
+	
+	@ParameterizedTest
+	@ValueSource(strings = {"OSGI", "osgi", "OSGi"})
+	void testServerType_Osgi(String testString) {
+		assertEquals(AemServerType.OSGI, AemServerType.from(testString).get());
+	}
+	
+	@ParameterizedTest
+	@ValueSource(strings = {"JEE", "jee", "Jee"})
+	void testServerType_Jee(String testString) {
+		assertEquals(AemServerType.JEE, AemServerType.from(testString).get());
+	}
+
+	@ParameterizedTest
+	@ValueSource(strings = {"JEEOSGI", "foobar"})
+	void testServerType_Invalid(String testString) {
+		assertFalse(AemServerType.from(testString).isPresent());
 	}
 }

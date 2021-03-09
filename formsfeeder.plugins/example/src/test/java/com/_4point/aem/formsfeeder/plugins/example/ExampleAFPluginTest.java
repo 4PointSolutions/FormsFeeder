@@ -231,6 +231,11 @@ class ExampleAFPluginTest {
 			public Protocol protocol() {
 				return null;
 			}
+
+			@Override
+			public AemServerType serverType() {
+				return null;
+			}
 		};
 	}
 }

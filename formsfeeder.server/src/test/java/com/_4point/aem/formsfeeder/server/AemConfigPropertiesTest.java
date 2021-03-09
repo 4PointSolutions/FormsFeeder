@@ -44,6 +44,11 @@ class AemConfigPropertiesTest /* implements EnvironmentAware */ {
 		assertNotNull(aemConfig.protocol());
 	}
 
+	@Test
+	void testServerType() {
+		assertNotNull(aemConfig.serverType());
+	}
+
 //	@Override
 //	public void setEnvironment(Environment environment) {
 //		this.environment = environment;

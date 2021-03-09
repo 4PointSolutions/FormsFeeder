@@ -44,7 +44,13 @@ public class AemConfigProperties implements AemConfig, EnvironmentAware {
 	@Override
 	public Protocol protocol() {
 		String protocolStr = Objects.requireNonNull(environment, "Environment has not been populated!").getProperty(EnvironmentConsumer.AEM_USE_SSL_ENV_PARAM);
-		return (protocolStr == null || protocolStr.isBlank()) ? Protocol.HTTP : Protocol.from(protocolStr); 
+		return (protocolStr == null || protocolStr.isBlank()) ? Protocol.HTTP : Protocol.from(protocolStr).orElseThrow(()->new IllegalArgumentException("Invalid protocol string (" + protocolStr + ").")); 
+	}
+
+	@Override
+	public AemServerType serverType() {
+		String serverTypeStr = Objects.requireNonNull(environment, "Environment has not been populated!").getProperty(EnvironmentConsumer.AEM_SERVER_TYPE_PARAM);
+		return (serverTypeStr == null || serverTypeStr.isBlank()) ? AemServerType.OSGI : AemServerType.from(serverTypeStr).orElseThrow(()->new IllegalArgumentException("Invalid server type string (" + serverTypeStr + ").")); 
 	}
 
 	@Override
@@ -52,5 +58,4 @@ public class AemConfigProperties implements AemConfig, EnvironmentAware {
 		logger.debug("Initializing Environment Variable in AemConfig. Environment is " + (environment == null ? "" : "not ") + "null.");
 		this.environment = environment;
 	}
-
 }
