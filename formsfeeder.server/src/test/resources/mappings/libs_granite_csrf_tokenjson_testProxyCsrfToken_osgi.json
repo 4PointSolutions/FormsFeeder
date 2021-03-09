@@ -1,0 +1,23 @@
+{
+  "id" : "b3a9bc5a-a099-4038-9660-f7a51c76702e",
+  "name" : "libs_granite_csrf_tokenjson",
+  "request" : {
+    "url" : "/libs/granite/csrf/token.json",
+    "method" : "GET"
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"token\":\"eyJleHAiOjE2MTUzMDYzNDksImlhdCI6MTYxNTMwNTc0OX0.IZ_SfqFgbEysC0IL1p8q2lvncvjq4-7Ea8zLmogVvRI\"}",
+    "headers" : {
+      "Date" : "Tue, 09 Mar 2021 16:02:29 GMT",
+      "X-Content-Type-Options" : "nosniff",
+      "Set-Cookie" : "cq-authoring-mode=TOUCH; Path=/; Expires=Tue, 16-Mar-2021 16:02:29 GMT; Max-Age=604800",
+      "Expires" : "-1",
+      "Content-Type" : "application/json;charset=iso-8859-1",
+      "Cache-Control" : "no-cache"
+    }
+  },
+  "uuid" : "b3a9bc5a-a099-4038-9660-f7a51c76702e",
+  "persistent" : true,
+  "insertionIndex" : 7
+}

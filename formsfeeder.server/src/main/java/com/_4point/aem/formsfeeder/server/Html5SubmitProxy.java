@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com._4point.aem.formsfeeder.core.api.AemConfig;
+import com._4point.aem.formsfeeder.core.api.AemConfig.AemServerType;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.server.PluginInvoker.PluginInvokerBadRequestException;
@@ -44,7 +45,7 @@ import com._4point.aem.formsfeeder.server.support.XmlDataFile;
  * Html5SubmitProxy is the class that handles submissions from HTML5 forms.
  *
  */
-@Path("/content/xfaforms/profiles")
+@Path("")
 public class Html5SubmitProxy extends AbstractSubmitProxy {
 	private final static Logger baseLogger = LoggerFactory.getLogger(Html5SubmitProxy.class);
 	
@@ -54,7 +55,6 @@ public class Html5SubmitProxy extends AbstractSubmitProxy {
 	private static final String SUBMIT_URL_DS_NAME = PluginInvoker.FORMSFEEDER_PREFIX + "SubmitUrl";
 
 	private static final String AEM_URL = "/content/xfaforms/profiles/";
-	private static final String AEM_APP_PREFIX = "/";
 	private final AemConfig aemConfig = Objects.requireNonNull(Objects.requireNonNull(Application.getApplicationContext(), "Application Context cannot be null.")
 																	.getBean(AemConfig.class), "AemConfig cannot be null");
 
@@ -75,12 +75,19 @@ public class Html5SubmitProxy extends AbstractSubmitProxy {
 		httpClient = ClientBuilder.newClient().register(feature).register(MultiPartFeature.class);
 	}
 
-    @Path("{remainder : .+}")
+    @Path("/content/xfaforms/profiles/{remainder : .+}")
     @HEAD
-    public Response proxySubmitGet() {
+    public Response proxySubmitGetOsgi() {
     	return Response.ok().build();
     }
-	/**
+
+    @Path("/lc/content/xfaforms/profiles/{remainder : .+}")
+    @HEAD
+    public Response proxySubmitGetJee() {
+    	return Response.ok().build();
+    }
+
+    /**
      * This function accepts an HTML5 form submission, calls AEM to decode it and then generates the requested response.
      * 
      * It takes the multipart/form-data post contents, runs them through some transformations then transfers them over to AEM.  AEM responds
@@ -92,15 +99,26 @@ public class Html5SubmitProxy extends AbstractSubmitProxy {
 	 * @throws EmailServiceException 
 	 * @throws ParserConfigurationException 
      */
-    @Path("{remainder : .+}")
+    @Path("/content/xfaforms/profiles/{remainder : .+}")
     @POST
-    public /* ChunkedOutput<byte[]> */ Response proxySubmitPost(@PathParam("remainder") String remainder, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @HeaderParam("Content-Type") String contentType, final FormDataMultiPart inFormData) throws IOException, ParserConfigurationException {
+    public /* ChunkedOutput<byte[]> */ Response proxySubmitPostOsgi(@PathParam("remainder") String remainder, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @HeaderParam("Content-Type") String contentType, final FormDataMultiPart inFormData) throws IOException, ParserConfigurationException {
+		return proxySubmitPost(remainder, correlationIdHdr, contentType, inFormData);
+    }
+
+    @Path("/lc/content/xfaforms/profiles/{remainder : .+}")
+    @POST
+    public /* ChunkedOutput<byte[]> */ Response proxySubmitPostJee(@PathParam("remainder") String remainder, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @HeaderParam("Content-Type") String contentType, final FormDataMultiPart inFormData) throws IOException, ParserConfigurationException {
+		return proxySubmitPost(remainder, correlationIdHdr, contentType, inFormData);
+    }
+
+	private Response proxySubmitPost(String remainder, final String correlationIdHdr, String contentType,
+			final FormDataMultiPart inFormData) throws IOException, ParserConfigurationException {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
 		logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		logger.debug("Proxying HTML5 Form Submit POST request.");
     	
 		WebTarget webTarget = httpClient.target(aemConfig.url())
-										.path(AEM_URL + remainder);
+										.path((aemConfig.serverType() == AemServerType.JEE ? "/lc" : "") + AEM_URL + remainder);
 		logger.info("Proxying Submit HTML5 POST request for target '" + webTarget.getUri().toString() + "'.");
 		logger.info("Content-Type= '" + contentType + "'.");
 		
@@ -139,7 +157,7 @@ public class Html5SubmitProxy extends AbstractSubmitProxy {
 			logger.debug("AEM returned status code '" + result.getStatus() + "'. Returning response from AEM.");
 			return Response.fromResponse(result).build();
 		}
-    }
+	}
 
     /**
      * Creates a DataSourceList from the incoming XML data.  This is intended to be passed to the plugin we call.

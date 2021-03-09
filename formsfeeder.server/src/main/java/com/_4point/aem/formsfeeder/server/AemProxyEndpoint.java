@@ -46,10 +46,22 @@ public class AemProxyEndpoint {
 
     @Path("libs/granite/csrf/token.json")
     @GET
-    public ChunkedOutput<byte[]> proxyCsrfToken() throws IOException {
-    	logger.debug("Proxying GET request. CSFR token");
+    public ChunkedOutput<byte[]> proxyOsgiCsrfToken() throws IOException {
+    	final String path = AEM_APP_PREFIX + "libs/granite/csrf/token.json";
+    	return getCsrfToken(path);
+    }
+
+    @Path("lc/libs/granite/csrf/token.json")
+	@GET
+	public ChunkedOutput<byte[]> proxyJeeCsrfToken() throws IOException {
+		final String path = "/lc/libs/granite/csrf/token.json";
+	  	return getCsrfToken(path);
+	}
+
+	private ChunkedOutput<byte[]> getCsrfToken(final String path) {
+		logger.debug("Proxying GET request. CSFR token");
 		WebTarget webTarget = httpClient.target(aemConfig.url())
-								.path(AEM_APP_PREFIX + "libs/granite/csrf/token.json");
+								.path(path);
 		logger.debug("Proxying GET request for CSRF token '" + webTarget.getUri().toString() + "'.");
 		Response result = webTarget.request()
 		   .get();
@@ -76,7 +88,7 @@ public class AemProxyEndpoint {
 		
         logger.debug("Returning GET response for CSRF token.");
 		return output;
-    }
+	}
 
 
 

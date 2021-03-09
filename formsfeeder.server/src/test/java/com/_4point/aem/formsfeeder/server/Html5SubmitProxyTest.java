@@ -341,7 +341,7 @@ class Html5SubmitProxyTest {
 		if (SAVE_RESULTS) {
 			Files.writeString(TestConstants.ACTUAL_RESULTS_DIR.resolve("testHtml5SubmitPost_BadPluginName_results.txt"), responseText);
 		}
-		assertTrue(responseText.contains(badPluginName), "Expected response (" + responseText + ") to contain '" + badPluginName + "', but it didn't.");
+		assertTrue(responseText.contains(badPluginName), "Expected response (" + responseText + ") to contain '" + badPluginName + "', but it didn't (" + responseText + ").");
 		assertTrue(responseText.contains("does not exist"), "Expected response (" + responseText + ") to contain 'does not exist', but it didn't.");
 	}
 	
