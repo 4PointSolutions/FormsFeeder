@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com._4point.aem.docservices.rest_services.client.af.AdaptiveFormsService;
 import com._4point.aem.docservices.rest_services.client.af.AdaptiveFormsService.AdaptiveFormsServiceException;
+import com._4point.aem.docservices.rest_services.client.helpers.AemServerType;
 import com._4point.aem.docservices.rest_services.client.helpers.StandardFormsFeederUrlFilters;
 import com._4point.aem.fluentforms.api.Document;
 import com._4point.aem.fluentforms.api.DocumentFactory;
@@ -38,13 +39,15 @@ public class ExampleAFPlugin implements NamedFeedConsumer, ExtensionPoint {
 		ExampleAFPluginInputParameters params= ExampleAFPluginInputParameters.from(dataSources, docFactorySupplier.get());
 		
 		try {
+			final AemServerType serverType = AemServerType.StandardType.from(aemConfig.serverType().toString()).get();
 			AdaptiveFormsService afService = AdaptiveFormsService.builder()
 																  .machineName(aemConfig.host())
 																  .port(aemConfig.port())
 																  .basicAuthentication(aemConfig.username(), aemConfig.secret())
 																  .useSsl(false)
+																  .aemServerType(serverType)
 																  // Formsfeeder acts as reverse proxy for AEM, so this fixes up URLs to match the proxied location.
-																  .addRenderResultFilter(StandardFormsFeederUrlFilters::replaceAemUrls)
+																  .addRenderResultFilter(is->StandardFormsFeederUrlFilters.replaceAemUrls(is, serverType))	
 																  .build();
 
 			Document result = params.getData().isEmpty() ? afService.renderAdaptiveForm(params.getTemplate())

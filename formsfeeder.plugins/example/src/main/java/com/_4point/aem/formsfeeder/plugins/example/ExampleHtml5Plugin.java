@@ -9,6 +9,7 @@ import org.pf4j.Extension;
 import org.pf4j.ExtensionPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com._4point.aem.docservices.rest_services.client.helpers.AemServerType;
 import com._4point.aem.docservices.rest_services.client.helpers.StandardFormsFeederUrlFilters;
 import com._4point.aem.docservices.rest_services.client.html5.Html5FormsService;
 import com._4point.aem.docservices.rest_services.client.html5.Html5FormsService.Html5FormsServiceException;
@@ -38,13 +39,15 @@ public class ExampleHtml5Plugin implements NamedFeedConsumer, ExtensionPoint {
 		ExampleHtml5PluginInputParameters params = ExampleHtml5PluginInputParameters.from(dataSources, docFactorySupplier.get());
 		
 		try {
+			final AemServerType serverType = AemServerType.StandardType.from(aemConfig.serverType().toString()).get();
 			Html5FormsService html5Service = Html5FormsService.builder()
 															  .machineName(aemConfig.host())
 															  .port(aemConfig.port())
 															  .basicAuthentication(aemConfig.username(), aemConfig.secret())
 															  .useSsl(false)
+															  .aemServerType(serverType)
 															  // Formsfeeder acts as reverse proxy for AEM, so this fixes up URLs to match the proxied location.
-															  .addRenderResultFilter(StandardFormsFeederUrlFilters::replaceAemUrls)	
+															  .addRenderResultFilter(is->StandardFormsFeederUrlFilters.replaceAemUrls(is, serverType))	
 															  .build();
 
 			Document result = params.getData().isEmpty() ? html5Service.renderHtml5Form(params.getTemplate())

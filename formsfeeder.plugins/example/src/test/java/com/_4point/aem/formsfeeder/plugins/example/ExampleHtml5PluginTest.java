@@ -27,6 +27,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 import com._4point.aem.formsfeeder.core.api.AemConfig;
+import com._4point.aem.formsfeeder.core.api.AemConfig.AemServerType;
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
@@ -58,6 +59,8 @@ class ExampleHtml5PluginTest {
 	private static final Path SAMPLE_XDP = SAMPLE_FILES_DIR.resolve("SampleForm.xdp");
 	private static final Path SAMPLE_DATA = SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
 	
+	private static final AemServerType AEM_SERVER_TYPE = AemServerType.OSGI;	// Currently we pretend we're testing against an ODGi server.
+
 	/*
 	 * Wiremock is used for unit testing.  It is not used for integration testing with a real AEM instance.
 	 * Set USE_WIREMOCK to false to perform integration testing with a real Forms Feeder instance running on
@@ -226,7 +229,7 @@ class ExampleHtml5PluginTest {
 
 			@Override
 			public AemServerType serverType() {
-				return null;
+				return AEM_SERVER_TYPE;
 			}
 		};
 	}

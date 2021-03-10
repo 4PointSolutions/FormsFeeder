@@ -14,6 +14,7 @@ import com._4point.aem.fluentforms.api.Document;
 import com._4point.aem.fluentforms.impl.SimpleDocumentFactoryImpl;
 import com._4point.aem.fluentforms.testing.output.MockTraditionalOutputService;
 import com._4point.aem.formsfeeder.core.api.AemConfig;
+import com._4point.aem.formsfeeder.core.api.AemConfig.AemServerType;
 import com._4point.aem.formsfeeder.core.api.AemConfig.Protocol;
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
@@ -30,6 +31,8 @@ class ExampleHtml5SubmitPluginTest {
 	private static final String SUBMITTED_DATA_DS_NAME = FORMSFEEDER_PREFIX + "SubmittedData";
 	private static final String TEMPLATE_DS_NAME = FORMSFEEDER_PREFIX + "Template";
 	private static final String CONTENT_ROOT_DS_NAME = FORMSFEEDER_PREFIX + "ContentRoot";
+
+	private static final AemServerType AEM_SERVER_TYPE = AemServerType.OSGI;	// Currently we pretend we're testing against an ODGi server.
 
 	private static final boolean SAVE_RESULTS = false;
 	static {
@@ -118,7 +121,7 @@ class ExampleHtml5SubmitPluginTest {
 
 			@Override
 			public AemServerType serverType() {
-				return null;
+				return AEM_SERVER_TYPE;
 			}
 		};
 	}

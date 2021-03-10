@@ -9,6 +9,7 @@ import org.pf4j.ExtensionPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com._4point.aem.docservices.rest_services.client.forms.RestServicesFormsServiceAdapter;
+import com._4point.aem.docservices.rest_services.client.helpers.AemServerType;
 import com._4point.aem.docservices.rest_services.client.output.RestServicesOutputServiceAdapter;
 import com._4point.aem.fluentforms.api.Document;
 import com._4point.aem.fluentforms.api.DocumentFactory;
@@ -117,6 +118,7 @@ public class ExamplePdfPlugin implements NamedFeedConsumer, ExtensionPoint {
 					.port(aemConfig.port())
 					.basicAuthentication(aemConfig.username(), aemConfig.secret())
 					.useSsl(false)
+					.aemServerType(AemServerType.StandardType.from(aemConfig.serverType().toString()).get())
 					.build();
 		return formsAdapter;
 	}
@@ -146,6 +148,7 @@ public class ExamplePdfPlugin implements NamedFeedConsumer, ExtensionPoint {
 					.port(aemConfig.port())
 					.basicAuthentication(aemConfig.username(), aemConfig.secret())
 					.useSsl(false)
+					.aemServerType(AemServerType.StandardType.from(aemConfig.serverType().toString()).get())
 					.build();
 		return outputAdapter;
 	}

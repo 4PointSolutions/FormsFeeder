@@ -23,6 +23,7 @@ import com._4point.aem.fluentforms.impl.SimpleDocumentFactoryImpl;
 import com._4point.aem.fluentforms.testing.forms.MockTraditionalFormsService;
 import com._4point.aem.fluentforms.testing.output.MockTraditionalOutputService;
 import com._4point.aem.formsfeeder.core.api.AemConfig;
+import com._4point.aem.formsfeeder.core.api.AemConfig.AemServerType;
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerBadRequestException;
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
@@ -38,6 +39,9 @@ class ExamplePdfPluginTest {
 	private static final String TEMPLATE_PARAM_NAME = "template";
 	private static final String DATA_PARAM_NAME = "data";
 	private static final String INTERACTIVE_PARAM_NAME = "interactive";
+
+	private static final AemServerType AEM_SERVER_TYPE = AemServerType.OSGI;	// Currently we pretend we're testing against an ODGi server.
+
 
 	private static final boolean SAVE_RESULTS = false;
 	static {
@@ -227,7 +231,7 @@ class ExamplePdfPluginTest {
 
 			@Override
 			public AemServerType serverType() {
-				return null;
+				return AEM_SERVER_TYPE;
 			}
 		};
 	}

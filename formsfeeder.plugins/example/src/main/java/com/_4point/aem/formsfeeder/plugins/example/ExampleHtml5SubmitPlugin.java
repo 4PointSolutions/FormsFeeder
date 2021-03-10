@@ -8,6 +8,7 @@ import org.pf4j.Extension;
 import org.pf4j.ExtensionPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com._4point.aem.docservices.rest_services.client.helpers.AemServerType;
 import com._4point.aem.docservices.rest_services.client.output.RestServicesOutputServiceAdapter;
 import com._4point.aem.fluentforms.api.Document;
 import com._4point.aem.fluentforms.api.DocumentFactory;
@@ -87,6 +88,7 @@ public class ExampleHtml5SubmitPlugin implements NamedFeedConsumer, ExtensionPoi
 					.port(aemConfig.port())
 					.basicAuthentication(aemConfig.username(), aemConfig.secret())
 					.useSsl(aemConfig.protocol() == AemConfig.Protocol.HTTPS)
+					.aemServerType(AemServerType.StandardType.from(aemConfig.serverType().toString()).get())
 					.build();
 		return outputAdapter;
 	}
