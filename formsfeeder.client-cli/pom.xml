@@ -23,7 +23,7 @@
 		<commons-cli.version>1.4</commons-cli.version>
 		<jcabi-xml.version>0.22.2</jcabi-xml.version>
 		<wiremock.version>2.27.2</wiremock.version>
-		<guava.version>29.0-jre</guava.version>
+		<guava.version>30.0-jre</guava.version>
 	</properties>
 
 	<build>
