@@ -13,3 +13,13 @@ The goals of this project are:
 * To remove the need to understand REST in order to invoke custom functionality made available through the framework.
 * To provide a shared codebase that is common to many different AEM Forms solutions
 
+## Architecture
+This project consists of several sub-projects with each subproject representing a layer in the architecture (i.e. each layer depends on the layers beneath it).
+
+Here is an overview of the layers:
+* _FormsFeeder Server_  – This is the server application that can be used as a front end for AEM (although it can be used for other purposes).  It utilizes a plug-in approach for extensibility.  It is a standalone fat jar.
+* _FormsFeeder Client API_  – This API wraps code to make REST calls to the  _FormsFeeder Server_ .  It allows client Java code to make API calls to the  _FormsFeeder Server_  without having to worry about the mechanics of REST.  You include it as a dependency in your Java application.
+* _FormsFeeder CLI_  – This is a standalone fat .jar file that can be invoked to send a transaction to the  _FormsFeeder Server_ .  It is an executable jar that reads command line arguments and then uses the  _FormsFeeder Client API_  to make calls to the FormsFeeder server.
+
+Client code that utilizes this project can access whatever layer is appropriate for their needs, for example, a .NET shop might write .NET code that makes REST calls to the  _FormsFeeder Server_  layer directly, bypassing the Java client code.  Likewise a user with Java experience might choose to integrate the  _FormsFeeder Client API_  into an existing Java application without having to learn REST.  Lastly, a user could leverage the entire stack by using the _FormsFeeder CLI_  to invoke FormsFeeder functionality from a CRON job.
+
