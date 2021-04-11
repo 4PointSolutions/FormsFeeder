@@ -68,7 +68,7 @@ public class DataSourceList implements Iterable<DataSource> {
 	 * @return
 	 */
 	public final List<DataSource> list() {
-		return list;
+		return Collections.unmodifiableList(list);
 	}
 
 	/**
