@@ -8,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -876,6 +877,43 @@ public class DataSourceList implements Iterable<DataSource> {
 					.map(Deconstructor::dsToDataSourceList)
 					.flatMap(Jdk8Utils::optionalStream)
 					.collect(Collectors.toList());
+		}
+		
+		private D11rFunctionRegistry registry = new D11rFunctionRegistry();
+		
+		public final <T> Deconstructor register(Class<? extends T> type, Function<DataSource, T> mapper) {
+			registry.put(type, mapper);
+			return this;
+		}
+		public final <T> Optional<T> getObject(Class<? extends T> dest, Predicate<DataSource> predicate) {
+			return dsList.getDataSource(predicate).map(registry.get(dest));
+		}
+		public final <T> Optional<T> getObjectByName(Class<? extends T> dest, String name) {
+			return dsList.getDataSourceByName(name).map(registry.get(dest));
+		}
+		public final <T> List<T> getObjects(Class<? extends T> dest, Predicate<DataSource> predicate) {
+			return dsList.getDataSources(predicate).stream()
+					.map(registry.get(dest))
+					.collect(Collectors.toList());
+		}
+		public final <T> List<T> getObjectsByName(Class<? extends T> dest, String name) {
+			return dsList.getDataSourcesByName(name).stream()
+					.map(registry.get(dest))
+					.collect(Collectors.toList());
+		}
+		
+		private static class D11rFunctionRegistry {
+			private Map<Class<?>, Function<DataSource, ?>> favorites = new HashMap<>();
+
+			public <T> void put(Class<? extends T> type, Function<DataSource, T> mapper) {
+				if (type == null)
+					throw new NullPointerException("Type is null");
+				favorites.put(type, mapper);
+			}
+
+			public <T> Function<DataSource, T> get(Class<T> type) {
+				return ds->type.cast(favorites.get(type).apply(ds));
+			}
 		}
 	}
 }

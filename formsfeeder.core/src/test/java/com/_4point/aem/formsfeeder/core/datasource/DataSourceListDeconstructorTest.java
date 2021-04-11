@@ -296,4 +296,11 @@ class DataSourceListDeconstructorTest {
 		assertEquals(stringData, Deconstructor.dsToString(underTest.getDataSourceByName(STRING_DS_NAME).get(), StandardCharsets.UTF_8));
 	}
 	
+	@Test
+	void testGetObject() {
+		Deconstructor underTest = sampleDataSource.deconstructor();
+		underTest.register(String.class, ds->Deconstructor.dsToString(ds));
+		assertEquals(stringData, underTest.getObjectByName(String.class, STRING_DS_NAME).get());
+	}
+	
 }
