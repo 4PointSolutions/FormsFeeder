@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -15,11 +16,17 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
+import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Content;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
+import com._4point.aem.formsfeeder.core.datasource.DataSourceList.FileContent;
 import com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListDecoderTest;
 import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
 class DataSourceListDeconstructorTest {
+
+	private static final Path RESOURCES_DIR = Paths.get("src", "test", "resources");
+	private static final Path TEST_FILES_DIR = RESOURCES_DIR.resolve("TestFiles");
+	private static final Path FILE_DS_PATH = TEST_FILES_DIR.resolve("FileDS.txt");
 
 	// DataSource Names
 	private static final String BOOLEAN_DS_NAME = "BooleanDS";
@@ -32,6 +39,8 @@ class DataSourceListDeconstructorTest {
 	private static final String STRING_DS_NAME = "StringDS";
 	private static final String DUMMY_DS_NAME = "DummyDS";
 	private static final String DSL_DS_NAME = "DataSourceListDS";
+	private static final String CONTENT_DS_NAME = "ContentDS";
+	private static final String FILE_CONTENT_DS_NAME = "FileContentDS";
 
 	private static final String FIRST_DSL_ENTRY_NAME = "FirstName";
 	private static final String SECOND_DSL_ENTRY_NAME = "SecondName";
@@ -87,8 +96,19 @@ class DataSourceListDeconstructorTest {
 	private static final float floatData = Float.MAX_VALUE;
 	private static final int intData = Integer.MAX_VALUE;
 	private static final long longData = Long.MAX_VALUE;
-	private static final Path pathData = Paths.get("FileDS.txt");
+	private static final Path pathData = Paths.get("NonExistentFile.txt");
 	private static final String stringData = "String Data";
+	private static final MimeType mimeType = StandardMimeTypes.APPLICATION_PDF_TYPE;
+	private static final Content contentData = Content.from(byteArrayData, mimeType);
+	private static final FileContent fileContentData;
+	static {
+		try {
+			fileContentData = FileContent.from(Files.readAllBytes(FILE_DS_PATH), StandardMimeTypes.TEXT_PLAIN_TYPE, FILE_DS_PATH);
+		} catch (IOException e) {
+			fail("Failure to initialize FileContent object.", e);
+			throw new IllegalStateException("This should never happen because the preceding fail should throw a runtime exception.");	// Keep the compiler happy.
+		}
+	}
 
 	private static final StringDataSource DS1 = new StringDataSource("FirstEntry", FIRST_DSL_ENTRY_NAME);
 	private static final StringDataSource DS2 = new StringDataSource("SecondEntry", SECOND_DSL_ENTRY_NAME, Jdk8Utils.mapOf("attributeName1", "attributeValue1"));
@@ -105,6 +125,7 @@ class DataSourceListDeconstructorTest {
 	private static final DataSourceList dslData = DataSourceList.from(srcList);
 
 	// Construct a DataSourceList with one or more of each and every type
+	// For variety, we add 1-3 of each type 
 	private static final DataSourceList sampleDataSource = DataSourceList.builder()
 			.addDataSources(Jdk8Utils.listOf(dummyDS, dummyDS))
 			.addBooleans(BOOLEAN_DS_NAME, Jdk8Utils.listOf(booleanData, booleanData, booleanData))
@@ -116,6 +137,10 @@ class DataSourceListDeconstructorTest {
 			.addPaths(FILE_DS_NAME, Jdk8Utils.listOf(pathData, pathData, pathData))
 			.addStrings(STRING_DS_NAME, Jdk8Utils.listOf(stringData))
 			.addDataSourceLists(DSL_DS_NAME, Jdk8Utils.listOf(dslData, dslData))
+			.add(CONTENT_DS_NAME, byteArrayData, mimeType)	// Content 
+			.add(CONTENT_DS_NAME, byteArrayData, mimeType)
+			.add(CONTENT_DS_NAME, byteArrayData, mimeType)
+			.add(FILE_CONTENT_DS_NAME, FILE_DS_PATH)			// FileContent
 			.build();
 
 
@@ -131,7 +156,9 @@ class DataSourceListDeconstructorTest {
 				()->assertEquals(intData, underTest.getIntegerByName(INTEGER_DS_NAME).get()),
 				()->assertEquals(longData, underTest.getLongByName(LONG_DS_NAME).get()),
 				()->assertEquals(stringData, underTest.getStringByName(STRING_DS_NAME).get()),
-				()->XmlDataSourceListDecoderTest.dslEquals(dslData, underTest.getDataSourceListByName(DSL_DS_NAME).get(), true)
+				()->XmlDataSourceListDecoderTest.dslEquals(dslData, underTest.getDataSourceListByName(DSL_DS_NAME).get(), true),
+				()->assertEquals(contentData, underTest.getContentByName(CONTENT_DS_NAME).get()),
+				()->assertEquals(fileContentData, underTest.getFileContentByName(FILE_CONTENT_DS_NAME).get())
 				);
 		
 		// Since the File does not exist, we expect an error here.
@@ -153,7 +180,9 @@ class DataSourceListDeconstructorTest {
 				()->assertFalse(underTest.getIntegerByName(INTEGER_DS_NAME).isPresent()),
 				()->assertFalse(underTest.getLongByName(LONG_DS_NAME).isPresent()),
 				()->assertFalse(underTest.getStringByName(STRING_DS_NAME).isPresent()),
-				()->assertFalse(underTest.getDataSourceListByName(DSL_DS_NAME).isPresent())
+				()->assertFalse(underTest.getDataSourceListByName(DSL_DS_NAME).isPresent()),
+				()->assertFalse(underTest.getLongByName(CONTENT_DS_NAME).isPresent()),
+				()->assertFalse(underTest.getLongByName(FILE_CONTENT_DS_NAME).isPresent())
 				);
 	}
 
@@ -169,7 +198,9 @@ class DataSourceListDeconstructorTest {
 				()->assertEquals(intData, underTest.getInteger(DataSourceList.byName(INTEGER_DS_NAME)).get()),
 				()->assertEquals(longData, underTest.getLong(DataSourceList.byName(LONG_DS_NAME)).get()),
 				()->assertEquals(stringData, underTest.getString(DataSourceList.byName(STRING_DS_NAME)).get()),
-				()->XmlDataSourceListDecoderTest.dslEquals(dslData, underTest.getDataSourceList(DataSourceList.byName(DSL_DS_NAME)).get(), true)
+				()->XmlDataSourceListDecoderTest.dslEquals(dslData, underTest.getDataSourceList(DataSourceList.byName(DSL_DS_NAME)).get(), true),
+				()->assertEquals(contentData, underTest.getContent(DataSourceList.byName(CONTENT_DS_NAME)).get()),
+				()->assertEquals(fileContentData, underTest.getFileContent(DataSourceList.byName(FILE_CONTENT_DS_NAME)).get())
 				);
 		
 		// Since the File does not exist, we expect an error here.
@@ -209,7 +240,11 @@ class DataSourceListDeconstructorTest {
 				()->assertEquals(stringData, underTest.getStringsByName(STRING_DS_NAME).get(0)),
 				()->assertEquals(1, underTest.getStringsByName(STRING_DS_NAME).size()),
 				()->XmlDataSourceListDecoderTest.dslEquals(dslData, underTest.getDataSourceListsByName(DSL_DS_NAME).get(0), true),
-				()->assertEquals(2, underTest.getDataSourceListsByName(DSL_DS_NAME).size())
+				()->assertEquals(2, underTest.getDataSourceListsByName(DSL_DS_NAME).size()),
+				()->assertEquals(contentData, underTest.getContentsByName(CONTENT_DS_NAME).get(0)),
+				()->assertEquals(3, underTest.getContentsByName(CONTENT_DS_NAME).size()),
+				()->assertEquals(fileContentData, underTest.getFileContentsByName(FILE_CONTENT_DS_NAME).get(0)),
+				()->assertEquals(1, underTest.getFileContentsByName(FILE_CONTENT_DS_NAME).size())
 				);
 		
 		// Since the File does not exist, we expect an error here.
@@ -240,7 +275,11 @@ class DataSourceListDeconstructorTest {
 				()->assertEquals(stringData, underTest.getStrings(DataSourceList.byName(STRING_DS_NAME)).get(0)),
 				()->assertEquals(1, underTest.getStrings(DataSourceList.byName(STRING_DS_NAME)).size()),
 				()->XmlDataSourceListDecoderTest.dslEquals(dslData, underTest.getDataSourceLists(DataSourceList.byName(DSL_DS_NAME)).get(0), true),
-				()->assertEquals(2, underTest.getDataSourceLists(DataSourceList.byName(DSL_DS_NAME)).size())
+				()->assertEquals(2, underTest.getDataSourceLists(DataSourceList.byName(DSL_DS_NAME)).size()),
+				()->assertEquals(contentData, underTest.getContents(DataSourceList.byName(CONTENT_DS_NAME)).get(0)),
+				()->assertEquals(3, underTest.getContents(DataSourceList.byName(CONTENT_DS_NAME)).size()),
+				()->assertEquals(fileContentData, underTest.getFileContents(DataSourceList.byName(FILE_CONTENT_DS_NAME)).get(0)),
+				()->assertEquals(1, underTest.getFileContents(DataSourceList.byName(FILE_CONTENT_DS_NAME)).size())
 				);
 		
 		// Since the File does not exist, we expect an error here.
