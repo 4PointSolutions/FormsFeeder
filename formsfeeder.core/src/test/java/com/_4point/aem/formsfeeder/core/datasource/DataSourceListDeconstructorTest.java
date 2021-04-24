@@ -1,6 +1,8 @@
 package com._4point.aem.formsfeeder.core.datasource;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.MatcherAssert.assertThat; 
+import static org.hamcrest.Matchers.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,12 +15,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Content;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.FileContent;
+import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Mapper;
 import com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListDecoderTest;
 import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
@@ -336,10 +340,92 @@ class DataSourceListDeconstructorTest {
 	}
 	
 	@Test
-	void testGetObject() {
+	void testGetSingleObject() {
 		Deconstructor underTest = sampleDataSource.deconstructor();
-		underTest.register(String.class, ds->Deconstructor.dsToString(ds));
+//		underTest.register(String.class, ds->Deconstructor.dsToString(ds));
 		assertEquals(stringData, underTest.getObjectByName(String.class, STRING_DS_NAME).get());
 	}
+
+	@Test
+	void testGetObject() {
+		Deconstructor underTest = sampleDataSource.deconstructor();
+		assertAll(
+				()->assertEquals(dummyDS, underTest.getObjectByName(DataSource.class, DUMMY_DS_NAME).get()),
+				()->assertEquals(booleanData, underTest.getObjectByName(Boolean.class, BOOLEAN_DS_NAME).get()),
+				()->assertArrayEquals(byteArrayData, underTest.getObjectByName(byte[].class, BYTE_ARRAY_DS_NAME).get()),
+				()->assertEquals(doubleData, underTest.getObjectByName(Double.class, DOUBLE_DS_NAME).get()),
+				()->assertEquals(floatData, underTest.getObjectByName(Float.class, FLOAT_DS_NAME).get()),
+				()->assertEquals(intData, underTest.getObjectByName(Integer.class, INTEGER_DS_NAME).get()),
+				()->assertEquals(longData, underTest.getObjectByName(Long.class, LONG_DS_NAME).get()),
+				()->assertEquals(stringData, underTest.getObjectByName(String.class, STRING_DS_NAME).get()),
+				()->XmlDataSourceListDecoderTest.dslEquals(dslData, underTest.getObjectByName(DataSourceList.class, DSL_DS_NAME).get(), true),
+				()->assertEquals(contentData, underTest.getObjectByName(Content.class, CONTENT_DS_NAME).get()),
+				()->assertEquals(fileContentData, underTest.getObjectByName(FileContent.class, FILE_CONTENT_DS_NAME).get())
+				);
+		
+		// Since the File does not exist, we expect an error here.
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, ()->underTest.getStringByName(FILE_DS_NAME).get());
+		String msg = ex.getMessage();
+		assertNotNull(msg);
+		assertTrue(msg.contains(pathData.toString()));
+	}
+
+	@Test
+	void testGetObject_NotFound() {
+		Class<DataSourceListDeconstructorTest> clazz = DataSourceListDeconstructorTest.class;
+		Deconstructor underTest = sampleDataSource.deconstructor();
+		UnsupportedOperationException ex = assertThrows(UnsupportedOperationException.class, ()->underTest.getObject(clazz, (ds)->true));
+		String msg = ex.getMessage();
+		assertNotNull(msg);
+		assertAll(
+				()->assertThat(msg, containsString(clazz.getName())),
+				()->assertThat(msg, containsString("No mapping function found"))
+				);
+	}
 	
+	@Test
+	void testGetObject_Unsupported() {
+		Deconstructor underTest = sampleDataSource.deconstructor();
+		UnsupportedOperationException ex = assertThrows(UnsupportedOperationException.class, ()->underTest.getObject(Path.class, (ds)->true));
+		String msg = ex.getMessage();
+		assertNotNull(msg);
+		assertAll(
+				()->assertThat(msg, containsString(Path.class.getName())),
+				()->assertThat(msg, containsString("Cannot convert DataSource directly"))
+				);		
+	}
+	
+	@Test
+	void testGetCustomObjectMapperString() {
+		Function<String, String> reverse = s->new StringBuilder(s).reverse().toString();
+		String expectedResult = reverse.apply(stringData);
+		Deconstructor underTest = sampleDataSource.deconstructor();
+		Mapper<String> mapper = DataSourceList.StandardMappers.createStringMapper(StandardCharsets.UTF_8);
+		Function<DataSource, String> reverseD11r = ds->reverse.apply(mapper.from().apply(ds));
+		underTest.register(mapper.target(), reverseD11r);
+		assertEquals(expectedResult, underTest.getObjectByName(String.class, STRING_DS_NAME).get());
+	}
+
+	@Test
+	void testGetCustomObjectMapperByteArray() {
+		Function<byte[], byte[]> reverse = DataSourceListDeconstructorTest::reverseBytes;
+		byte[] expectedResult = reverse.apply(byteArrayData);
+		Deconstructor underTest = sampleDataSource.deconstructor();
+		Mapper<byte[]> mapper = DataSourceList.StandardMappers.createByteArrayMapper(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE);
+		Function<DataSource, byte[]> reverseD11r = ds->reverse.apply(mapper.from().apply(ds));
+		underTest.register(mapper.target(), reverseD11r);
+		assertArrayEquals(expectedResult, underTest.getObjectByName(byte[].class, BYTE_ARRAY_DS_NAME).get());
+	}
+
+	private static byte[] reverseBytes(byte[] validData) {
+		int length = validData.length;
+		int targetLoc = length - 1;
+		byte[] target = new byte[length];
+		for(int i = 0; i < length; i++)
+		{
+			target[targetLoc - i] = validData[i];
+		}
+		return target;
+	}
+
 }

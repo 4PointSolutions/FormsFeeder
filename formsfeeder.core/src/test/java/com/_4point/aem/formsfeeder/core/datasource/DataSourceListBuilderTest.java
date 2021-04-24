@@ -1,21 +1,30 @@
 package com._4point.aem.formsfeeder.core.datasource;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.MatcherAssert.assertThat; 
+import static org.hamcrest.Matchers.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.Test;
 import org.opentest4j.MultipleFailuresError;
 
+import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
+import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Content;
+import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
+import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Mapper;
 import com._4point.aem.formsfeeder.core.datasource.serialization.XmlDataSourceListDecoderTest;
 import com._4point.aem.formsfeeder.core.support.Jdk8Utils;
 
@@ -144,6 +153,46 @@ class DataSourceListBuilderTest {
 
 	}
 	
+	@Test
+	void testBuildAllWithAddObject() throws Exception{
+		String dslEntryName = "TestDsl";
+		// Construct a DataSourceList with one of each and every type
+		DataSourceList result = DataSourceList.build(DataSourceListBuilderTest::addAllDsTypeObjects);
+		
+		List<DataSource> resultList = result.list();
+		
+		validateResultList(resultList, false);
+	}
+
+	private static DataSourceList.Builder addAllDsTypeObjects(DataSourceList.Builder builder) {
+		return builder.addObject(DUMMY_DS_NAME, dummyDS, DataSource.class)
+					  .addObject(BOOLEAN_DS_NAME, booleanData, Boolean.class)
+					  .addObject(BYTE_ARRAY_DS_NAME, byteArrayData, byte[].class)
+					  .addObject(DOUBLE_DS_NAME, doubleData, Double.class)
+					  .addObject(FLOAT_DS_NAME, floatData, Float.class)
+					  .addObject(INTEGER_DS_NAME, intData, Integer.class)
+					  .addObject(LONG_DS_NAME, longData, Long.class)
+					  .addObject(FILE_DS_NAME, pathData, Path.class)
+					  .addObject(STRING_DS_NAME, stringData, String.class)
+					  .addObject(BYTE_ARRAY_W_CT_DS_NAME, Content.from(byteArrayData, mimeType), Content.class)
+					  .addObject(DSL_DS_NAME, dslData, DataSourceList.class);
+
+	}
+
+	@Test
+	void testBuildWithAddObject_NoMatcher() throws Exception{
+		String objectEntryName = "TestObject";
+		Map<String, String> testObject = System.getenv();
+		// Construct a DataSourceList with one of each and every type
+		UnsupportedOperationException ex = assertThrows(UnsupportedOperationException.class, ()->DataSourceList.builder().addObject(objectEntryName, testObject, Map.class).build());
+		String msg = ex.getMessage();
+		assertNotNull(msg);
+		assertAll(
+				()->assertThat(msg, containsString("No mapping function found for class")),
+				()->assertThat(msg, containsString(Map.class.getName()))
+				);
+	}
+
 	private void validateResultList(List<DataSource> resultList, boolean skipDummyDS) throws MultipleFailuresError {
 		assertAll(
 				()->assertEquals(11, resultList.size()),	// 10 DSes were added.
@@ -293,6 +342,41 @@ class DataSourceListBuilderTest {
 				.build();
 		
 		assertTrue(result.list().isEmpty());
+	}
+
+	@Test
+	void testBuildWithCustomObjectMapperString() {
+		Function<String, String> reverse = s->new StringBuilder(s).reverse().toString();
+		String expectedResult = reverse.apply(stringData);
+		Builder underTest = DataSourceList.builder();
+		Mapper<String> mapper = DataSourceList.StandardMappers.createStringMapper(StandardCharsets.UTF_8);
+		BiFunction<String, String, DataSource> reverseBuilder = (n, s)->mapper.to().apply(n, reverse.apply(s));
+		underTest.register(mapper.target(), reverseBuilder);
+		underTest.addObject(STRING_DS_NAME, stringData, String.class);
+		assertEquals(expectedResult, underTest.build().deconstructor().getStringByName(STRING_DS_NAME).get());
+	}
+
+	@Test
+	void testBuildWithCustomObjectMapperByteArray() {
+		Function<byte[], byte[]> reverse = DataSourceListBuilderTest::reverseBytes;
+		byte[] expectedResult = reverse.apply(byteArrayData);
+		Builder underTest = DataSourceList.builder();
+		Mapper<byte[]> mapper = DataSourceList.StandardMappers.createByteArrayMapper(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE);
+		BiFunction<String, byte[], DataSource> reverseBuilder = (n,ba)->mapper.to().apply(n, reverse.apply(ba));
+		underTest.register(mapper.target(), reverseBuilder);
+		underTest.addObject(BYTE_ARRAY_DS_NAME, byteArrayData, byte[].class);
+		assertArrayEquals(expectedResult, underTest.build().deconstructor().getByteArrayByName(BYTE_ARRAY_DS_NAME).get());
+	}
+
+	private static byte[] reverseBytes(byte[] validData) {
+		int length = validData.length;
+		int targetLoc = length - 1;
+		byte[] target = new byte[length];
+		for(int i = 0; i < length; i++)
+		{
+			target[targetLoc - i] = validData[i];
+		}
+		return target;
 	}
 
 	private static String readIntoString(InputStream is) throws IOException {

@@ -3,7 +3,6 @@ package com._4point.aem.formsfeeder.core.datasource;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -343,6 +342,10 @@ public class DataSourceList implements Iterable<DataSource> {
 			return new StringDataSource(Objects.toString(object), Objects.requireNonNull(name, "Name cannot be null.")); 
 		}
 
+		public static final <T> DataSource objToByteArrayDS(String name, T object) {
+			return new StringDataSource(Objects.toString(object), Objects.requireNonNull(name, "Name cannot be null.")); 
+		}
+
 		public Builder add(DataSource ds) {
 			underConstruction.add(Objects.requireNonNull(ds, "DataSource cannot be null."));
 			return this;
@@ -585,7 +588,7 @@ public class DataSourceList implements Iterable<DataSource> {
 			return this;
 		}
 		
-		private byte[] dataSourceListToByteArray(DataSourceList dsl) {
+		private static byte[] dataSourceListToByteArray(DataSourceList dsl) {
 			ByteArrayOutputStream contents = new ByteArrayOutputStream();
 			try (XmlDataSourceListEncoder encoder = XmlDataSourceListEncoder.wrap(contents)) {
 				encoder.encode(dsl);
@@ -596,6 +599,76 @@ public class DataSourceList implements Iterable<DataSource> {
 			}
 			return contents.toByteArray();
 		}
+		
+		// Default registry is a immutable registry containing all the standard deconstructor functions.
+		private BuilderFunctionRegistry defaultRegistry = BuilderFunctionRegistry.from(StandardMappers.MAPPER_LIST.stream().collect(Collectors.toMap(Mapper::target, Mapper::to)));
+		// Normal registry contains any deconstructor functions registered by the user.
+		private BuilderFunctionRegistry registry = BuilderFunctionRegistry.create();
+		
+		private final <T> BiFunction<String, ? super T, DataSource> registryLookup(Class<? super T> dest) {
+			BiFunction<String, ? super T, DataSource> function = registry.get(dest);
+			if (function != null) {
+				return function;
+			} else {
+				BiFunction<String, ? super T, DataSource> defaultFunction = defaultRegistry.get(dest);
+				if (defaultFunction != null) {
+					return defaultFunction;
+				} else {
+					throw new UnsupportedOperationException("No mapping function found for class '" + dest.getName() + "'" );
+				}
+			}
+		}
+		
+		public final <T> Builder register(Class<? extends T> type, BiFunction<String, ? extends T, DataSource> mapper) {
+			registry.put(type, mapper);
+			return this;
+		}
+		public final <T> Builder addObject(String name, T object, Class<? super T> objectClass) {
+			underConstruction.add(registryLookup(objectClass).apply(Objects.requireNonNull(name, "Name cannot be null."), object));
+			return this;
+		}
+		
+		public final <T> Builder addObjects(String name, List<T> lList, Class<? super T> objectClass) {
+			BiFunction<String, ? super T, DataSource> biFunction = registryLookup(objectClass);
+			Objects.requireNonNull(name, "Name cannot be null.");
+			lList.forEach(l->underConstruction.add(biFunction.apply(name, l)));
+			return this;
+		}
+		
+		private static class BuilderFunctionRegistry {
+			private Map<Class<?>, BiFunction<String, ?, DataSource>> mappingFunctions;
+
+			private BuilderFunctionRegistry() {
+				super();
+				this.mappingFunctions = new HashMap<>();
+			}
+
+			private BuilderFunctionRegistry(Map<Class<?>, BiFunction<String, ?, DataSource>> mappingFunctions) {
+				super();
+				this.mappingFunctions = Jdk8Utils.copyOfMap(mappingFunctions); // Under Java 11, this should be Map.copyOf(mappingFunctions);
+				
+			}
+
+			public <T> void put(Class<? extends T> type, BiFunction<String, ? extends T, DataSource> mapper) {
+				if (type == null)
+					throw new NullPointerException("Type is null");
+				mappingFunctions.put(type, mapper);
+			}
+
+			public <T> BiFunction<String, ? super T, DataSource> get(Class<? super T> type) {
+				@SuppressWarnings("unchecked")
+				BiFunction<String, ? super T, DataSource> function = (BiFunction<String, ? super T, DataSource>)mappingFunctions.get(type);
+				return function != null ? function : null;
+			}
+			
+			public static BuilderFunctionRegistry create() {
+				return new BuilderFunctionRegistry();
+			}
+			
+			public static BuilderFunctionRegistry from(Map<Class<?>, BiFunction<String, ?, DataSource>> mappingFunctions) {
+				return new BuilderFunctionRegistry(mappingFunctions);
+			}
+		}	
 	}
 	
 	/**
@@ -939,40 +1012,79 @@ public class DataSourceList implements Iterable<DataSource> {
 					.collect(Collectors.toList());
 		}
 		
-		private D11rFunctionRegistry registry = new D11rFunctionRegistry();
+		// Default registry is a immutable registry containing all the standard deconstructor functions.
+		private D11rFunctionRegistry defaultRegistry = D11rFunctionRegistry.from(StandardMappers.MAPPER_LIST.stream().collect(Collectors.toMap(Mapper::target, Mapper::from)));
+		// Normal registry contains any deconstructor functions registered by the user.
+		private D11rFunctionRegistry registry = D11rFunctionRegistry.create();
+		
+		private final <T> Function<DataSource, ? extends T> registryLookup(Class<? extends T> dest) {
+			Function<DataSource, ? extends T> function = registry.get(dest);
+			if (function != null) {
+				return function;
+			} else {
+				Function<DataSource, ? extends T> defaultFunction = defaultRegistry.get(dest);
+				if (defaultFunction != null) {
+					return defaultFunction;
+				} else {
+					throw new UnsupportedOperationException("No mapping function found for class '" + dest.getName() + "'" );
+				}
+			}
+		}
 		
 		public final <T> Deconstructor register(Class<? extends T> type, Function<DataSource, T> mapper) {
 			registry.put(type, mapper);
 			return this;
 		}
 		public final <T> Optional<T> getObject(Class<? extends T> dest, Predicate<DataSource> predicate) {
-			return dsList.getDataSource(predicate).map(registry.get(dest));
+			return dsList.getDataSource(predicate).map(registryLookup(dest));
 		}
 		public final <T> Optional<T> getObjectByName(Class<? extends T> dest, String name) {
-			return dsList.getDataSourceByName(name).map(registry.get(dest));
+			return dsList.getDataSourceByName(name).map(registryLookup(dest));
 		}
 		public final <T> List<T> getObjects(Class<? extends T> dest, Predicate<DataSource> predicate) {
+			Function<DataSource, ? extends T> mappingFn = registryLookup(dest);
 			return dsList.getDataSources(predicate).stream()
-					.map(registry.get(dest))
+					.map((Function<DataSource, ? extends T>)mappingFn)
 					.collect(Collectors.toList());
 		}
 		public final <T> List<T> getObjectsByName(Class<? extends T> dest, String name) {
+			Function<DataSource, ? extends T> mappingFn = registryLookup(dest);
 			return dsList.getDataSourcesByName(name).stream()
-					.map(registry.get(dest))
+					.map((Function<DataSource, ? extends T>)mappingFn)
 					.collect(Collectors.toList());
 		}
 		
 		private static class D11rFunctionRegistry {
-			private Map<Class<?>, Function<DataSource, ?>> favorites = new HashMap<>();
+			private Map<Class<?>, Function<DataSource, ?>> mappingFunctions;
+
+			private D11rFunctionRegistry() {
+				super();
+				this.mappingFunctions = new HashMap<>();
+			}
+
+			private D11rFunctionRegistry(Map<Class<?>, Function<DataSource, ?>> mappingFunctions) {
+				super();
+				this.mappingFunctions = Jdk8Utils.copyOfMap(mappingFunctions); // Under Java 11, this should be Map.copyOf(mappingFunctions);
+				
+			}
 
 			public <T> void put(Class<? extends T> type, Function<DataSource, T> mapper) {
 				if (type == null)
 					throw new NullPointerException("Type is null");
-				favorites.put(type, mapper);
+				mappingFunctions.put(type, mapper);
 			}
 
 			public <T> Function<DataSource, T> get(Class<T> type) {
-				return ds->type.cast(favorites.get(type).apply(ds));
+				Function<DataSource, ?> function = mappingFunctions.get(type);
+				return function != null ? ds->type.cast(function.apply(ds)) : null;
+			}
+			
+			public static D11rFunctionRegistry create() {
+				return new D11rFunctionRegistry();
+			}
+			
+			public static D11rFunctionRegistry from(Map<Class<?>, Function<DataSource, ?>> mappingFunctions) {
+				return new D11rFunctionRegistry(mappingFunctions);
 			}
 		}
 	}
@@ -1172,6 +1284,18 @@ public class DataSourceList implements Iterable<DataSource> {
 			public Class<FileContent> target() { return FileContent.class; }
 		};
 		
+		public static Mapper<Path> PATH = new Mapper<Path>() {
+
+			@Override
+			public BiFunction<String, Path, DataSource> to() { return (name, p)->new FileDataSource(p, Objects.requireNonNull(name, "Name cannot be null.")); }
+
+			@Override
+			public Function<DataSource, Path> from() { return ds->unsupportedOperation(Path.class, "Cannot convert DataSource directly to %s - use String instead and then convert String to Path."); }
+
+			@Override
+			public Class<Path> target() { return Path.class; }
+		};
+		
 		public static Mapper<Boolean> BOOLEAN = new Mapper<Boolean>() {
 
 			@Override
@@ -1231,6 +1355,36 @@ public class DataSourceList implements Iterable<DataSource> {
 			@Override
 			public Class<Long> target() { return Long.class; }
 		};
+		
+		public static Mapper<DataSource> DATASOURCE = new Mapper<DataSource>() {
+
+			@Override
+			public BiFunction<String, DataSource, DataSource> to() { return (s,ds)->ds; }	// Ignore the name that's passed in because the DS already has one.
+
+			@Override
+			public Function<DataSource, DataSource> from() { return Function.identity(); }
+
+			@Override
+			public Class<DataSource> target() { return DataSource.class; }
+		};
+		
+		public static Mapper<DataSourceList> DATASOURCELIST = new Mapper<DataSourceList>() {
+
+			@Override
+			public BiFunction<String, DataSourceList, DataSource> to() { return (name, dsl)->new ByteArrayDataSource(Builder.dataSourceListToByteArray(dsl), Objects.requireNonNull(name, "Name cannot be null."), XmlDataSourceListEncoder.DSL_MIME_TYPE); }
+
+			@Override
+			public Function<DataSource, DataSourceList> from() { return ds->Deconstructor.dsToDataSourceList(ds).orElseThrow(()->new IllegalStateException("Unable to decode DataSource '" + ds.name() + "' into DataSourceList.")); }
+
+			@Override
+			public Class<DataSourceList> target() { return DataSourceList.class; }
+		};
+		
+		public static List<Mapper<?>> MAPPER_LIST = Jdk8Utils.listOf(STRING, BYTEARRAY, CONTENT, FILE_CONTENT, PATH, BOOLEAN, DOUBLE, FLOAT, INTEGER, LONG, DATASOURCE, DATASOURCELIST);
+		
+		private static <T> T unsupportedOperation(Class<T> clazz, String msg) {
+			throw new UnsupportedOperationException(String.format(msg, clazz.getName()));
+		}
 		
 		private StandardMappers() { // prevent instantation
 			super();
