@@ -138,6 +138,18 @@ class DataSourceListBuilderTest {
 		validateResultList(resultList, true);
 	}
 
+	@Test
+	void testBuilderWithDSL() throws Exception{
+		// Construct a DataSourceList with one of each and every type
+		DataSourceList source = DataSourceList.build(DataSourceListBuilderTest::addAllDsTypes);
+		
+		DataSourceList result = DataSourceList.builder(source).build();	// Build with initial seed DSL
+		
+		List<DataSource> resultList = result.list();
+		
+		validateResultList(resultList, false);
+	}
+
 	private static DataSourceList.Builder addAllDsTypes(DataSourceList.Builder builder) {
 		return builder.add(dummyDS)
 					  .add(BOOLEAN_DS_NAME, booleanData)
@@ -366,6 +378,36 @@ class DataSourceListBuilderTest {
 		underTest.register(mapper.target(), reverseBuilder);
 		underTest.addObject(BYTE_ARRAY_DS_NAME, byteArrayData, byte[].class);
 		assertArrayEquals(expectedResult, underTest.build().deconstructor().getByteArrayByName(BYTE_ARRAY_DS_NAME).get());
+	}
+
+	@Test
+	void testBuildWithCustomObjectMapperList() {
+		class Foo {
+			public Foo(int f1, String f2) {
+				this.f1 = f1;
+				this.f2 = f2;
+			}
+			int f1;
+			String f2;
+			@Override
+			public String toString() {
+				return f1 + "/" + f2;
+			}
+		}; 
+		BiFunction<String, Foo, DataSource> fooMapper = (n,f)->DataSourceList.StandardMappers.STRING.to().apply(n, f.toString());
+
+		final Foo instance1 = new Foo(1, "First");
+		final Foo instance2 = new Foo(2, "Second");
+		
+		final List<String> expectedResult = Jdk8Utils.listOf(instance1.toString(), instance2.toString());
+
+		final String dsName = "Name";
+		DataSourceList result = DataSourceList.builder()
+											  .register(Foo.class, fooMapper)
+											  .addObjects(dsName, Jdk8Utils.listOf(instance1, instance2), Foo.class)
+											  .build();
+		
+		assertIterableEquals(expectedResult, result.deconstructor().getStringsByName(dsName));
 	}
 
 	private static byte[] reverseBytes(byte[] validData) {

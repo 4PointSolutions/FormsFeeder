@@ -347,7 +347,7 @@ class DataSourceListDeconstructorTest {
 	}
 
 	@Test
-	void testGetObject() {
+	void testGetObjectByName() {
 		Deconstructor underTest = sampleDataSource.deconstructor();
 		assertAll(
 				()->assertEquals(dummyDS, underTest.getObjectByName(DataSource.class, DUMMY_DS_NAME).get()),
@@ -364,10 +364,116 @@ class DataSourceListDeconstructorTest {
 				);
 		
 		// Since the File does not exist, we expect an error here.
-		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, ()->underTest.getStringByName(FILE_DS_NAME).get());
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, ()->underTest.getStringByName(FILE_DS_NAME));
 		String msg = ex.getMessage();
 		assertNotNull(msg);
 		assertTrue(msg.contains(pathData.toString()));
+	}
+
+	@Test
+	void testGetObjectByPredicate() {
+		Deconstructor underTest = sampleDataSource.deconstructor();
+
+		assertAll(
+				()->assertEquals(dummyDS, underTest.getObject(DataSource.class, DataSourceList.byName(DUMMY_DS_NAME)).get()),
+				()->assertEquals(booleanData, underTest.getObject(Boolean.class, DataSourceList.byName(BOOLEAN_DS_NAME)).get()),
+				()->assertArrayEquals(byteArrayData, underTest.getObject(byte[].class, DataSourceList.byName(BYTE_ARRAY_DS_NAME)).get()),
+				()->assertEquals(doubleData, underTest.getObject(Double.class, DataSourceList.byName(DOUBLE_DS_NAME)).get()),
+				()->assertEquals(floatData, underTest.getObject(Float.class, DataSourceList.byName(FLOAT_DS_NAME)).get()),
+				()->assertEquals(intData, underTest.getObject(Integer.class, DataSourceList.byName(INTEGER_DS_NAME)).get()),
+				()->assertEquals(longData, underTest.getObject(Long.class, DataSourceList.byName(LONG_DS_NAME)).get()),
+				()->assertEquals(stringData, underTest.getObject(String.class, DataSourceList.byName(STRING_DS_NAME)).get()),
+				()->XmlDataSourceListDecoderTest.dslEquals(dslData, underTest.getObject(DataSourceList.class, DataSourceList.byName(DSL_DS_NAME)).get(), true),
+				()->assertEquals(contentData, underTest.getObject(Content.class, DataSourceList.byName(CONTENT_DS_NAME)).get()),
+				()->assertEquals(fileContentData, underTest.getObject(FileContent.class, DataSourceList.byName(FILE_CONTENT_DS_NAME)).get())
+				);
+		
+		// Since the File does not exist, we expect an error here.
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, ()->underTest.getObject(String.class, DataSourceList.byName(FILE_DS_NAME)).get());
+		String msg = ex.getMessage();
+		assertNotNull(msg);
+		assertTrue(msg.contains(pathData.toString()));
+	}
+	
+	@Test
+	void testGetMultipleObjectsByName() {
+		Deconstructor underTest = sampleDataSource.deconstructor();
+		assertAll(
+				()->assertEquals(dummyDS, underTest.getObjectsByName(DataSource.class, DUMMY_DS_NAME).get(0)),
+				()->assertEquals(2, underTest.getObjectsByName(DataSource.class, DUMMY_DS_NAME).size()),
+				()->assertEquals(booleanData, underTest.getObjectsByName(Boolean.class, BOOLEAN_DS_NAME).get(0)),
+				()->assertEquals(3, underTest.getObjectsByName(Boolean.class, BOOLEAN_DS_NAME).size()),
+				()->assertArrayEquals(byteArrayData, underTest.getObjectsByName(byte[].class, BYTE_ARRAY_DS_NAME).get(0)),
+				()->assertEquals(1, underTest.getObjectsByName(byte[].class, BYTE_ARRAY_DS_NAME).size()),
+				()->assertEquals(doubleData, underTest.getObjectsByName(Double.class, DOUBLE_DS_NAME).get(0)),
+				()->assertEquals(2, underTest.getObjectsByName(Double.class, DOUBLE_DS_NAME).size()),
+				()->assertEquals(floatData, underTest.getObjectsByName(Float.class, FLOAT_DS_NAME).get(0)),
+				()->assertEquals(3, underTest.getObjectsByName(Float.class, FLOAT_DS_NAME).size()),
+				()->assertEquals(intData, underTest.getObjectsByName(Integer.class, INTEGER_DS_NAME).get(0)),
+				()->assertEquals(1, underTest.getObjectsByName(Integer.class, INTEGER_DS_NAME).size()),
+				()->assertEquals(longData, underTest.getObjectsByName(Long.class, LONG_DS_NAME).get(0)),
+				()->assertEquals(2, underTest.getObjectsByName(Long.class, LONG_DS_NAME).size()),
+				()->assertEquals(stringData, underTest.getObjectsByName(String.class, STRING_DS_NAME).get(0)),
+				()->assertEquals(1, underTest.getObjectsByName(String.class, STRING_DS_NAME).size()),
+				()->XmlDataSourceListDecoderTest.dslEquals(dslData, underTest.getObjectsByName(DataSourceList.class, DSL_DS_NAME).get(0), true),
+				()->assertEquals(2, underTest.getObjectsByName(DataSourceList.class, DSL_DS_NAME).size()),
+				()->assertEquals(contentData, underTest.getObjectsByName(Content.class, CONTENT_DS_NAME).get(0)),
+				()->assertEquals(3, underTest.getObjectsByName(Content.class, CONTENT_DS_NAME).size()),
+				()->assertEquals(fileContentData, underTest.getObjectsByName(FileContent.class, FILE_CONTENT_DS_NAME).get(0)),
+				()->assertEquals(1, underTest.getObjectsByName(FileContent.class, FILE_CONTENT_DS_NAME).size())
+				);
+		
+		// Since the File does not exist, we expect an error here.
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, ()->underTest.getObjectsByName(String.class, FILE_DS_NAME).size());
+		String msg = ex.getMessage();
+		assertNotNull(msg);
+		assertTrue(msg.contains(pathData.toString()));
+	}
+
+	@Test
+	void testGetMultipleObjectsByPredicateByName() {
+		Deconstructor underTest = sampleDataSource.deconstructor();
+		assertAll(
+				()->assertEquals(dummyDS, underTest.getObjects(DataSource.class, DataSourceList.byName(DUMMY_DS_NAME)).get(0)),
+				()->assertEquals(2, underTest.getObjects(DataSource.class, DataSourceList.byName(DUMMY_DS_NAME)).size()),
+				()->assertEquals(booleanData, underTest.getObjects(Boolean.class, DataSourceList.byName(BOOLEAN_DS_NAME)).get(0)),
+				()->assertEquals(3, underTest.getObjects(Boolean.class, DataSourceList.byName(BOOLEAN_DS_NAME)).size()),
+				()->assertArrayEquals(byteArrayData, underTest.getObjects(byte[].class, DataSourceList.byName(BYTE_ARRAY_DS_NAME)).get(0)),
+				()->assertEquals(1, underTest.getObjects(byte[].class, DataSourceList.byName(BYTE_ARRAY_DS_NAME)).size()),
+				()->assertEquals(doubleData, underTest.getObjects(Double.class, DataSourceList.byName(DOUBLE_DS_NAME)).get(0)),
+				()->assertEquals(2, underTest.getObjects(Double.class, DataSourceList.byName(DOUBLE_DS_NAME)).size()),
+				()->assertEquals(floatData, underTest.getObjects(Float.class, DataSourceList.byName(FLOAT_DS_NAME)).get(0)),
+				()->assertEquals(3, underTest.getObjects(Float.class, DataSourceList.byName(FLOAT_DS_NAME)).size()),
+				()->assertEquals(intData, underTest.getObjects(Integer.class, DataSourceList.byName(INTEGER_DS_NAME)).get(0)),
+				()->assertEquals(1, underTest.getObjects(Integer.class, DataSourceList.byName(INTEGER_DS_NAME)).size()),
+				()->assertEquals(longData, underTest.getObjects(Long.class, DataSourceList.byName(LONG_DS_NAME)).get(0)),
+				()->assertEquals(2, underTest.getObjects(Long.class, DataSourceList.byName(LONG_DS_NAME)).size()),
+				()->assertEquals(stringData, underTest.getObjects(String.class, DataSourceList.byName(STRING_DS_NAME)).get(0)),
+				()->assertEquals(1, underTest.getObjects(String.class, DataSourceList.byName(STRING_DS_NAME)).size()),
+				()->XmlDataSourceListDecoderTest.dslEquals(dslData, underTest.getObjects(DataSourceList.class, DataSourceList.byName(DSL_DS_NAME)).get(0), true),
+				()->assertEquals(2, underTest.getObjects(DataSourceList.class, DataSourceList.byName(DSL_DS_NAME)).size()),
+				()->assertEquals(contentData, underTest.getObjects(Content.class, DataSourceList.byName(CONTENT_DS_NAME)).get(0)),
+				()->assertEquals(3, underTest.getObjects(Content.class, DataSourceList.byName(CONTENT_DS_NAME)).size()),
+				()->assertEquals(fileContentData, underTest.getObjects(FileContent.class, DataSourceList.byName(FILE_CONTENT_DS_NAME)).get(0)),
+				()->assertEquals(1, underTest.getObjects(FileContent.class, DataSourceList.byName(FILE_CONTENT_DS_NAME)).size())
+				);
+		
+		// Since the File does not exist, we expect an error here.
+		IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, ()->underTest.getObjects(String.class, DataSourceList.byName(FILE_DS_NAME)).size());
+		String msg = ex.getMessage();
+		assertNotNull(msg);
+		assertTrue(msg.contains(pathData.toString()));
+	}
+
+	@Test
+	void testGetMultipleObjectsWithNonNamePredicate() {
+		Deconstructor underTest = sampleDataSource.deconstructor();
+		// First DS with octet-stream type is the dummy DS
+		assertEquals(dummyDS, underTest.getObjects(DataSource.class, ds->ds.contentType().equals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE)).get(0));
+		// Two dummyDS entries plus the one byte array should all have an mime-type of application/octet-stream.
+		assertEquals(3, underTest.getDataSources(ds->ds.contentType().equals(StandardMimeTypes.APPLICATION_OCTET_STREAM_TYPE)).size());
+		// Test where nothing matches.
+		assertTrue(underTest.getDataSources(ds->false).isEmpty());
 	}
 
 	@Test

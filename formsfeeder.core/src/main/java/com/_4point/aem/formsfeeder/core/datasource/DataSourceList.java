@@ -342,10 +342,6 @@ public class DataSourceList implements Iterable<DataSource> {
 			return new StringDataSource(Objects.toString(object), Objects.requireNonNull(name, "Name cannot be null.")); 
 		}
 
-		public static final <T> DataSource objToByteArrayDS(String name, T object) {
-			return new StringDataSource(Objects.toString(object), Objects.requireNonNull(name, "Name cannot be null.")); 
-		}
-
 		public Builder add(DataSource ds) {
 			underConstruction.add(Objects.requireNonNull(ds, "DataSource cannot be null."));
 			return this;
