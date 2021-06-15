@@ -20,7 +20,7 @@
 		<jersey.version>2.31</jersey.version>
 		<jaxb.version>2.3.3</jaxb.version>
 		<wiremock.version>2.27.2</wiremock.version>
-		<pdfbox.version>2.0.21</pdfbox.version>
+		<pdfbox.version>2.0.24</pdfbox.version>
 		<jcabi-xml.version>0.22.2</jcabi-xml.version>
 	</properties>
 
