@@ -26,7 +26,7 @@
 		<pf4j.version>3.6.0</pf4j.version>
 		<jasypt-spring-boot.version>3.0.3</jasypt-spring-boot.version>
 		<formsfeeder.version>${project.version}</formsfeeder.version>
-		<pdfbox.version>2.0.22</pdfbox.version>
+		<pdfbox.version>2.0.24</pdfbox.version>
 		<jcabi-xml.version>0.22.2</jcabi-xml.version>
         <jsoup.version>1.13.1</jsoup.version>
 	</properties>
