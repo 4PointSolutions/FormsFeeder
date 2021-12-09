@@ -27,6 +27,7 @@ import com._4point.aem.formsfeeder.core.api.PluginsConsumer;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
+import com._4point.aem.formsfeeder.core.support.ResourceFactory;
 import com._4point.aem.formsfeeder.pf4j.spring.ApplicationContextConsumer;
 import com._4point.aem.formsfeeder.pf4j.spring.EnvironmentConsumer;
 
@@ -154,17 +155,17 @@ public class MockExtension implements NamedFeedConsumer, EnvironmentConsumer, Ap
 			break;
 		case SCENARIO_RETURN_MANY_OUTPUTS:
 			// This scenario produces multiple non0string outputs (i.e. more that just the one returned in the following two scenarios) 
-			builder.add("PdfResult", getResourcePath("SampleForm.pdf"));
-			builder.add("XmlResult", getResourcePath("SampleForm_data.xml"));
+			builder.add("PdfResult", ResourceFactory.getResourcePath(this, "SampleForm.pdf"));
+			builder.add("XmlResult", ResourceFactory.getResourcePath(this, "SampleForm_data.xml"));
 			builder.add("ByteArrayResult", "SampleData".getBytes(StandardCharsets.UTF_8));
 			break;
 		case SCENARIO_RETURN_XML:
 			// This scenario returns a single XML file.
-			builder.add("XmlResult", getResourcePath("SampleForm_data.xml"));
+			builder.add("XmlResult", ResourceFactory.getResourcePath(this, "SampleForm_data.xml"));
 			break;
 		case SCENARIO_RETURN_PDF:
 			// This scenario returns a single PDF file.
-			builder.add("PdfResult", getResourcePath("SampleForm.pdf"), Map.of("formsfeeder:Content-Disposition", "attachment"));
+			builder.add("PdfResult", ResourceFactory.getResourcePath(this, "SampleForm.pdf"), Map.of("formsfeeder:Content-Disposition", "attachment"));
 			break;
 		case SCENARIO_RETURN_DSL:
 			// This scenario returns a DataSource list with multiple String values.
@@ -202,30 +203,6 @@ public class MockExtension implements NamedFeedConsumer, EnvironmentConsumer, Ap
 		}
 		
 		return builder.build(); 
-	}
-
-	private final Path getResourcePath(String resourceName) throws FeedConsumerInternalErrorException {
-		URL jarResource = getClass().getClassLoader().getResource(resourceName);
-		if (jarResource == null) {
-			throw new FeedConsumerInternalErrorException("Problem locating pdf Resource.");
-		} else {
-			try {
-				URI uri = jarResource.toURI();
-				if (zipfs == null && (uri.toString().startsWith("/") || uri.toString().startsWith("jar:"))) {
-					try {
-						zipfs = FileSystems.getFileSystem(uri);
-					} catch (FileSystemNotFoundException e) {
-						// File system doesn't exist, so create it.
-						zipfs = FileSystems.newFileSystem(uri, Map.of("create", "true"));
-					}
-					return Path.of(uri);
-				} else {
-					return Path.of(uri);
-				}
-			} catch (URISyntaxException | IOException e) {
-				throw new FeedConsumerInternalErrorException("Problem with converting jar resource to path.", e);
-			}
-		}
 	}
 
 	@Override
