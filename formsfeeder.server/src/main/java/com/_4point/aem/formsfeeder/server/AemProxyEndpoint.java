@@ -59,13 +59,14 @@ public class AemProxyEndpoint {
 	}
 
 	private ChunkedOutput<byte[]> getCsrfToken(final String path) {
-		logger.debug("Proxying GET request. CSFR token");
+		logger.debug("Proxying GET request. CSRF token");
 		WebTarget webTarget = httpClient.target(aemConfig.url())
 								.path(path);
 		logger.debug("Proxying GET request for CSRF token '" + webTarget.getUri().toString() + "'.");
 		Response result = webTarget.request()
 		   .get();
 
+		logger.debug("CSRF token GET response status = " + result.getStatus());
 		final ChunkedInput<byte[]> chunkedInput = result.readEntity(new GenericType<ChunkedInput<byte[]>>() {});
 		final ChunkedOutput<byte[]> output = new ChunkedOutput<byte[]>(byte[].class);
 		
