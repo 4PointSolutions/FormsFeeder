@@ -244,6 +244,64 @@ class ServicesEndpointTest implements EnvironmentAware {
 	}
 
 	@Test
+	void testInvokeGetManyParamsNoAcceptWithHeader() {
+		String queryParamString = "QueryParam";
+		String queryValueString = "Value";
+		String expectedParamName1 = queryParamString + "1";
+		String expectedParamValue1 = expectedParamName1 + " " + queryValueString;
+		String expectedParamName2 = queryParamString + "2";
+		String expectedParamValue2 = expectedParamName2 + " " + queryValueString;
+		String expectedParamName3 = queryParamString + "3";
+		String expectedParamValue3 = expectedParamName3 + " " + queryValueString;
+		String headerParamString = "FormsFeeder_HeaderParam";
+		String headerValueString = "Value";
+		String expectedHeaderParamName1 = headerParamString + "1";
+		String expectedHeaderParamValue1 = expectedHeaderParamName1 + " " + headerValueString;
+		String expectedHeaderParamName2 = headerParamString + "2";
+		String expectedHeaderParamValue2 = expectedHeaderParamName2 + " " + headerValueString;
+		String expectedHeaderParamName3 = headerParamString + "3";
+		String expectedHeaderParamValue3 = expectedHeaderParamName3 + " " + headerValueString;
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .queryParam(expectedParamName1, expectedParamValue1)
+				 .queryParam(expectedParamName2, expectedParamValue2)
+				 .queryParam(expectedParamName3, expectedParamValue3)
+				 .request()
+				 .header(expectedHeaderParamName1, expectedHeaderParamValue1)
+				 .header(expectedHeaderParamName2, expectedHeaderParamValue2)
+				 .header("HELLO", "world")
+				 .header(expectedHeaderParamName3, expectedHeaderParamValue3)
+				 .get();
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.APPLICATION_JSON_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/json'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+		
+		JsonObject jsonResultObj = response.readEntity(JsonObject.class);
+
+		// Expecting a single entry called "Message"
+		assertEquals(1, jsonResultObj.entrySet().size());
+		JsonArray jsonResultArray = jsonResultObj.getJsonArray("Message");
+		int returnsCount = 0;
+		for (var entry : jsonResultArray) {
+			// Expecting 6 Strings with the messages in them.
+			String string = entry.toString();
+			returnsCount++;
+			if (returnsCount < 4) {
+				assertTrue(string.contains(queryParamString), "Expected response body to contain '" + queryParamString + "', but was '" + string + "'.");
+				assertTrue(string.contains(queryValueString), "Expected response body to contain '" + queryValueString + "', but was '" + string + "'.");
+			}
+			else {
+				assertTrue(string.contains(headerParamString.substring(12).toLowerCase()), "Expected response body to contain '" + headerParamString.substring(12).toLowerCase() + "', but was '" + string + "'.");
+				assertTrue(string.contains(headerValueString), "Expected response body to contain '" + headerValueString + "', but was '" + string + "'.");
+			}
+		}
+		assertEquals(6, returnsCount);
+	}
+
+	@Test
 	void testInvokeGetManyParamsAcceptMultipartFormdata() {
 		String queryParamString = "QueryParam";
 		String queryValueString = "Value";

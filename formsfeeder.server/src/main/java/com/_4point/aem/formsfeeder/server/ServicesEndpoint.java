@@ -84,17 +84,10 @@ public class ServicesEndpoint {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		logger.info("Recieved GET request to '" + PluginInvoker.API_V1_PATH + "/" + remainder + "' to produce multipart/form-data.");
-		if (logger.isDebugEnabled()) {
-			for( Entry<String, List<String>> headers : httpHeaders.getRequestHeaders().entrySet()) {
-				String key = headers.getKey();
-				for (String value : headers.getValue()) {
-					logger.debug("HttpHeader->'" + key + "'='" + value + "'.");
-				}
-			}
-		}
 		final DataSourceList dataSourceList1 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList2 = generateFormsFeederDataSourceList(correlationId);
-		return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2), logger, correlationId, ServicesEndpoint::toMultipartFormData);
+		final DataSourceList dataSourceList3 = convertRequestHeaderParamsToDataSourceList(httpHeaders, logger);
+		return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId, ServicesEndpoint::toMultipartFormData);
 	}
 
 	/**
@@ -120,18 +113,11 @@ public class ServicesEndpoint {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		logger.info("Received " + MediaType.MULTIPART_FORM_DATA + " POST request to '" + PluginInvoker.API_V1_PATH + "/" + remainder + "' to produce multipart/form-data.");
-		if (logger.isDebugEnabled()) {
-			for( Entry<String, List<String>> headers : httpHeaders.getRequestHeaders().entrySet()) {
-				String key = headers.getKey();
-				for (String value : headers.getValue()) {
-					logger.debug("HttpHeader->'" + key + "'='" + value + "'.");
-				}
-			}
-		}
 		final DataSourceList dataSourceList1 = DataSourceListJaxRsUtils.asDataSourceList(formData, logger);
 		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
-		return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId, ServicesEndpoint::toMultipartFormData);
+		final DataSourceList dataSourceList4 = convertRequestHeaderParamsToDataSourceList(httpHeaders, logger);
+		return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3, dataSourceList4), logger, correlationId, ServicesEndpoint::toMultipartFormData);
 	}
 
 	/**
@@ -159,20 +145,13 @@ public class ServicesEndpoint {
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		MediaType mediaType = httpHeaders.getMediaType();
 		logger.info("Received '" + mediaType.toString() + "' POST request to '" + PluginInvoker.API_V1_PATH + "/" + remainder + "' to produce multipart/form-data.");
-		if (logger.isDebugEnabled()) {
-			for( Entry<String, List<String>> headers : httpHeaders.getRequestHeaders().entrySet()) {
-				String key = headers.getKey();
-				for (String value : headers.getValue()) {
-					logger.debug("HttpHeader->'" + key + "'='" + value + "'.");
-				}
-			}
-		}
 		try {
 			final ContentDisposition contentDisposition = determineContentDisposition(httpHeaders);
 			final DataSourceList dataSourceList1 = DataSourceListJaxRsUtils.asDataSourceList(in, mediaType, contentDisposition, FORMSFEEDER_BODY_BYTES_DS_NAME, logger);
 			final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 			final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
-			return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId, ServicesEndpoint::toMultipartFormData);
+			final DataSourceList dataSourceList4 = convertRequestHeaderParamsToDataSourceList(httpHeaders, logger);
+			return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3, dataSourceList4), logger, correlationId, ServicesEndpoint::toMultipartFormData);
 		} catch (ContentDispositionHeaderException e) {
 			// If we encounter Parse Errors while determining ContentDisposition, it must be a BadRequest.
 			logger.error(e.getMessage() + ", Returning \"Bad Request\" status code.", e);
@@ -199,17 +178,10 @@ public class ServicesEndpoint {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		logger.info("Recieved GET request to '" + PluginInvoker.API_V1_PATH + "/" + remainder + "' to produce JSON.");
-		if (logger.isDebugEnabled()) {
-			for( Entry<String, List<String>> headers : httpHeaders.getRequestHeaders().entrySet()) {
-				String key = headers.getKey();
-				for (String value : headers.getValue()) {
-					logger.debug("HttpHeader->'" + key + "'='" + value + "'.");
-				}
-			}
-		}
 		final DataSourceList dataSourceList1 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList2 = generateFormsFeederDataSourceList(correlationId);
-		return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2), logger, correlationId, ServicesEndpoint::toJson);
+		final DataSourceList dataSourceList3 = convertRequestHeaderParamsToDataSourceList(httpHeaders, logger);
+		return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId, ServicesEndpoint::toJson);
 	}
 
 	/**
@@ -240,18 +212,11 @@ public class ServicesEndpoint {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		logger.info("Received " + MediaType.APPLICATION_JSON + " POST request to '" + PluginInvoker.API_V1_PATH + "/" + remainder + "' to produce JSON.");
-		if (logger.isDebugEnabled()) {
-			for( Entry<String, List<String>> headers : httpHeaders.getRequestHeaders().entrySet()) {
-				String key = headers.getKey();
-				for (String value : headers.getValue()) {
-					logger.debug("HttpHeader->'" + key + "'='" + value + "'.");
-				}
-			}
-		}
 		final DataSourceList dataSourceList1 = DataSourceListJsonUtils.asDataSourceList(json, logger);
 		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
-		return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId, ServicesEndpoint::toJson);
+		final DataSourceList dataSourceList4 = convertRequestHeaderParamsToDataSourceList(httpHeaders, logger);
+		return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3, dataSourceList4), logger, correlationId, ServicesEndpoint::toJson);
 	}
 
 	/**
@@ -279,20 +244,13 @@ public class ServicesEndpoint {
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		MediaType mediaType = httpHeaders.getMediaType();
 		logger.info("Received '" + mediaType.toString() + "' POST request to '" + PluginInvoker.API_V1_PATH + "/" + remainder + "' to produce JSON.");
-		if (logger.isDebugEnabled()) {
-			for( Entry<String, List<String>> headers : httpHeaders.getRequestHeaders().entrySet()) {
-				String key = headers.getKey();
-				for (String value : headers.getValue()) {
-					logger.debug("HttpHeader->'" + key + "'='" + value + "'.");
-				}
-			}
-		}
 		try {
 			final ContentDisposition contentDisposition = determineContentDisposition(httpHeaders);
 			final DataSourceList dataSourceList1 = DataSourceListJaxRsUtils.asDataSourceList(in, mediaType, contentDisposition, FORMSFEEDER_BODY_BYTES_DS_NAME, logger);
 			final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 			final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
-			return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId, ServicesEndpoint::toJson);
+			final DataSourceList dataSourceList4 = convertRequestHeaderParamsToDataSourceList(httpHeaders, logger);
+			return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3, dataSourceList4), logger, correlationId, ServicesEndpoint::toJson);
 		} catch (ContentDispositionHeaderException e) {
 			// If we encounter Parse Errors while determining ContentDisposition, it must be a BadRequest.
 			logger.error(e.getMessage() + ", Returning \"Bad Request\" status code.", e);
@@ -406,6 +364,27 @@ public class ServicesEndpoint {
 		return DataSourceList.builder()
 				.add(FORMSFEEDER_CORRELATION_ID_DS_NAME, correlationId)
 				.build();
+	}
+
+	/**
+	 * Converts the incoming Request Header Parameters into a DataSourceList so that they can be processed by a plug-in
+	 * 
+	 * @param httpHeaders
+	 * @return
+	 */
+	private static final DataSourceList convertRequestHeaderParamsToDataSourceList(final HttpHeaders httpHeaders, final Logger logger) {
+		Builder builder = DataSourceList.builder();
+		for( Entry<String, List<String>> headers : httpHeaders.getRequestHeaders().entrySet()) {
+			String key = headers.getKey();
+			for (String value : headers.getValue()) {
+				logger.debug("HttpHeader->'{}'='{}'.", key, value);
+				if (key.toLowerCase().startsWith("formsfeeder_")) {
+					logger.debug("Found Header Parameter '{}'='{}'.", key.substring(12), value);
+					builder.add(key.substring(12), value);
+				}
+			}
+		}
+		return builder.build();
 	}
 	
 	/**
