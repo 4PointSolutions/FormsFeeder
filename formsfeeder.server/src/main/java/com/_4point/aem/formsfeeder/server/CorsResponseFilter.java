@@ -17,6 +17,7 @@ import com._4point.aem.formsfeeder.server.support.CorrelationId;
 public class CorsResponseFilter implements ContainerResponseFilter {
 
 	private static final String FF_ENABLE_CORS_PROPERTY = "formsfeeder.enable_cors";
+	private static final String FF_CORS_ALLOWED_HEADERS_PROPERTY = "formsfeeder.cors_add_headers";
 	private static final String ALLOWED_METHODS = String.join(", ", "GET", "POST", "OPTIONS", "HEAD");
 	private static final String ALLOWED_HEADERS = String.join(", ", "origin", "content-type", "accept", "authorization", CorrelationId.CORRELATION_ID_HDR);
 	
@@ -31,7 +32,8 @@ public class CorsResponseFilter implements ContainerResponseFilter {
 			responseContext.getHeaders().add("Access-Control-Allow-Origin", corsProperty);
 			responseContext.getHeaders().add("Access-Control-Allow-Methods", ALLOWED_METHODS);
 			responseContext.getHeaders().add("Access-Control-Allow-Credentials", "true");
-			responseContext.getHeaders().add("Access-Control-Allow-Headers", ALLOWED_HEADERS);
+			String corsAddHeaders = Objects.requireNonNull(environment).getProperty(FF_CORS_ALLOWED_HEADERS_PROPERTY);
+			responseContext.getHeaders().add("Access-Control-Allow-Headers", ALLOWED_HEADERS + (corsAddHeaders != null && !corsAddHeaders.isBlank() ? ", " + corsAddHeaders : ""));
 		}
 	}
 }

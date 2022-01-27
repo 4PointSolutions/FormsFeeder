@@ -34,10 +34,12 @@ class CorsResponseFilterTest {
 	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
 	private static final Set<String> ALLOWED_METHODS = Set.of("GET", "POST", "OPTIONS", "HEAD");
 	private static final Set<String> ALLOWED_HEADERS = Set.of("origin", "content-type", "accept", "authorization", CorrelationId.CORRELATION_ID_HDR);
+	private static final String ADDED_HEADER = "formsfeeder_header1, formsfeeder_header2";
 	
 	@Nested
 	@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
 	@TestPropertySource(properties = {"formsfeeder.enable_cors=*"})
+	@TestPropertySource(properties = {"formsfeeder.cors_add_headers=" + ADDED_HEADER})
 	class PositiveTests {
 		@LocalServerPort
 		private int port;
@@ -72,6 +74,7 @@ class CorsResponseFilterTest {
 			for (String header : ALLOWED_HEADERS) {
 				assertTrue(headersAllowed.contains(header));
 			}
+			assertTrue(headersAllowed.contains(ADDED_HEADER));
 			String credentialsAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER);
 			assertNotNull(credentialsAllowed);
 			assertTrue(Boolean.valueOf(credentialsAllowed));
@@ -107,7 +110,8 @@ class CorsResponseFilterTest {
 			for (String header : ALLOWED_HEADERS) {
 				assertTrue(headersAllowed.contains(header));
 			}
-			String credentialsAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER);
+			assertTrue(headersAllowed.contains(ADDED_HEADER));
+ 			String credentialsAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER);
 			assertNotNull(credentialsAllowed);
 			assertTrue(Boolean.valueOf(credentialsAllowed));
 		}
@@ -145,6 +149,14 @@ class CorsResponseFilterTest {
 			for (String method : ALLOWED_METHODS) {
 				assertTrue(methodsAllowed.contains(method));
 			}
+			String headersAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_HEADERS_HEADER);
+			assertNotNull(headersAllowed);
+			for (String header : ALLOWED_HEADERS) {
+				assertTrue(headersAllowed.contains(header));
+			}
+ 			String credentialsAllowed = response.getHeaderString(ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER);
+			assertNotNull(credentialsAllowed);
+			assertTrue(Boolean.valueOf(credentialsAllowed));
 		}
 	}
 
@@ -173,6 +185,8 @@ class CorsResponseFilterTest {
 			assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 			assertNull(response.getHeaderString(ACCESS_CONTROL_ALLOW_ORIGIN_HEADER));
 			assertNull(response.getHeaderString(ACCESS_CONTROL_ALLOW_METHODS_HEADER));
+			assertNull(response.getHeaderString(ACCESS_CONTROL_ALLOW_HEADERS_HEADER));
+			assertNull(response.getHeaderString(ACCESS_CONTROL_ALLOW_CREDENTIALS_HEADER));
 		}
 	}
 
