@@ -24,21 +24,31 @@ import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ChunkedOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 import com._4point.aem.formsfeeder.core.api.AemConfig;
 
 @Path("/aem")
 public class AemProxyEndpoint {
+
 	private final static Logger logger = LoggerFactory.getLogger(AemProxyEndpoint.class);
 
 	private final AemConfig aemConfig = Objects.requireNonNull(Objects.requireNonNull(Application.getApplicationContext(), "Application Context cannot be null.")
 																  .getBean(AemConfig.class), "AemConfig cannot be null");
 	
+	private static final String FORMSFEEDER_AF_BASE_LOCATION_PROP = "formsfeeder.af-base-location";
 	private static final String AEM_APP_PREFIX = "/";
 	private Client httpClient;
 
+	@Autowired
+	Environment environment;
+
 	private HttpAuthenticationFeature feature = HttpAuthenticationFeature.basic(aemConfig.username(), aemConfig.secret());
 
+    /**
+     * 
+     */
     public AemProxyEndpoint() {
 		super();
     	httpClient = ClientBuilder.newClient().register(feature).register(MultiPartFeature.class);
@@ -117,7 +127,56 @@ public class AemProxyEndpoint {
 		return Response.fromResponse(result).build();
     }
 
+    /**
+     * The following routine replaces a line in the utils.js file to enable links with absolute URLs.
+     * 
+     * @return
+     */
+    @Path("/etc.clientlibs/clientlibs/granite/utils.js")
+    @GET
+    public Response proxyGet_Utils_Js() {
+    	logger.debug("Proxying Utils GET request. remainder=/etc.clientlibs/clientlibs/granite/utils.js");
+		WebTarget webTarget = httpClient.target(aemConfig.url())
+								.path(AEM_APP_PREFIX + "etc.clientlibs/clientlibs/granite/utils.js");
+		logger.debug("Proxying Utils GET request for target '" + webTarget.getUri().toString() + "'.");
+		Response result = webTarget.request()
+		   .get();
+		
+//		System.out.println("Received GET response from target '" + webTarget.getUri().toString() + "'. contentType='" + result.getMediaType().toString() + "'.  transfer-encoding='" + result.getHeaderString("Transfer-Encoding") + "'.");
+		logger.debug("Returning Utils GET response from target '" + webTarget.getUri().toString() + "' status code=" + result.getStatus() + ".");
+		
+		return Response.fromResponse(result)
+					   .entity(substituteAfBaseLocation(result.readEntity(InputStream.class)))
+					   .build();
+    }
 
+    /**
+     * Wraps an InputStream with a wrapper that replaces some code in the Adobe utils.js code.
+     * 
+     * The detectContextPath function in utils.js has the following line: 
+     * contextPath = result[1];
+     * 
+     * This routine replaces it with
+     * contextPath = FORMSFEEDER_AF_BASE_LOCATION_PROP + result[1];
+     * (where FORMSFEEDER_AF_BASE_LOCATION_PROP is whatever value is in the application.properties file)
+     * 
+     * @param is
+     * @return
+     */
+    private InputStream substituteAfBaseLocation(InputStream is) {
+    	logger.debug("substituteAfBaseLocation: environment is " + (environment == null ? "" : "not ") + "null.");
+    	if (environment == null) { 
+    		return is; 
+    	}
+		String afBaseLocation = environment.getProperty(FORMSFEEDER_AF_BASE_LOCATION_PROP);
+    	logger.debug("substituteAfBaseLocation: afBaseLocation is " + (afBaseLocation == null ? "null" : "'" + afBaseLocation + "'") + ".");
+    	if (afBaseLocation == null || afBaseLocation.isBlank()) {
+    		return is;
+    	} else {
+    		return new ReplacingInputStream(is, "contextPath = result[1];", "contextPath = \""+ afBaseLocation + "\" + result[1];");
+    	}
+    }
+    
     @Path("{remainder : .+}")
     @POST
     public Response proxyPost(@PathParam("remainder") String remainder, @HeaderParam("Content-Type") String contentType, InputStream in) {
@@ -139,5 +198,4 @@ public class AemProxyEndpoint {
 		
 		return Response.fromResponse(result).build();
     }
-
 }

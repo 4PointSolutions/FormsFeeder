@@ -1,6 +1,9 @@
 package com._4point.aem.formsfeeder.server;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static com._4point.aem.formsfeeder.server.support.MultiLineMatchers.*;
+import static org.hamcrest.MatcherAssert.assertThat; 
+import static org.hamcrest.Matchers.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.MediaType;
@@ -40,15 +44,12 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
 class AemProxyEndpointTest implements EnvironmentAware {
 
+	static final String ABSOLUTE_LOCATION_URL = "http://example.com:9999";
 	private static final String ENV_FORMSFEEDER_AEM_PORT = "formsfeeder.aem.port";
 	private static final String ENV_FORMSFEEDER_AEM_HOST = "formsfeeder.aem.host";
 
 	private static final Path RESOURCES_FOLDER = Paths.get("src", "test", "resources");
-	private static final Path SAMPLE_FILES_DIR = RESOURCES_FOLDER.resolve("SampleFiles");
-	private static final Path ACTUAL_RESULTS_DIR = RESOURCES_FOLDER.resolve("ActualResults");
-	private static final Path SAMPLE_XDP = SAMPLE_FILES_DIR.resolve("SampleForm.xdp");
-	private static final Path SAMPLE_DATA = SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
-	private static final Path SAMPLE_PDF = SAMPLE_FILES_DIR.resolve("SampleForm.pdf");
+	private static final Path ACTUAL_RESULTS_DIR = RESOURCES_FOLDER.resolve("actualResults");
 
 	private static final MediaType APPLICATION_JAVASCRIPT = MediaType.valueOf("application/javascript");
 	/*
@@ -179,6 +180,30 @@ class AemProxyEndpointTest implements EnvironmentAware {
 		}
 	}
 
+	@Test
+	void testProxyGet_Utils() throws Exception {
+		String utils_js_path = "/aem/etc.clientlibs/clientlibs/granite/utils.js";
+		Response response = ClientBuilder.newClient()
+				 .target(uri)
+				 .path(utils_js_path)
+				 .request()
+				 .get();
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + utils_js_path + ")." + getResponseBody(response));
+		assertTrue(APPLICATION_JAVASCRIPT.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/javascript'.");
+		assertTrue(response.hasEntity(), "Expected response to have entity");
+		byte[] resultBytes = ((InputStream)response.getEntity()).readAllBytes();
+		if (SAVE_RESULTS /* && USE_AEM */) {
+			try (var os = Files.newOutputStream(ACTUAL_RESULTS_DIR.resolve("testProxyGet_Utils_JS_result.html"))) {
+				os.write(resultBytes);;
+			}
+		}
+		
+		List<String> string = new String(resultBytes, StandardCharsets.UTF_8).lines().collect(Collectors.toList());
+		assertThat(string, allLinesMatch(not(containsString(ABSOLUTE_LOCATION_URL))));
+	}
+
+	
 	// TODO: Re-enable this and fill in the details to test that a POST is proxied correctly.
 	@Disabled
 	void testProxyPost() {
@@ -209,6 +234,4 @@ class AemProxyEndpointTest implements EnvironmentAware {
 	public void setEnvironment(Environment environment) {
 		this.environment = environment;
 	}
-
-
 }
