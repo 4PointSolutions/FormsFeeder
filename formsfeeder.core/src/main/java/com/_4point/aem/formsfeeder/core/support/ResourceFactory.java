@@ -44,6 +44,25 @@ public enum ResourceFactory {
 	}
 
 	/**
+	 * Retrieve the contents of a resource as a byte array.
+	 * 
+	 * This can be used by static methods that do not have a {@code this}.  If calling from a non-static method,
+	 * prefer the version that takes an object.
+	 * 
+	 * @param context An class to retrieve a classloader from.  Most classes will pass their own class file. 
+	 * @param resourceName Name of resource (i.e. the location of the resource under the resources directory).
+	 * @return a byte[] containing the contents of the resource
+	 * @throws FeedConsumerInternalErrorException
+	 */
+	public static final byte[] getResourceBytes(Class<?> context, String resourceName) throws FeedConsumerInternalErrorException {
+		try {
+			return Files.readAllBytes(getResourcePath(context, resourceName));
+		} catch (IOException e) {
+			throw new FeedConsumerInternalErrorException("Problem reading bytes from resource (" + resourceName + ").", e);
+		}
+	}
+
+	/**
 	 * Retrieve the contents of a resource as an InputStream..
 	 * 
 	 * @param context An object to retrieve a classloader from.  Most classes will pass {@code this}. 
@@ -60,7 +79,26 @@ public enum ResourceFactory {
 	}
 
 	/**
-	 * Retrieve the Path to a resource.  The Path can then be used to read the resource.
+	 * Retrieve the contents of a resource as an InputStream..
+	 * 
+	 * This can be used by static methods that do not have a {@code this}.  If calling from a non-static method,
+	 * prefer the version that takes an object.
+	 * 
+	 * @param context An class to retrieve a classloader from.  Most classes will pass their own class file. 
+	 * @param resourceName Name of resource (i.e. the location of the resource under the resources directory).
+	 * @return an InputStream that can be used to read the contents of the resource
+	 * @throws FeedConsumerInternalErrorException
+	 */
+	public static final InputStream getResourceStream(Class<?> context, String resourceName) throws FeedConsumerInternalErrorException {
+		try {
+			return Files.newInputStream(getResourcePath(context, resourceName));
+		} catch (IOException e) {
+			throw new FeedConsumerInternalErrorException("Problem opening input stream to resource (" + resourceName + ").", e);
+		}
+	}
+
+	/**
+	 * Retrieve the Path to a resource using an object for context.  The Path can then be used to read the resource.
 	 * 
 	 * @param context An object to retrieve a classloader from.  Most classes will pass {@code this}. 
 	 * @param resourceName Name of resource (i.e. the location of the resource under the resources directory).
@@ -68,7 +106,22 @@ public enum ResourceFactory {
 	 * @throws FeedConsumerInternalErrorException
 	 */
 	public static final Path getResourcePath(Object context, String resourceName) throws FeedConsumerInternalErrorException {
-		URL jarResource = context.getClass().getClassLoader().getResource(resourceName);
+		return getResourcePath(context.getClass(), resourceName);
+	}
+	
+	/**
+	 * Retrieve the Path to a resource using a class for context.  The Path can then be used to read the resource.
+	 * 
+	 * This can be used by static methods that do not have a {@code this}.  If calling from a non-static method,
+	 * prefer the version that takes an object.
+	 * 
+	 * @param context An class to retrieve a classloader from.  Most classes will pass their own class file. 
+	 * @param resourceName Name of resource (i.e. the location of the resource under the resources directory).
+	 * @return a Path object to the resource
+	 * @throws FeedConsumerInternalErrorException
+	 */
+	public static final Path getResourcePath(Class<?> context, String resourceName) throws FeedConsumerInternalErrorException {
+		URL jarResource = context.getClassLoader().getResource(resourceName);
 		if (jarResource == null) {
 			throw new FeedConsumerInternalErrorException("Problem locating resource (" + resourceName + ").");
 		} else {

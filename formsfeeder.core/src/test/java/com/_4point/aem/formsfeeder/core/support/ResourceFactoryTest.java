@@ -29,8 +29,22 @@ class ResourceFactoryTest {
 	}
 
 	@Test
+	void testGetResourceWithClassBytes() throws Exception {
+		final byte[] result = ResourceFactory.getResourceBytes(ResourceFactoryTest.class, RESOURCE_NAME);
+		assertNotNull(result);
+		assertArrayEquals(RESOURCE_BYTES, result);
+	}
+
+	@Test
 	void testGetResourceStream() throws Exception {
 		final InputStream result = ResourceFactory.getResourceStream(this, RESOURCE_NAME);
+		assertNotNull(result);
+		assertArrayEquals(RESOURCE_BYTES, Jdk8Utils.readAllBytes(result));
+	}
+
+	@Test
+	void testGetResourceWithClassStream() throws Exception {
+		final InputStream result = ResourceFactory.getResourceStream(ResourceFactoryTest.class, RESOURCE_NAME);
 		assertNotNull(result);
 		assertArrayEquals(RESOURCE_BYTES, Jdk8Utils.readAllBytes(result));
 	}
@@ -44,4 +58,12 @@ class ResourceFactoryTest {
 		assertEquals(Paths.get("target", "test-classes").resolve(RESOURCE_NAME).toAbsolutePath(), result);
 	}
 
+	@Test
+	void testGetResourceWithClassPath() throws Exception {
+		final Path result = ResourceFactory.getResourcePath(ResourceFactoryTest.class, RESOURCE_NAME);
+		assertNotNull(result);
+		assertTrue(Files.exists(result));
+		assertTrue(result.endsWith(RESOURCE_NAME));
+		assertEquals(Paths.get("target", "test-classes").resolve(RESOURCE_NAME).toAbsolutePath(), result);
+	}
 }
