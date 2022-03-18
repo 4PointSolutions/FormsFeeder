@@ -231,102 +231,102 @@ class MockExtensionTest {
 			
 			@Override
 			public Resource getResource(String location) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public ClassLoader getClassLoader() {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public Resource[] getResources(String locationPattern) throws IOException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public void publishEvent(Object event) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String getMessage(String code, Object[] args, String defaultMessage, Locale locale) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String getMessage(String code, Object[] args, Locale locale) throws NoSuchMessageException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String getMessage(MessageSourceResolvable resolvable, Locale locale) throws NoSuchMessageException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public BeanFactory getParentBeanFactory() {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public boolean containsLocalBean(String name) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public boolean isTypeMatch(String name, Class<?> typeToMatch) throws NoSuchBeanDefinitionException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public boolean isTypeMatch(String name, ResolvableType typeToMatch) throws NoSuchBeanDefinitionException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public boolean isSingleton(String name) throws NoSuchBeanDefinitionException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public boolean isPrototype(String name) throws NoSuchBeanDefinitionException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public Class<?> getType(String name, boolean allowFactoryBeanInit) throws NoSuchBeanDefinitionException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public Class<?> getType(String name) throws NoSuchBeanDefinitionException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public <T> ObjectProvider<T> getBeanProvider(ResolvableType requiredType) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public <T> ObjectProvider<T> getBeanProvider(Class<T> requiredType) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public <T> T getBean(Class<T> requiredType, Object... args) throws BeansException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public Object getBean(String name, Object... args) throws BeansException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public <T> T getBean(String name, Class<T> requiredType) throws BeansException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@SuppressWarnings("unchecked")
@@ -340,125 +340,131 @@ class MockExtensionTest {
 			
 			@Override
 			public Object getBean(String name) throws BeansException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String[] getAliases(String name) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public boolean containsBean(String name) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public Map<String, Object> getBeansWithAnnotation(Class<? extends Annotation> annotationType)
 					throws BeansException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public <T> Map<String, T> getBeansOfType(Class<T> type, boolean includeNonSingletons, boolean allowEagerInit)
 					throws BeansException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public <T> Map<String, T> getBeansOfType(Class<T> type) throws BeansException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String[] getBeanNamesForType(Class<?> type, boolean includeNonSingletons, boolean allowEagerInit) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String[] getBeanNamesForType(ResolvableType type, boolean includeNonSingletons, boolean allowEagerInit) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String[] getBeanNamesForType(Class<?> type) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String[] getBeanNamesForType(ResolvableType type) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String[] getBeanNamesForAnnotation(Class<? extends Annotation> annotationType) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String[] getBeanDefinitionNames() {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public int getBeanDefinitionCount() {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public <A extends Annotation> A findAnnotationOnBean(String beanName, Class<A> annotationType)
 					throws NoSuchBeanDefinitionException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public boolean containsBeanDefinition(String beanName) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public Environment getEnvironment() {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public long getStartupDate() {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public ApplicationContext getParent() {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String getId() {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String getDisplayName() {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public AutowireCapableBeanFactory getAutowireCapableBeanFactory() throws IllegalStateException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String getApplicationName() {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 
 			@Override
 			public <T> ObjectProvider<T> getBeanProvider(Class<T> requiredType, boolean allowEagerInit) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 
 			@Override
 			public <T> ObjectProvider<T> getBeanProvider(ResolvableType requiredType, boolean allowEagerInit) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
+			}
+
+			@Override
+			public <A extends Annotation> A findAnnotationOnBean(String beanName, Class<A> annotationType,
+					boolean allowFactoryBeanInit) throws NoSuchBeanDefinitionException {
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 		};
 	}
@@ -468,37 +474,37 @@ class MockExtensionTest {
 			
 			@Override
 			public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String resolvePlaceholders(String text) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public <T> T getRequiredProperty(String key, Class<T> targetType) throws IllegalStateException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String getRequiredProperty(String key) throws IllegalStateException {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public <T> T getProperty(String key, Class<T> targetType, T defaultValue) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public <T> T getProperty(String key, Class<T> targetType) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String getProperty(String key, String defaultValue) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
@@ -509,27 +515,27 @@ class MockExtensionTest {
 			
 			@Override
 			public boolean containsProperty(String key) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String[] getDefaultProfiles() {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public String[] getActiveProfiles() {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public boolean acceptsProfiles(Profiles profiles) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 			
 			@Override
 			public boolean acceptsProfiles(String... profiles) {
-				throw new UnsupportedOperationException("Not implmented.");
+				throw new UnsupportedOperationException("Not implemented.");
 			}
 		};
 	}
