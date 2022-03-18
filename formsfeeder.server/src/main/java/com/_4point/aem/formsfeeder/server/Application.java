@@ -18,7 +18,7 @@ public class Application {
 	}
 
 	@Bean
-	public CommandLineRunner commandLineRunner(ApplicationContext ctx) {
+	public CommandLineRunner commandLineRunner(ApplicationContext ctx, GitConfig gitConfig) {
 		applicationContext = ctx;
 		return args -> {
 
@@ -49,7 +49,7 @@ public class Application {
 //				}
 //			}
 			
-		    
+		    gitConfig.logGitInformation();
 		};
 	}
 
