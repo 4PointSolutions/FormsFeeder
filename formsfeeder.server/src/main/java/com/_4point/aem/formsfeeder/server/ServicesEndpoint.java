@@ -39,6 +39,8 @@ import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com._4point.aem.formsfeeder.server.support.DataSourceListJaxRsUtils;
 import com._4point.aem.formsfeeder.server.support.DataSourceListJsonUtils;
 import com._4point.aem.formsfeeder.server.support.FfLoggerFactory;
+import com._4point.aem.formsfeeder.server.support.ProcessingMetadata;
+import com._4point.aem.formsfeeder.server.support.ProcessingMetadata.ProcessingMetadataBuilder;
 
 /**
  * Class that contains the code for handling plug-in services.
@@ -82,12 +84,16 @@ public class ServicesEndpoint {
 	@GET
     public Response invokeNoBodyMultipartFormResponse(@PathParam("remainder") String remainder, @Context HttpHeaders httpHeaders, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @Context UriInfo uriInfo) {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
+		final ProcessingMetadataBuilder metadataBuilder = ProcessingMetadata.start(correlationId);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		logger.info("Recieved GET request to '" + PluginInvoker.API_V1_PATH + "/" + remainder + "' to produce multipart/form-data.");
 		final DataSourceList dataSourceList1 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList2 = generateFormsFeederDataSourceList(correlationId);
 		final DataSourceList dataSourceList3 = convertRequestHeaderParamsToDataSourceList(httpHeaders, logger);
-		return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId, ServicesEndpoint::toMultipartFormData);
+		return logMetadata(invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId, ServicesEndpoint::toMultipartFormData),
+						   logger, 
+						   metadataBuilder.finish()
+						   );
 	}
 
 	/**
@@ -111,13 +117,17 @@ public class ServicesEndpoint {
 	@POST
     public Response invokeWithMultipartFormDataBody(@PathParam("remainder") String remainder, @Context HttpHeaders httpHeaders, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @Context UriInfo uriInfo, FormDataMultiPart formData) throws IOException {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
+		final ProcessingMetadataBuilder metadataBuilder = ProcessingMetadata.start(correlationId);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		logger.info("Received " + MediaType.MULTIPART_FORM_DATA + " POST request to '" + PluginInvoker.API_V1_PATH + "/" + remainder + "' to produce multipart/form-data.");
 		final DataSourceList dataSourceList1 = DataSourceListJaxRsUtils.asDataSourceList(formData, logger);
 		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
 		final DataSourceList dataSourceList4 = convertRequestHeaderParamsToDataSourceList(httpHeaders, logger);
-		return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3, dataSourceList4), logger, correlationId, ServicesEndpoint::toMultipartFormData);
+		return logMetadata(invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3, dataSourceList4), logger, correlationId, ServicesEndpoint::toMultipartFormData),
+				   logger, 
+				   metadataBuilder.finish()
+				   );
 	}
 
 	/**
@@ -142,6 +152,7 @@ public class ServicesEndpoint {
 	@POST
     public Response invokeWithAnyBodyMultipartFormResponse(@PathParam("remainder") String remainder, @Context HttpHeaders httpHeaders, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @Context UriInfo uriInfo, InputStream in) throws IOException {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
+		final ProcessingMetadataBuilder metadataBuilder = ProcessingMetadata.start(correlationId);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		MediaType mediaType = httpHeaders.getMediaType();
 		logger.info("Received '" + mediaType.toString() + "' POST request to '" + PluginInvoker.API_V1_PATH + "/" + remainder + "' to produce multipart/form-data.");
@@ -151,11 +162,17 @@ public class ServicesEndpoint {
 			final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 			final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
 			final DataSourceList dataSourceList4 = convertRequestHeaderParamsToDataSourceList(httpHeaders, logger);
-			return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3, dataSourceList4), logger, correlationId, ServicesEndpoint::toMultipartFormData);
+			return logMetadata(invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3, dataSourceList4), logger, correlationId, ServicesEndpoint::toMultipartFormData),
+					   logger, 
+					   metadataBuilder.finish()
+					   );
 		} catch (ContentDispositionHeaderException e) {
 			// If we encounter Parse Errors while determining ContentDisposition, it must be a BadRequest.
 			logger.error(e.getMessage() + ", Returning \"Bad Request\" status code.", e);
-			return PluginInvoker.buildResponse(Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).type(MediaType.TEXT_PLAIN_TYPE), correlationId);
+			return logMetadata(PluginInvoker.buildResponse(Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).type(MediaType.TEXT_PLAIN_TYPE), correlationId),
+					   logger, 
+					   metadataBuilder.finish()
+					   );
 		}
 	}
 
@@ -176,12 +193,16 @@ public class ServicesEndpoint {
 	@GET
     public Response invokeNoBodyJsonResponse(@PathParam("remainder") String remainder, @Context HttpHeaders httpHeaders, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @Context UriInfo uriInfo) {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
+		final ProcessingMetadataBuilder metadataBuilder = ProcessingMetadata.start(correlationId);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		logger.info("Recieved GET request to '" + PluginInvoker.API_V1_PATH + "/" + remainder + "' to produce JSON.");
 		final DataSourceList dataSourceList1 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList2 = generateFormsFeederDataSourceList(correlationId);
 		final DataSourceList dataSourceList3 = convertRequestHeaderParamsToDataSourceList(httpHeaders, logger);
-		return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId, ServicesEndpoint::toJson);
+		return logMetadata(invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3), logger, correlationId, ServicesEndpoint::toJson),
+				   logger, 
+				   metadataBuilder.finish()
+				   );
 	}
 
 	/**
@@ -210,13 +231,17 @@ public class ServicesEndpoint {
 	@POST
     public Response invokeWithJsonBody(@PathParam("remainder") String remainder, @Context HttpHeaders httpHeaders, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @Context UriInfo uriInfo, JsonObject json) throws IOException {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
+		final ProcessingMetadataBuilder metadataBuilder = ProcessingMetadata.start(correlationId);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		logger.info("Received " + MediaType.APPLICATION_JSON + " POST request to '" + PluginInvoker.API_V1_PATH + "/" + remainder + "' to produce JSON.");
 		final DataSourceList dataSourceList1 = DataSourceListJsonUtils.asDataSourceList(json, logger);
 		final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 		final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
 		final DataSourceList dataSourceList4 = convertRequestHeaderParamsToDataSourceList(httpHeaders, logger);
-		return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3, dataSourceList4), logger, correlationId, ServicesEndpoint::toJson);
+		return logMetadata(invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3, dataSourceList4), logger, correlationId, ServicesEndpoint::toJson),
+				   logger, 
+				   metadataBuilder.finish()
+				   );
 	}
 
 	/**
@@ -241,6 +266,7 @@ public class ServicesEndpoint {
 	@POST
     public Response invokeWithAnyBodyJsonResponse(@PathParam("remainder") String remainder, @Context HttpHeaders httpHeaders, @HeaderParam(CorrelationId.CORRELATION_ID_HDR) final String correlationIdHdr, @Context UriInfo uriInfo, InputStream in) throws IOException {
 		final String correlationId = CorrelationId.generate(correlationIdHdr);
+		final ProcessingMetadataBuilder metadataBuilder = ProcessingMetadata.start(correlationId);
 		final Logger logger = FfLoggerFactory.wrap(correlationId, baseLogger);
 		MediaType mediaType = httpHeaders.getMediaType();
 		logger.info("Received '" + mediaType.toString() + "' POST request to '" + PluginInvoker.API_V1_PATH + "/" + remainder + "' to produce JSON.");
@@ -250,11 +276,17 @@ public class ServicesEndpoint {
 			final DataSourceList dataSourceList2 = convertQueryParamsToDataSourceList(uriInfo.getQueryParameters().entrySet(), logger);
 			final DataSourceList dataSourceList3 = generateFormsFeederDataSourceList(correlationId);
 			final DataSourceList dataSourceList4 = convertRequestHeaderParamsToDataSourceList(httpHeaders, logger);
-			return invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3, dataSourceList4), logger, correlationId, ServicesEndpoint::toJson);
+			return logMetadata(invokePluginConvertResponse(remainder, DataSourceList.from(dataSourceList1, dataSourceList2, dataSourceList3, dataSourceList4), logger, correlationId, ServicesEndpoint::toJson),
+					   logger, 
+					   metadataBuilder.finish()
+					   );
 		} catch (ContentDispositionHeaderException e) {
 			// If we encounter Parse Errors while determining ContentDisposition, it must be a BadRequest.
 			logger.error(e.getMessage() + ", Returning \"Bad Request\" status code.", e);
-			return PluginInvoker.buildResponse(Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).type(MediaType.TEXT_PLAIN_TYPE), correlationId);
+			return logMetadata(PluginInvoker.buildResponse(Response.status(Response.Status.BAD_REQUEST).entity(e.getMessage()).type(MediaType.TEXT_PLAIN_TYPE), correlationId),
+					   logger, 
+					   metadataBuilder.finish()
+					   );
 		}
 	}
 
@@ -438,6 +470,14 @@ public class ServicesEndpoint {
 			}
 		};
 	}
+	
+	private static Response logMetadata(Response response, Logger logger, ProcessingMetadata metadata) {
+		MediaType responseType = response.getMediaType();
+		int responseStatus = response.getStatus();
+		logger.info("Returning '{}' with an http status of {}.  Elapsed Time = {}.", responseType, responseStatus, metadata.getFormattedElapsedTime());
+		return response;
+	}
+	
 	/**
 	 * Exceptions that occur while performing ContentDisposition processing. 
 	 *
