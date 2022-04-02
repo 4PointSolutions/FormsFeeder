@@ -21,10 +21,10 @@
 	maven repository.
 	 -->
 	<properties>
-		<spring-boot.version>2.6.4</spring-boot.version>
+		<spring-boot.version>2.6.6</spring-boot.version>
 		<formsfeeder.version>${project.version}</formsfeeder.version>
 		<maven.surefire.plugin.version>3.0.0-M5</maven.surefire.plugin.version>
-		<maven.jar.plugin.version>3.2.0</maven.jar.plugin.version>
+		<maven.jar.plugin.version>3.2.2</maven.jar.plugin.version>
 		<git-commit-id-plugin.version>4.9.10</git-commit-id-plugin.version>
 	</properties>
 
