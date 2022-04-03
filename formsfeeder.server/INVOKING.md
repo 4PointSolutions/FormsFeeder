@@ -15,7 +15,7 @@ This approach requires client applications to be written in Java and support a v
 ## Client REST API
 
 Calling FormFeeder directly using REST calls is another alternative. The REST interface can be utilized by client applications that cannot
-use the Client API library (for instance, because they are not written in Java).  The details of the REST API are detailed here (link to be added later).
+use the Client API library (for instance, because they are not written in Java).  The details of the [REST API are detailed here](REST_INTERFACE.md).
 
 ## Client Command Line
 
