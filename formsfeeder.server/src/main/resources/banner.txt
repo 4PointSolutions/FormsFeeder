@@ -7,5 +7,5 @@
 |_|  \___/|_|  |_| |_| |_|___/_|  \___|\___|\__,_|\___|_|   
                                                             
                                                             
-Build: @git.commit.id.abbrev@ (Build Time: @git.build.time@) :: Sprint Boot ::${spring-boot.formatted-version}
+Build: @git.commit.id.abbrev@ (Build Time: @git.build.time@) :: Spring Boot ::${spring-boot.formatted-version}
                                                             
