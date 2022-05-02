@@ -13,6 +13,13 @@ The goals of this project are:
 * To remove the need to understand REST in order to invoke custom functionality made available through the framework.
 * To provide a shared codebase that is common to many different AEM Forms solutions
 
+## Functionality
+FormsFeeder provides the following functionality:
+* REST Interface - You don't have to know or understand REST in order to build custom logic into an AEM application.  All you need to know is Java to use the client libraries.  Likewise, you only need to know Java to understand the DataSourceList Jsva interface to write a plugin.
+* Reverse Proxy for HTML5 and Adaptive Forms - Client applications can call FormsFeeder without having to worry about Cross Origin Request Sharing settings.
+* Form Submission Processing - FormsFeeder can process AEM Form Submissions without having to open up any services to the internet (even if your AEM instance is somewhere in the cloud).
+* Java and XML parsing - FormsFeeder can automatically parse Java and XML into DataSourceList which makes processing of input simpler.
+
 ## Architecture
 This project consists of several sub-projects with each subproject representing a layer in the architecture (i.e. each layer depends on the layers beneath it).
 
