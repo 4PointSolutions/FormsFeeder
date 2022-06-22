@@ -2,6 +2,7 @@ package com._4point.aem.formsfeeder.server;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static com._4point.aem.formsfeeder.server.support.MultiLineMatchers.*;
+import static javax.ws.rs.core.MediaType.TEXT_HTML_TYPE;
 import static org.hamcrest.MatcherAssert.assertThat; 
 import static org.hamcrest.Matchers.*;
 
@@ -16,10 +17,14 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -204,10 +209,29 @@ class AemProxyEndpointTest implements EnvironmentAware {
 	}
 
 	
-	// TODO: Re-enable this and fill in the details to test that a POST is proxied correctly.
 	@Disabled
-	void testProxyPost() {
-		fail("Not yet implemented");
+	void testProxyPost() throws Exception {
+		String post_path = "/aem/content/forms/af/formsfeeder_proxyPost_test.txt";
+		Client client = ClientBuilder.newClient().register(MultiPartFeature.class);
+		Response response = client
+				 .target(uri)
+				 .path(post_path)
+				 .request()
+				 .post(Entity.entity("Some text", "text/plain"));
+		
+		assertEquals(Response.Status.CREATED.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + post_path + ")." + getResponseBody(response));
+		assertTrue(TEXT_HTML_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/javascript'.");
+		
+		try (FormDataMultiPart cleanup = new FormDataMultiPart())
+		{
+			cleanup.field(":operation", "delete"); 
+			Response cleanupResponse = client
+					 .target(uri)
+					 .path(post_path)
+					 .request()
+					 .post(Entity.entity(cleanup, cleanup.getMediaType()));
+			assertEquals(Response.Status.OK.getStatusCode(), cleanupResponse.getStatus(), ()->"Unexpected response status returned from URL (" + post_path + ")." + getResponseBody(cleanupResponse));
+		}
 	}
 
 	private static URI getBaseUri(int port) throws URISyntaxException {

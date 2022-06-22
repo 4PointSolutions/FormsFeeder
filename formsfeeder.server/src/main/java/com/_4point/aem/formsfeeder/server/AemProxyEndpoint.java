@@ -186,12 +186,12 @@ public class AemProxyEndpoint {
 		logger.debug("Proxying POST request for target '" + webTarget.getUri().toString() + "'.");
 		
 		Response result = webTarget.request()
-		   .post(Entity.entity(in, contentType));
+				.post(Entity.entity(in, contentType != null ? contentType : "application/octet-stream"));
 
 		if (remainder.contains("af.submit.jsp")) {
 			logger.debug("result == null is " + Boolean.valueOf(result == null).toString() + ".");
 			MediaType mediaType = result.getMediaType();
-			logger.debug("Received POST response from target '" + webTarget.getUri().toString() + "'. contentType='" + (mediaType != null ? mediaType.toString() : "") + "'.  transfer-encoding='" + result.getHeaderString("Transfer-Encoding") + "'.");
+			logger.debug("Returning POST response from target '" + webTarget.getUri().toString() + "'. contentType='" + (mediaType != null ? mediaType.toString() : "") + "'.  transfer-encoding='" + result.getHeaderString("Transfer-Encoding") + "'.");
 		} else {
 			logger.debug("Returning POST response from target '" + webTarget.getUri().toString() + "'.");
 		}
