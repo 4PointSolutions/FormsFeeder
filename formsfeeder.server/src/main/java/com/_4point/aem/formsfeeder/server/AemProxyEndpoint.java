@@ -3,6 +3,7 @@ package com._4point.aem.formsfeeder.server;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.naming.ConfigurationException;
 import javax.ws.rs.GET;
@@ -120,11 +121,16 @@ public class AemProxyEndpoint {
 		logger.debug("Proxying GET request for target '" + webTarget.getUri().toString() + "'.");
 		Response result = webTarget.request()
 		   .get();
-		
-//		System.out.println("Received GET response from target '" + webTarget.getUri().toString() + "'. contentType='" + result.getMediaType().toString() + "'.  transfer-encoding='" + result.getHeaderString("Transfer-Encoding") + "'.");
+		if (logger.isDebugEnabled()) {
+			result.getHeaders().forEach((h, l)->logger.debug("For " + webTarget.getUri().toString() + ", Header:" + h + "=" + l.stream().map(o->(String)o).collect(Collectors.joining("','", "'", "'"))));
+		}
+
 		logger.debug("Returning GET response from target '" + webTarget.getUri().toString() + "' status code=" + result.getStatus() + ".");
 		
-		return Response.fromResponse(result).build();
+		return Response.fromResponse(result)
+					   .header("Transfer-Encoding", null)			// Remove the Transfer-Encoding header
+					   .entity(result.readEntity(InputStream.class))
+					   .build();
     }
 
     /**
