@@ -1,7 +1,9 @@
 package com._4point.aem.formsfeeder.server;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -186,22 +188,36 @@ public class AemProxyEndpoint {
     @Path("{remainder : .+}")
     @POST
     public Response proxyPost(@PathParam("remainder") String remainder, @HeaderParam("Content-Type") String contentType, InputStream in) {
-    	logger.debug("Proxying POST request. remainder=" + remainder);
+    	logger.debug("Proxying POST request. remainder={}", remainder);
 		WebTarget webTarget = httpClient.target(aemConfig.url())
 								.path(AEM_APP_PREFIX + remainder);
-		logger.debug("Proxying POST request for target '" + webTarget.getUri().toString() + "'.");
-		
+		logger.debug("Proxying POST request for target '{}'.  ContentType='{}'.", webTarget.getUri().toString(), contentType );
 		Response result = webTarget.request()
-				.post(Entity.entity(in, contentType != null ? contentType : "application/octet-stream"));
+				.post(Entity.entity(
+						logger.isDebugEnabled() ? debugInput(in, webTarget.getUri().toString()) : in,	// if Debug is on, write out information about input stream 
+						contentType != null ? contentType : "application/octet-stream"					// supply default content type if it was omitted.
+						));
 
 		if (remainder.contains("af.submit.jsp")) {
-			logger.debug("result == null is " + Boolean.valueOf(result == null).toString() + ".");
+			logger.debug("result == null is {}.", Boolean.valueOf(result == null).toString());
 			MediaType mediaType = result.getMediaType();
-			logger.debug("Returning POST response from target '" + webTarget.getUri().toString() + "'. contentType='" + (mediaType != null ? mediaType.toString() : "") + "'.  transfer-encoding='" + result.getHeaderString("Transfer-Encoding") + "'.");
+			logger.debug("Returning POST response from target '{}'. contentType='{}'.  transfer-encoding='{}'.", webTarget.getUri().toString(), mediaType != null ? mediaType.toString() : "", result.getHeaderString("Transfer-Encoding"));
 		} else {
-			logger.debug("Returning POST response from target '" + webTarget.getUri().toString() + "'.");
+			logger.debug("Returning POST response from target '{}'.", webTarget.getUri().toString());
 		}
 		
 		return Response.fromResponse(result).build();
+    }
+    
+    private InputStream debugInput(InputStream in, String target) {
+		try {
+			byte[] inputBytes = in.readAllBytes();
+			logger.debug("Proxying POST request for target '{}'.  numberOfBytes proxied='{}'.", target, inputBytes.length );
+			logger.trace("Proxying POST request for target '{}'.  input bytes proxied='{}'.", target, new String(inputBytes, StandardCharsets.UTF_8) );
+			return new ByteArrayInputStream(inputBytes);
+		} catch (IOException e) {
+			logger.error("Error reading input stream.", e);
+			return new ByteArrayInputStream(new byte[0]);
+		}
     }
 }
