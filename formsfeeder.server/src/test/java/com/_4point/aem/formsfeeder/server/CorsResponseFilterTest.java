@@ -18,10 +18,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.TestPropertySource;
 
-import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
 
 class CorsResponseFilterTest {

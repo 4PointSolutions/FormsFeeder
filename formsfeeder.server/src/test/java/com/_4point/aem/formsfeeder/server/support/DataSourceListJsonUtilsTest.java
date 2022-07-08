@@ -2,12 +2,7 @@ package com._4point.aem.formsfeeder.server.support;
 
 import static com._4point.aem.formsfeeder.server.support.DataSourceListJsonUtils.asDataSourceList;
 import static com._4point.aem.formsfeeder.server.support.DataSourceListJsonUtils.asJson;
-import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -15,10 +10,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Base64.Decoder;
-import java.util.Base64.Encoder;
 import java.util.List;
 
 import javax.json.Json;
@@ -26,8 +19,6 @@ import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import javax.json.JsonReader;
-import javax.json.JsonStructure;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -37,9 +28,7 @@ import org.slf4j.LoggerFactory;
 
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
-import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
-import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 
 class DataSourceListJsonUtilsTest {
 	private final static Logger logger = LoggerFactory.getLogger(DataSourceListJsonUtilsTest.class);
