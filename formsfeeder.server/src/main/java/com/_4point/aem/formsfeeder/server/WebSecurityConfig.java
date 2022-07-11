@@ -80,10 +80,11 @@ public class WebSecurityConfig  {
 	
     @Bean
 	@ConditionalOnProperty(name=AUTH_PROPERTY, havingValue="basic")
-    public InMemoryUserDetailsManager nobasicAuthUsers() {
+    public InMemoryUserDetailsManager basicAuthUsers() {
     	// TODO:  Pull users from configuration.
     	UserDetails user = User.withUsername("admin")	// Temporary user for testing purposes.
     						   .password("admin")
+    						   .roles("ADMIN")
     						   .build();
         return new InMemoryUserDetailsManager(user);
     }

@@ -166,6 +166,15 @@ class AemProxyEndpointTest implements EnvironmentAware {
 
 	@Test
 	void testProxyGet_Csrf_JS() throws Exception {
+		byte[] resultBytes = testCsrf(uri);
+		if (SAVE_RESULTS /* && USE_AEM */) {
+			try (var os = Files.newOutputStream(ACTUAL_RESULTS_DIR.resolve("testProxyGet_Csrf_JS_result.html"))) {
+				os.write(resultBytes);;
+			}
+		}
+	}
+
+	static byte[] testCsrf(URI uri) throws IOException {
 		String csrf_js_path = "/aem/etc.clientlibs/clientlibs/granite/jquery/granite/csrf.js";
 		Response response = ClientBuilder.newClient()
 				 .target(uri)
@@ -177,12 +186,7 @@ class AemProxyEndpointTest implements EnvironmentAware {
 		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + csrf_js_path + ")." + getResponseBody(response));
 		assertTrue(APPLICATION_JAVASCRIPT.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/javascript'.");
 		assertTrue(response.hasEntity(), "Expected response to have entity");
-		byte[] resultBytes = ((InputStream)response.getEntity()).readAllBytes();
-		if (SAVE_RESULTS /* && USE_AEM */) {
-			try (var os = Files.newOutputStream(ACTUAL_RESULTS_DIR.resolve("testProxyGet_Csrf_JS_result.html"))) {
-				os.write(resultBytes);;
-			}
-		}
+		return ((InputStream)response.getEntity()).readAllBytes();
 	}
 
 	@Test
