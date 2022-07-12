@@ -1,19 +1,21 @@
 package com._4point.aem.formsfeeder.server;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.config.Customizer;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
@@ -50,7 +52,10 @@ public class WebSecurityConfig  {
 
 	private static final String AUTH_PROPERTY = "formsfeeder.auth";
 	private static final Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
-	
+
+	private static final PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+	private static final Function<String, String> encodingFn = p->encoder.encode(p);
+
 	@Bean
 	@ConditionalOnProperty(name=AUTH_PROPERTY, havingValue="basic")
 	public SecurityFilterChain basicAuthOn(HttpSecurity http) throws Exception {
@@ -78,16 +83,49 @@ public class WebSecurityConfig  {
 				.build();
 	}
 	
+	private static class UserDefinition {
+		String username;
+		String password;
+		String role;
+
+		private UserDefinition(String username, String password, String role) {
+			this.username = username;
+			this.password = password;
+			this.role = role;
+		}
+		
+		public static UserDefinition of(String username, String password, String role) {
+			return new UserDefinition(username, password, role);
+		}
+
+		private UserDetails toUserDetails() {
+			return  User.withUsername(username)
+						.password(password)
+						.roles(role)
+						.passwordEncoder(encodingFn)
+						.build();
+	    }
+		
+		private static Collection<UserDetails> toUserDetails(Collection<UserDefinition> userDefs) {
+			return userDefs.stream()
+					 	   .map(UserDefinition::toUserDetails)
+					 	   .collect(Collectors.toList());
+		}
+	}
+	
     @Bean
 	@ConditionalOnProperty(name=AUTH_PROPERTY, havingValue="basic")
     public InMemoryUserDetailsManager basicAuthUsers() {
     	// TODO:  Pull users from configuration.
-    	UserDetails user = User.withUsername("admin")	// Temporary user for testing purposes.
-    						   .password("admin")
-    						   .roles("ADMIN")
-    						   .build();
-        return new InMemoryUserDetailsManager(user);
+    	// See: https://stackoverflow.com/questions/28369458/how-to-fill-hashmap-from-java-property-file-with-spring-value
+    	List<UserDefinition> userDefs = List.of(
+    			UserDefinition.of("foo", "bar", "USER"), 
+    			UserDefinition.of("admin", "admin", "ADMIN"))
+    			; // Temporary users for testing purposes. 
+        
+		return new InMemoryUserDetailsManager(UserDefinition.toUserDetails(userDefs));
     }
+
 
     @Bean
 	@ConditionalOnProperty(name=AUTH_PROPERTY, havingValue="none", matchIfMissing = true)

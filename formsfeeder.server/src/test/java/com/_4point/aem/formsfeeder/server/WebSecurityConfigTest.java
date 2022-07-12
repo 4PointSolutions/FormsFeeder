@@ -1,13 +1,17 @@
 package com._4point.aem.formsfeeder.server;
 
 import static com._4point.aem.formsfeeder.server.TestConstants.ACTUAL_RESULTS_DIR;
+import static com._4point.aem.formsfeeder.server.TestConstants.getResponseBody;
 import static org.junit.jupiter.api.Assertions.*;
 
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.util.List;
 
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
+
+import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -22,6 +26,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 
+import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -54,6 +59,9 @@ class WebSecurityConfigTest implements EnvironmentAware {
 	 */
 	private static final boolean WIREMOCK_RECORDING = false;
 	private static final boolean SAVE_RESULTS = false;
+
+	private static final String API_V1_PATH = "/api/v1";
+	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
 
 	@LocalServerPort
 	private int port;		// post of the Spring Boot instance we're testing
@@ -107,6 +115,42 @@ class WebSecurityConfigTest implements EnvironmentAware {
 		if (SAVE_RESULTS) {
 			Files.write(ACTUAL_RESULTS_DIR.resolve("testAemEndpoint_result.html"), resultBytes);
 		}
+	}
+
+	/**
+	 * Make sure that the plugin endpoints endpoints need authentication.
+	 */
+	@DisplayName("Plugin Endpoints calls without credentials should return 401 \"Unauthorized\".")
+	@Test
+	void testPluginEndpointNoCredentials() throws Exception {
+		Response response = ClientBuilder.newClient()
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .request()
+				 .get();
+		
+		assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+	}
+
+	/**
+	 * Make sure that the plugin endpoints endpoints need authentication.
+	 */
+	@DisplayName("Plugin Endpoints should require authentication.")
+	@Test
+	void testPluginEndpoint() throws Exception {
+		String username = "admin";
+		String password = "admin";
+		var authFeature = HttpAuthenticationFeature.basic(username, password);
+		Response response = ClientBuilder.newClient()
+				 .register(authFeature)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .request()
+				 .get();
+		
+		assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 	}
 
 	@Override
