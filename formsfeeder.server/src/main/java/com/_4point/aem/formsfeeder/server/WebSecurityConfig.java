@@ -62,7 +62,7 @@ public class WebSecurityConfig  {
 	// For an explanation of how the Spring Expression Language is being used to populate users field, see the following linke: 
 	//  https://stackoverflow.com/questions/28369458/how-to-fill-hashmap-from-java-property-file-with-spring-value
 	//  https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#expressions-inline-lists
-	@Value("#{${" + AUTH__USERS_PROPERTY + "}}")
+	@Value("#{${" + AUTH__USERS_PROPERTY + ":{}}}")
 	List<List<String>> users;							// List of List of user properties defined in application.properties 
 
 	@Bean
