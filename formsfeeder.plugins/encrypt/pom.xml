@@ -1,0 +1,43 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<parent>
+		<groupId>com._4point.aem</groupId>
+		<artifactId>formsfeeder.plugins</artifactId>
+		<version>0.0.2-SNAPSHOT</version>
+	</parent>
+	<artifactId>encrypt</artifactId>
+	<name>Encrypt/Decrypt Password Encoder</name>
+	<description>Plugin for generating encrypted or hashed password strings</description>
+
+	<properties>
+		<!-- PF4J Plugin properties for this plugin -->
+		<plugin.id>com._4point.aem.formsfeeder.plugins.encrypt</plugin.id>
+		<plugin.version>${project.version}</plugin.version>
+		<plugin.dependencies />
+		<plugin.description>Password Encrypt/Hashing Plug-in.</plugin.description>
+	</properties>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-security</artifactId>
+			<version>${spring-boot.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.junit.jupiter</groupId>
+			<artifactId>junit-jupiter</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit-addons</groupId>
+			<artifactId>junit-addons</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+
+</project>

@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -51,10 +52,18 @@ import org.springframework.security.web.SecurityFilterChain;
 public class WebSecurityConfig  {
 
 	private static final String AUTH_PROPERTY = "formsfeeder.auth";
+	private static final String AUTH__USERS_PROPERTY = "formsfeeder.auth.users";
+	
 	private static final Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
 
 	private static final PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
 	private static final Function<String, String> encodingFn = p->encoder.encode(p);
+	
+	// For an explanation of how the Spring Expression Language is being used to populate users field, see the following linke: 
+	//  https://stackoverflow.com/questions/28369458/how-to-fill-hashmap-from-java-property-file-with-spring-value
+	//  https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#expressions-inline-lists
+	@Value("#{${" + AUTH__USERS_PROPERTY + "}}")
+	List<List<String>> users;							// List of List of user properties defined in application.properties 
 
 	@Bean
 	@ConditionalOnProperty(name=AUTH_PROPERTY, havingValue="basic")
@@ -98,6 +107,13 @@ public class WebSecurityConfig  {
 			return new UserDefinition(username, password, role);
 		}
 
+		public static UserDefinition of(List<String> params) {
+			if (params.size() != 3) {
+				throw new IllegalArgumentException("User Definitions require 3 parameters but " + params.size() + " were supplied.  " + params.toString());
+			}
+			return new UserDefinition(params.get(0), params.get(1), params.get(2));
+		}
+
 		private UserDetails toUserDetails() {
 			return  User.withUsername(username)
 						.password(password)
@@ -105,27 +121,20 @@ public class WebSecurityConfig  {
 						.passwordEncoder(encodingFn)
 						.build();
 	    }
-		
-		private static Collection<UserDetails> toUserDetails(Collection<UserDefinition> userDefs) {
-			return userDefs.stream()
-					 	   .map(UserDefinition::toUserDetails)
-					 	   .collect(Collectors.toList());
-		}
 	}
 	
     @Bean
 	@ConditionalOnProperty(name=AUTH_PROPERTY, havingValue="basic")
     public InMemoryUserDetailsManager basicAuthUsers() {
-    	// TODO:  Pull users from configuration.
-    	// See: https://stackoverflow.com/questions/28369458/how-to-fill-hashmap-from-java-property-file-with-spring-value
-    	List<UserDefinition> userDefs = List.of(
-    			UserDefinition.of("foo", "bar", "USER"), 
-    			UserDefinition.of("admin", "admin", "ADMIN"))
-    			; // Temporary users for testing purposes. 
-        
-		return new InMemoryUserDetailsManager(UserDefinition.toUserDetails(userDefs));
+		return new InMemoryUserDetailsManager(toUserDetails(users));
     }
 
+	private static Collection<UserDetails> toUserDetails(Collection<List<String>> userDefs) {
+		return userDefs.stream()
+					   .map(UserDefinition::of)
+				 	   .map(UserDefinition::toUserDetails)
+				 	   .collect(Collectors.toList());
+	}
 
     @Bean
 	@ConditionalOnProperty(name=AUTH_PROPERTY, havingValue="none", matchIfMissing = true)

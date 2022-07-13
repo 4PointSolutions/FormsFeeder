@@ -41,7 +41,7 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
  *
  */
 //@Disabled
-@TestPropertySource(properties = {"formsfeeder.auth=basic"})
+@TestPropertySource(properties = {"formsfeeder.auth=basic", "formsfeeder.auth.users={{\"foo\", \"bar\", \"USER\"}, {\"admin\", \"admin\", \"ADMIN\"}}"})
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
 @WireMockTest
 class WebSecurityConfigTest implements EnvironmentAware {
