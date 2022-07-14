@@ -56,9 +56,6 @@ public class WebSecurityConfig  {
 	
 	private static final Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
 
-	private static final PasswordEncoder encoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-	private static final Function<String, String> encodingFn = p->encoder.encode(p);
-	
 	// For an explanation of how the Spring Expression Language is being used to populate users field, see the following linke: 
 	//  https://stackoverflow.com/questions/28369458/how-to-fill-hashmap-from-java-property-file-with-spring-value
 	//  https://docs.spring.io/spring-framework/docs/current/reference/html/core.html#expressions-inline-lists
@@ -115,10 +112,13 @@ public class WebSecurityConfig  {
 		}
 
 		private UserDetails toUserDetails() {
+			// This code assumes that the password is already encoded in a format that Spring Security understands
+			// e.g. {bcrypt}$2a$10$X0R0vqKMYh5h0x/bBO0vy.5N4z68MvpS5CPgrNMfQbBA3t48JpSzy
+			// If the password is unencoded, it needs to be encoded using either the encrypt plugin (under formsfeeder.plugins) or
+			// a passwordEncoder needs to be supplied as part of this call. 
 			return  User.withUsername(username)
 						.password(password)
 						.roles(role)
-						.passwordEncoder(encodingFn)
 						.build();
 	    }
 	}

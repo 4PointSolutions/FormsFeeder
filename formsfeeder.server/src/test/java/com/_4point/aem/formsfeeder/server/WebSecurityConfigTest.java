@@ -41,10 +41,13 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
  *
  */
 //@Disabled
-@TestPropertySource(properties = {"formsfeeder.auth=basic", "formsfeeder.auth.users={{\"foo\", \"bar\", \"USER\"}, {\"admin\", \"admin\", \"ADMIN\"}}"})
+@TestPropertySource(properties = {"formsfeeder.auth=basic", "formsfeeder.auth.users={{\"foo\", \"bar\", \"USER\"}, {\"" + WebSecurityConfigTest.TEST_USERNAME + "\", \"" + WebSecurityConfigTest.TEST_PASSWORD_ENCODED + "\", \"ADMIN\"}}"})
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
 @WireMockTest
 class WebSecurityConfigTest implements EnvironmentAware {
+	protected static final String TEST_USERNAME = "admin";
+	protected static final String TEST_PASSWORD = "passwordValue";
+	protected static final String TEST_PASSWORD_ENCODED = "{bcrypt}$2a$10$X0R0vqKMYh5h0x/bBO0vy.5N4z68MvpS5CPgrNMfQbBA3t48JpSzy";
 	/*
 	 * Wiremock is used for unit testing.  It is not used for integration testing with a real AEM instance.
 	 * Set USE_WIREMOCK to false to perform integration testing with a real Forms Feeder instance running on
@@ -139,9 +142,7 @@ class WebSecurityConfigTest implements EnvironmentAware {
 	@DisplayName("Plugin Endpoints should require authentication.")
 	@Test
 	void testPluginEndpoint() throws Exception {
-		String username = "admin";
-		String password = "admin";
-		var authFeature = HttpAuthenticationFeature.basic(username, password);
+		var authFeature = HttpAuthenticationFeature.basic(TEST_USERNAME, TEST_PASSWORD);
 		Response response = ClientBuilder.newClient()
 				 .register(authFeature)
 				 .target(uri)
@@ -151,6 +152,24 @@ class WebSecurityConfigTest implements EnvironmentAware {
 		
 		assertEquals(Response.Status.NO_CONTENT.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+	}
+
+	/**
+	 * Make sure that the plugin endpoints endpoints need authentication.
+	 */
+	@DisplayName("Plugin Endpoints calls with incorrect credentials should return 401 \"Unauthorized\".")
+	@Test
+	void testPluginEndpointWithBadCredentials() throws Exception {
+		var authFeature = HttpAuthenticationFeature.basic(TEST_USERNAME, TEST_PASSWORD + "_bad");
+		Response response = ClientBuilder.newClient()
+				 .register(authFeature)
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .request()
+				 .get();
+		
+		assertEquals(Response.Status.UNAUTHORIZED.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 	}
 
 	@Override
