@@ -1,21 +1,12 @@
 package com._4point.aem.formsfeeder.plugins.mock;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
 import org.pf4j.Extension;
 import org.pf4j.ExtensionPoint;
-import org.pf4j.Plugin;
-import org.pf4j.PluginWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -58,6 +49,7 @@ public class MockExtension implements NamedFeedConsumer, EnvironmentConsumer, Ap
 	private static final String SCENARIO_RETURN_APPLICATION_CONTEXT_CONFIG_VALUE = "ReturnApplicationContextConfigValue";
 	private static final String SCENARIO_CALL_ANOTHER_PLUGIN = "CallAnotherPlugin";
 
+	@SuppressWarnings("unused")
 	private FileSystem zipfs = null;	// Used to hold ZipFs so that we can read our .jar resources using FileSystem
 	
 	private Environment environment;

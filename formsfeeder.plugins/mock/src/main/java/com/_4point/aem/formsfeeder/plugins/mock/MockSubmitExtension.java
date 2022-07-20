@@ -29,9 +29,6 @@ import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
-import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerBadRequestException;
-import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerException;
-import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerInternalErrorException;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
@@ -46,7 +43,6 @@ public class MockSubmitExtension implements NamedFeedConsumer, ExtensionPoint {
 	Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	public static final String FEED_CONSUMER_NAME = "MockSubmit";
-	private static final String SCENARIO_ELEMENT_NAME = "scenario";
 	
 	private static final String SCENARIO_NAME_UNKNOWN = "Unknown";
 
@@ -72,6 +68,7 @@ public class MockSubmitExtension implements NamedFeedConsumer, ExtensionPoint {
 		logger.debug("inside MockSubmitExtension constructor");
 	}
 
+	@SuppressWarnings("serial")
 	@Override
 	public DataSourceList accept(DataSourceList dataSources) throws FeedConsumerException {
 		
@@ -102,7 +99,7 @@ public class MockSubmitExtension implements NamedFeedConsumer, ExtensionPoint {
 			builder.add(REDIRECT_LOCATION_DS_NAME, "RedirectUrl");
 			break;
 		case SCENARIO_OTHER_FEED_CONSUMER_EXCEPTION:
-			// This scenarion returns some new kind of FeedConsumerException.
+			// This scenario returns some new kind of FeedConsumerException.
 			throw new FeedConsumerException() {
 
 				@Override
@@ -229,7 +226,7 @@ public class MockSubmitExtension implements NamedFeedConsumer, ExtensionPoint {
 			return Optional.ofNullable(new InputXmlData(xmlDoc));
 		}
 
-		@SuppressWarnings("serial")
+		@SuppressWarnings({"serial", "unused"})
 		public static class InputXmlDataException extends RuntimeException {
 
 			public InputXmlDataException() {
