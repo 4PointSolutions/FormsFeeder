@@ -23,7 +23,6 @@ import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerInternalErr
 import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
-import com._4point.aem.formsfeeder.server.PluginInvoker.ResponseData;
 import com._4point.aem.formsfeeder.server.pf4j.FeedConsumers;
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com._4point.aem.formsfeeder.server.support.DataSourceListJaxRsUtils;

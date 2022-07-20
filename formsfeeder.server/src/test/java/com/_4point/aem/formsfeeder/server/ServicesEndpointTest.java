@@ -54,15 +54,16 @@ import org.springframework.test.context.DynamicPropertySource;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.tomakehurst.wiremock.WireMockServer;
-import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.github.tomakehurst.wiremock.recording.SnapshotRecordResult;
 import com.github.tomakehurst.wiremock.stubbing.StubMapping;
 import com.jcabi.xml.XML;
 import com.jcabi.xml.XMLDocument;
 
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
+@WireMockTest
 class ServicesEndpointTest implements EnvironmentAware {
 
 	private static final String API_V1_PATH = "/api/v1";
@@ -78,13 +79,6 @@ class ServicesEndpointTest implements EnvironmentAware {
 	private static final Path SAMPLE_DATA = TestConstants.SAMPLE_FILES_DIR.resolve("SampleForm_data.xml");
 	private static final Path SAMPLE_PDF = TestConstants.SAMPLE_FILES_DIR.resolve("SampleForm.pdf");
 
-	/*
-	 * Wiremock is used for unit testing.  It is not used for integration testing with a real AEM instance.
-	 * Set USE_WIREMOCK to false to perform integration testing with a real Forms Feeder instance running on
-	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and 
-	 * formsfeeder.plugins.aemHost settings. 
-	 */
-	private static final boolean USE_WIREMOCK = true;
 	/*
 	 * Set WIREMOCK_RECORDING to true in order to record the interaction with a real FormsFeeder instance running on
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and
@@ -108,56 +102,44 @@ class ServicesEndpointTest implements EnvironmentAware {
 	private int port;
 
 	private URI uri;
-	private WireMockServer wireMockServer;
 	private static Integer wiremockPort = null;
 	private Environment environment;
 
 	@DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {
-		if (USE_WIREMOCK) {
-			registry.add(TestConstants.ENV_FORMSFEEDER_AEM_HOST, ()->"localhost");
-			registry.add(TestConstants.ENV_FORMSFEEDER_AEM_PORT, ()->wiremockPort);
-		}		
+		registry.add(TestConstants.ENV_FORMSFEEDER_AEM_HOST, ()->"localhost");
+		registry.add(TestConstants.ENV_FORMSFEEDER_AEM_PORT, ()->wiremockPort);
 	}
 
 	@BeforeEach
-	public void setUp() throws Exception {
+	public void setUp(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
 		uri = TestConstants.getBaseUri(port);
 		
-		if (USE_WIREMOCK) {
-			// Let wiremock choose the port for the first test, but re-use the same port for all subsequent tests.
-			wireMockServer = new WireMockServer(wiremockPort == null ? new WireMockConfiguration().dynamicPort() : new WireMockConfiguration().port(wiremockPort));
-	        wireMockServer.start();
-			System.out.println("Inside SetEnvironment wiremock block.");
-			if (WIREMOCK_RECORDING) {
-				String aemBaseUrl = "http://" + environment.getRequiredProperty(TestConstants.ENV_FORMSFEEDER_AEM_HOST) + ":"
-						+ environment.getRequiredProperty(TestConstants.ENV_FORMSFEEDER_AEM_PORT);
-				System.out.println("Wiremock recording of '" + aemBaseUrl + "'.");
-				wireMockServer.startRecording(aemBaseUrl);
-			}
-			if (wiremockPort == null) {	// Save the port for subsequent invocations. 
-				wiremockPort = wireMockServer.port();
-			}
-			System.out.println("Wiremock is up on port " + wiremockPort + " .");
+		if (WIREMOCK_RECORDING) {
+			String aemBaseUrl = "http://" + environment.getRequiredProperty(TestConstants.ENV_FORMSFEEDER_AEM_HOST) + ":"
+					+ environment.getRequiredProperty(TestConstants.ENV_FORMSFEEDER_AEM_PORT);
+			System.out.println("Wiremock recording of '" + aemBaseUrl + "'.");
+			wmRuntimeInfo.getWireMock().startStubRecording(aemBaseUrl);
 		}
+		if (wiremockPort == null) {	// Save the port for subsequent invocations. 
+			wiremockPort = wmRuntimeInfo.getHttpPort();
+		}
+		System.out.println("Wiremock is up on port " + wiremockPort + " .");
 	}
 
 	@AfterEach
-	public void tearDown() throws Exception {
-		if (USE_WIREMOCK) {
-	        if (WIREMOCK_RECORDING) {
-	        	SnapshotRecordResult recordings = wireMockServer.stopRecording();
-	        	List<StubMapping> mappings = recordings.getStubMappings();
-	        	System.out.println("Found " + mappings.size() + " recordings.");
-	        	for (StubMapping mapping : mappings) {
-	        		ResponseDefinition response = mapping.getResponse();
-	        		JsonNode jsonBody = response.getJsonBody();
-	        		System.out.println(jsonBody == null ? "JsonBody is null" : jsonBody.toPrettyString());
-	        	}
-	        }
-	        wireMockServer.stop();
-			System.out.println("Wiremock is down.");
-		}
+	public void tearDown(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
+        if (WIREMOCK_RECORDING) {
+        	SnapshotRecordResult recordings = wmRuntimeInfo.getWireMock().stopStubRecording();
+        	List<StubMapping> mappings = recordings.getStubMappings();
+        	System.out.println("Found " + mappings.size() + " recordings.");
+        	for (StubMapping mapping : mappings) {
+        		ResponseDefinition response = mapping.getResponse();
+        		JsonNode jsonBody = response.getJsonBody();
+        		System.out.println(jsonBody == null ? "JsonBody is null" : jsonBody.toPrettyString());
+        	}
+        }
+		System.out.println("Wiremock is down.");
 	}
 	
 	@Test

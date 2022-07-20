@@ -9,9 +9,13 @@ import java.nio.file.Files;
 import java.util.List;
 
 import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.client.authentication.HttpAuthenticationFeature;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -27,7 +31,6 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.TestPropertySource;
 
 import com._4point.aem.formsfeeder.server.support.CorrelationId;
-import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.ResponseDefinition;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -40,21 +43,18 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping;
  * This test just tests the non-default authentication modes.  At this time, that is only basic authentication.
  *
  */
-//@Disabled
-@TestPropertySource(properties = {"formsfeeder.auth=basic", "formsfeeder.auth.users={{\"foo\", \"bar\", \"USER\"}, {\"" + WebSecurityConfigTest.TEST_USERNAME + "\", \"" + WebSecurityConfigTest.TEST_PASSWORD_ENCODED + "\", \"ADMIN\"}}"})
+@TestPropertySource(properties = {"formsfeeder.auth=basic", 
+								  "formsfeeder.auth.users={{\"foo\", \"bar\", \"USER\"}, {\"" + WebSecurityConfigTest.TEST_USERNAME + "\", \"" + WebSecurityConfigTest.TEST_PASSWORD_ENCODED + "\", \"ADMIN\"}}",
+								  "formsfeeder.auth.overrides={{\"Mock\"}}"
+								  })
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, classes = Application.class)
 @WireMockTest
 class WebSecurityConfigTest implements EnvironmentAware {
+	private static final String MOCK_SCENARIO_RETURN_XML = "ReturnXml";
 	protected static final String TEST_USERNAME = "admin";
 	protected static final String TEST_PASSWORD = "passwordValue";
 	protected static final String TEST_PASSWORD_ENCODED = "{bcrypt}$2a$10$X0R0vqKMYh5h0x/bBO0vy.5N4z68MvpS5CPgrNMfQbBA3t48JpSzy";
-	/*
-	 * Wiremock is used for unit testing.  It is not used for integration testing with a real AEM instance.
-	 * Set USE_WIREMOCK to false to perform integration testing with a real Forms Feeder instance running on
-	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and 
-	 * formsfeeder.plugins.aemHost settings. 
-	 */
-	private static final boolean USE_WIREMOCK = true;
+
 	/*
 	 * Set WIREMOCK_RECORDING to true in order to record the interaction with a real FormsFeeder instance running on
 	 * machine and port outlined in the application.properties formsfeeder.plugins.aemHost and
@@ -65,20 +65,18 @@ class WebSecurityConfigTest implements EnvironmentAware {
 
 	private static final String API_V1_PATH = "/api/v1";
 	private static final String DEBUG_PLUGIN_PATH = API_V1_PATH + "/Debug";
-
+	private static final String MOCK_PLUGIN_PATH = API_V1_PATH + "/Mock";
+	private static final String MOCK_PLUGIN_SCENARIO_NAME = "scenario";
+	
 	@LocalServerPort
 	private int port;		// post of the Spring Boot instance we're testing
 	private URI uri;		// URI that points to Spring Boot instance
 	private static Integer wiremockPort = null;	// port that wiremock is running on.
 
-	private Environment environment;	// Spring Boot Environment object
-
 	@DynamicPropertySource
     static void registerPgProperties(DynamicPropertyRegistry registry) {
-		if (USE_WIREMOCK) {
-			registry.add(TestConstants.ENV_FORMSFEEDER_AEM_HOST, ()->"localhost");
-			registry.add(TestConstants.ENV_FORMSFEEDER_AEM_PORT, ()->wiremockPort);
-		}		
+		registry.add(TestConstants.ENV_FORMSFEEDER_AEM_HOST, ()->"localhost");
+		registry.add(TestConstants.ENV_FORMSFEEDER_AEM_PORT, ()->wiremockPort);
 	}
 
 	@BeforeEach
@@ -88,14 +86,14 @@ class WebSecurityConfigTest implements EnvironmentAware {
 
 		if (WIREMOCK_RECORDING) {
 			String realServiceBaseUri = TestConstants.getBaseUri(4502).toString();
-			WireMock.startRecording(realServiceBaseUri);
+			wmRuntimeInfo.getWireMock().startStubRecording(realServiceBaseUri);
 		}
 	}
 
 	@AfterEach
-	void tearDown() throws Exception {
+	void tearDown(WireMockRuntimeInfo wmRuntimeInfo) throws Exception {
         if (WIREMOCK_RECORDING) {
-        	SnapshotRecordResult recordings = WireMock.stopRecording();
+        	SnapshotRecordResult recordings = wmRuntimeInfo.getWireMock().stopStubRecording();
         	List<StubMapping> mappings = recordings.getStubMappings();
         	System.out.println("Found " + mappings.size() + " recordings.");
         	for (StubMapping mapping : mappings) {
@@ -123,7 +121,7 @@ class WebSecurityConfigTest implements EnvironmentAware {
 	/**
 	 * Make sure that the plugin endpoints endpoints need authentication.
 	 */
-	@DisplayName("Plugin Endpoints calls without credentials should return 401 \"Unauthorized\".")
+	@DisplayName("Debug Plugin Endpoints calls without credentials should return 401 \"Unauthorized\".")
 	@Test
 	void testPluginEndpointNoCredentials() throws Exception {
 		Response response = ClientBuilder.newClient()
@@ -137,9 +135,9 @@ class WebSecurityConfigTest implements EnvironmentAware {
 	}
 
 	/**
-	 * Make sure that the plugin endpoints endpoints need authentication.
+	 * Make sure that the plugin endpoints with correct authentication credendtials work.
 	 */
-	@DisplayName("Plugin Endpoints should require authentication.")
+	@DisplayName("Debug Plugin Endpoint requests that provide correct authentication should work.")
 	@Test
 	void testPluginEndpoint() throws Exception {
 		var authFeature = HttpAuthenticationFeature.basic(TEST_USERNAME, TEST_PASSWORD);
@@ -157,7 +155,7 @@ class WebSecurityConfigTest implements EnvironmentAware {
 	/**
 	 * Make sure that the plugin endpoints endpoints need authentication.
 	 */
-	@DisplayName("Plugin Endpoints calls with incorrect credentials should return 401 \"Unauthorized\".")
+	@DisplayName("Debug Plugin Endpoints calls with incorrect credentials should return 401 \"Unauthorized\".")
 	@Test
 	void testPluginEndpointWithBadCredentials() throws Exception {
 		var authFeature = HttpAuthenticationFeature.basic(TEST_USERNAME, TEST_PASSWORD + "_bad");
@@ -174,6 +172,48 @@ class WebSecurityConfigTest implements EnvironmentAware {
 
 	@Override
 	public void setEnvironment(Environment environment) {
-		this.environment = environment;
+	}
+
+	/**
+	 * Make sure that the plugin endpoints endpoints need authentication.
+	 */
+	@Disabled("Disabled because it causes a maven build failure (unrelated to the actual test whic passes within Eclipse).")
+	@DisplayName("Mock Plugin Endpoint GET should not require authentication because we've overridden it.")
+	@Test
+	void testUnauthenticatedPluginEndpointGET() throws Exception {
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .queryParam(MOCK_PLUGIN_SCENARIO_NAME, MOCK_SCENARIO_RETURN_XML)
+				 .request()
+				 .get();
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.APPLICATION_XML_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/xml'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+	}
+
+	/**
+	 * Make sure that the plugin endpoints endpoints need authentication.
+	 */
+	@Disabled("Disabled because it causes a maven build failure (unrelated to the actual test whic passes within Eclipse).")
+	@DisplayName("Mock Plugin Endpoint POST should not require authentication because we've overridden it.")
+	@Test
+	void testUnauthenticatedPluginEndpointPOST() throws Exception {
+		FormDataMultiPart bodyData = new FormDataMultiPart();
+		bodyData.field(MOCK_PLUGIN_SCENARIO_NAME, MOCK_SCENARIO_RETURN_XML);
+		
+		Response response = ClientBuilder.newClient()
+				 .register(MultiPartFeature.class)
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .request()
+				 .post(Entity.entity(bodyData, bodyData.getMediaType()));
+		
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(MediaType.APPLICATION_XML_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'application/xml'.");
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 	}
 }
