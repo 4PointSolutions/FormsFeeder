@@ -96,7 +96,8 @@ public class PluginInvoker {
 				String msg = String.format("Plugin processor error. (%s)", e.getMessage());
 				throw new PluginInvokerInternalErrorException(msg, e);
 			} catch (Exception e) {
-				String msg = String.format("Error within Plugin processor. (%s)", e.getMessage());
+				String exMsg = e.getMessage();
+				String msg = String.format("Error within Plugin processor. (%s)", exMsg != null ? exMsg : e.getClass().getName());
 				throw new PluginInvokerInternalErrorException(msg, e);
 			}
 		}
