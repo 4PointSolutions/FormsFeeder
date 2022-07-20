@@ -12,6 +12,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerInternalErrorException;
 
@@ -25,7 +27,7 @@ import com._4point.aem.formsfeeder.core.api.FeedConsumer.FeedConsumerInternalErr
 public enum ResourceFactory {
 	INSTANCE;
 	
-	private FileSystem zipfs = null;	// Used to hold ZipFs so that we can read our .jar resources using FileSystem
+	private Map<URI, FileSystem> zipfs = new HashMap<>();	// Used to hold ZipFs so that we can read our .jar resources using FileSystem
 
 	/**
 	 * Retrieve the contents of a resource as a byte array.
@@ -130,7 +132,7 @@ public enum ResourceFactory {
 				loadZipFsIfRequired(uri);
 				return Paths.get(uri);
 			} catch (URISyntaxException | IOException e) {
-				throw new FeedConsumerInternalErrorException("Problem with converting jar resource to path. (" + e.getMessage() + ")", e);
+				throw new FeedConsumerInternalErrorException("Problem with converting jar resource (" + resourceName + ") to path. (" + e.getMessage() + ")", e);
 			}
 		}
 	}
@@ -138,12 +140,12 @@ public enum ResourceFactory {
 	// Since the zipfs member variable is mutable, we need to prevent race conditions in a multi-threaded scenario.
 	// We do this by making sure that all accesses to that variable are from within a synchronized method.
 	private static synchronized void loadZipFsIfRequired(URI uri) throws IOException {
-		if (INSTANCE.zipfs == null && (uri.toString().startsWith("/") || uri.toString().startsWith("jar:"))) {
+		if (!INSTANCE.zipfs.containsKey(uri) && (uri.toString().startsWith("/") || uri.toString().startsWith("jar:"))) {
 			try {
-				INSTANCE.zipfs = FileSystems.getFileSystem(uri);
+				INSTANCE.zipfs.put(uri, FileSystems.getFileSystem(uri));
 			} catch (FileSystemNotFoundException e) {
 				// File system doesn't exist, so create it.
-				INSTANCE.zipfs = FileSystems.newFileSystem(uri,  Collections.singletonMap("create", "true"));
+				INSTANCE.zipfs.put(uri, FileSystems.newFileSystem(uri,  Collections.singletonMap("create", "true")));
 			}
 		}
 	}
