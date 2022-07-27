@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com._4point.aem.formsfeeder.core.api.NamedFeedConsumer;
 import com._4point.aem.formsfeeder.core.api.PluginsConsumer;
+import com._4point.aem.formsfeeder.core.datasource.DataSource;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Builder;
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList.Deconstructor;
@@ -48,6 +49,8 @@ public class MockExtension implements NamedFeedConsumer, EnvironmentConsumer, Ap
 	private static final String SCENARIO_RETURN_CONFIG_VALUE = "ReturnConfigValue";
 	private static final String SCENARIO_RETURN_APPLICATION_CONTEXT_CONFIG_VALUE = "ReturnApplicationContextConfigValue";
 	private static final String SCENARIO_CALL_ANOTHER_PLUGIN = "CallAnotherPlugin";
+	private static final String SCENARIO_RETURN_BODY = "ReturnBody";
+	private static final String SCENARIO_RETURN_BODY_AS_STRING = "ReturnBodyAsString";
 
 	@SuppressWarnings("unused")
 	private FileSystem zipfs = null;	// Used to hold ZipFs so that we can read our .jar resources using FileSystem
@@ -166,6 +169,14 @@ public class MockExtension implements NamedFeedConsumer, EnvironmentConsumer, Ap
 						.add("DslEntry2", "DslValue2")
 						.build()
 					);
+			break;
+		case SCENARIO_RETURN_BODY:
+			// This scenario returns the bytes that were sent in the body of the POST.
+			builder.add("Result", deconstructor.getByteArrayByName(DataSource.FORMSFEEDER_BODY_BYTES_DS_NAME).orElseThrow());
+			break;
+		case SCENARIO_RETURN_BODY_AS_STRING:
+			// This scenario returns the bytes that were sent in the body of the POST.
+			builder.add("Result", deconstructor.getStringByName(DataSource.FORMSFEEDER_BODY_BYTES_DS_NAME).orElseThrow());
 			break;
 		case SCENARIO_OTHER_FEED_CONSUMER_EXCEPTION:
 			// This scenarion returns some new kind of FeedConsumerException.

@@ -815,7 +815,7 @@ class ServicesEndpointTest implements EnvironmentAware {
 				 .header(HttpHeaders.CONTENT_DISPOSITION, badContentDisposition)	// Bad content Disposition
 				 .post(Entity.entity(new StringReader(expectedBodyText), MediaType.TEXT_PLAIN_TYPE));
 		
-		assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + MOCK_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertEquals(Response.Status.BAD_REQUEST.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
 		assertTrue(MediaType.TEXT_PLAIN_TYPE.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with 'text/plain'.");
 		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
 		String responseBody = getResponseBody(response);
@@ -1778,6 +1778,118 @@ class ServicesEndpointTest implements EnvironmentAware {
 		assertThat(html, not(anyOf(containsString("Text Field1 Data"), containsString("Text Field2 Data"))));
 	}
 	
+	private static final String TEST_JSON_DATA = "{\r\n"
+			+ "    \"expectedSpecialty\": {\r\n"
+			+ "        \"som\": \"ExpectedSpecialty_0\",\r\n"
+			+ "        \"value\": null,\r\n"
+			+ "        \"source\": null,\r\n"
+			+ "        \"disabled\": \"false\",\r\n"
+			+ "        \"verified\": \"false\",\r\n"
+			+ "        \"text\": {\r\n"
+			+ "            \"explanationEn\": null,\r\n"
+			+ "            \"explanationFr\": null,\r\n"
+			+ "            \"titleEn\": \"Specialty:\",\r\n"
+			+ "            \"titleFr\": \"Spécialité&nbsp;:\",\r\n"
+			+ "            \"helpTextEn\": null,\r\n"
+			+ "            \"helpTextFr\": null\r\n"
+			+ "        }\r\n"
+			+ "    }    \r\n"
+			+ "}";
+
+	@Test
+	void testInvokeWithUtf8Data_TaggedProperly() throws Exception {
+		MediaType expectedResponseType = MediaType.TEXT_PLAIN_TYPE;
+		Response response = ClientBuilder.newClient()
+				 .target(uri)
+				 .path(DEBUG_PLUGIN_PATH)
+				 .request()
+				 .accept(expectedResponseType)
+				 .post(Entity.entity(TEST_JSON_DATA.getBytes(StandardCharsets.UTF_8), new MediaType("text","plain", "utf-8")));
+		
+		// Validate that we got a valid response.
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(expectedResponseType.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with '" + expectedResponseType.toString() + "'.");
+		String responseBody = getResponseBody(response);
+		assertThat(responseBody, containsString(TEST_JSON_DATA));
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+	}
+
+	@Test
+	void testInvokeWithUtf8Data_TaggedBytes() throws Exception {
+		MediaType expectedResponseType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+		Response response = ClientBuilder.newClient()
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .queryParam(MOCK_PLUGIN_SCENARIO_NAME, "ReturnBody")
+				 .request()
+				 .accept(expectedResponseType)
+				 .post(Entity.entity(TEST_JSON_DATA.getBytes(StandardCharsets.UTF_8), new MediaType("application","octet-stream", "utf-8")));
+		
+		// Validate that we got a valid response.
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(expectedResponseType.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with '" + expectedResponseType.toString() + "'.");
+		String responseBody = response.readEntity(String.class);
+		assertThat(responseBody, containsString(TEST_JSON_DATA));
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+	}
+
+	@Test
+	void testInvokeWithUtf8Data_NotTagged() throws Exception {
+		MediaType expectedResponseType = MediaType.APPLICATION_OCTET_STREAM_TYPE;
+		Response response = ClientBuilder.newClient()
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .queryParam(MOCK_PLUGIN_SCENARIO_NAME, "ReturnBody")
+				 .request()
+				 .accept(expectedResponseType)
+				 .post(Entity.entity(TEST_JSON_DATA.getBytes(StandardCharsets.UTF_8), MediaType.APPLICATION_OCTET_STREAM_TYPE));
+		
+		// Validate that we got a valid response.
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(expectedResponseType.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with '" + expectedResponseType.toString() + "'.");
+		String responseBody = response.readEntity(String.class);
+		assertThat(responseBody, containsString(TEST_JSON_DATA));
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+	}
+
+	@Test
+	void testInvokeWithUtf8Data_TaggedBytes_ReturnedAsString() throws Exception {
+		MediaType expectedResponseType = MediaType.TEXT_PLAIN_TYPE;
+		Response response = ClientBuilder.newClient()
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .queryParam(MOCK_PLUGIN_SCENARIO_NAME, "ReturnBodyAsString")
+				 .request()
+				 .accept(expectedResponseType)
+				 .post(Entity.entity(TEST_JSON_DATA.getBytes(StandardCharsets.UTF_8), new MediaType("application","octet-stream", "utf-8")));
+		
+		// Validate that we got a valid response.
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(expectedResponseType.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with '" + expectedResponseType.toString() + "'.");
+		String responseBody = response.readEntity(String.class);
+		assertThat(responseBody, containsString(TEST_JSON_DATA));
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+	}
+
+	@Test
+	void testInvokeWithUtf8Data_NotTagged_ReturnedAsString() throws Exception {
+		MediaType expectedResponseType = MediaType.TEXT_PLAIN_TYPE;
+		Response response = ClientBuilder.newClient()
+				 .target(uri)
+				 .path(MOCK_PLUGIN_PATH)
+				 .queryParam(MOCK_PLUGIN_SCENARIO_NAME, "ReturnBodyAsString")
+				 .request()
+				 .accept(expectedResponseType)
+				 .post(Entity.entity(TEST_JSON_DATA.getBytes(StandardCharsets.UTF_8), MediaType.APPLICATION_OCTET_STREAM_TYPE));
+		
+		// Validate that we got a valid response.
+		assertEquals(Response.Status.OK.getStatusCode(), response.getStatus(), ()->"Unexpected response status returned from URL (" + DEBUG_PLUGIN_PATH + ")." + getResponseBody(response));
+		assertTrue(expectedResponseType.isCompatible(response.getMediaType()), "Expected response media type (" + response.getMediaType().toString() + ") to be compatible with '" + expectedResponseType.toString() + "'.");
+		String responseBody = response.readEntity(String.class);
+		assertThat(responseBody, containsString(TEST_JSON_DATA));
+		assertNotNull(response.getHeaderString(CorrelationId.CORRELATION_ID_HDR));
+	}
+
 	@Override
 	public void setEnvironment(Environment environment) {
 		this.environment = environment;
