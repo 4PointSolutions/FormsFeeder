@@ -30,3 +30,36 @@ Here is an overview of the layers:
 
 Client code that utilizes this project can access whatever layer is appropriate for their needs, for example, a .NET shop might write .NET code that makes REST calls to the  _FormsFeeder Server_  layer directly, bypassing the Java client code.  Likewise a user with Java experience might choose to integrate the  _FormsFeeder Client API_  into an existing Java application without having to learn REST.  Lastly, a user could leverage the entire stack by using the _FormsFeeder CLI_  to invoke FormsFeeder functionality from a CRON job.
 
+## Typical FormsFeeder Topologies 
+Typically, FormsFeeder is used in two different topologies:
+
+### Browser <-> FormsFeeder/Custom Logic <-> Adobe Experience Manager
+
+In this topology FormsFeeder resides between Adobe Experience Manager and the client browser allowing Formsfeeder to invoke custom functionality required by the client. Users interact with the FormsFeeder/Custom Logic layer. FormsFeeder then, in turn, interacts with Adobe Experience Manager.
+
+### Browser <-> Client Application <->  FormsFeeder/Custom Logic <-> Adobe Experience Manager
+
+In this topology FormsFeeder resides between Adobe Experience Manager and the client application allowing Formsfeeder to invoke custom functionality required by the client application. Users interact with the client application and the client application interacts with the FormsFeeder/Custom Logic layer.
+FormsFeeder provides a home for application code and reverse proxies the HTML generated from Adobe (both Adaptive Forms and HTML5).
+
+### Why Reverse Proxy?
+#### Pros:
+* Prevents Cross Origin Requests
+* Allows for relative links
+* Layered Architecture
+
+#### Cons:
+* Introduces some latency 
+* Must be implemented in client application in Scenario 2 
+* Sensitive to changes in Adobe Experience Manager HTML generation (mainly Adaptive Form code changes).
+
+### Why Custom Application Code in the middle?
+* Provides a translation layer from client semantics to Adobe Experience Manager semantics
+* Encapsulates and isolates the translation logic for easy maintenance
+* Can reside inside the firewall to interact with internal services
+* Loosely coupled with Adobe Experience Manager
+* Can use technologies other than those supported by Adobe Experience Manager 
+* Can be upgraded separately from Adobe Experience Manager 
+  * Likewise Adobe Experience Manager can be upgraded separately without affecting it or the client applications
+* Can do things server-side instead of client-side
+  * Server-side can perform "trusted" operations that client-side cannot
