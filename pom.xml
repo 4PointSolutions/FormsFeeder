@@ -39,7 +39,7 @@
         <jupiter.version>5.8.2</jupiter.version>
         <jimfs.version>1.1</jimfs.version>
         <hamcrest.version>2.2</hamcrest.version>
-        <jsoup.version>1.14.3</jsoup.version>
+        <jsoup.version>1.15.3</jsoup.version>
 	</properties>
 
 	<build>
