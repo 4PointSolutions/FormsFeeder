@@ -48,7 +48,7 @@
 		<repository>
 			<id>github</id>
 			<name>4Point Solutions FluentFormsAPI Apache Maven Packages</name>
-			<url>https://maven.pkg.github.com/4PointSolutions/FluentFormsAPI</url>
+			<url>https://maven.pkg.github.com/4PointSolutions/FormsFeeder</url>
 		</repository>
 	</distributionManagement>
 	
