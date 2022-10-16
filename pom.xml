@@ -12,7 +12,25 @@
 	<!--
 	In order to build this project, you just need to use the standard build procedure.  One of the two following options:
 	install
-	clean verify 
+	clean verify
+	
+	Strictly speaking, only the plugins project requires a "clean" as part of the build.  This is because the plugin that
+	generates the plugin manifest entries fails to generate those entries unless the project has been previously cleaned.
+	
+	This build relies on the FluentFormsAPI libraries that reside in GitHub packages.  GitHub packages maven repository
+	requires that the user authenticate (even for read access), so in order for this build to work, you need to have your
+	personal GitHub credentials configured in your local settings.xml file (found in you $HOME/.m2 directory).
+	Your settings.xml should look something like this:
+	<?xml version="1.0"?>
+	<settings xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+		<servers>
+			<server>
+				<id>github</id>
+				<username>Your GitHub Username goes here</username>
+				<password>Your Personal Access Token goes here</password>
+			</server>
+		</servers>
+	</settings> 
 	 -->
 	<modules>
 		<module>formsfeeder.core</module>
