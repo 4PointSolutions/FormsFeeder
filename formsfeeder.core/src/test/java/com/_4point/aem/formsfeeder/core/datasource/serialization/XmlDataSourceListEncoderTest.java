@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.OutputStream;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -19,6 +20,7 @@ import javax.xml.stream.XMLStreamWriter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import org.xmlunit.matchers.CompareMatcher;
 
 import com._4point.aem.formsfeeder.core.datasource.DataSourceList;
 import com._4point.aem.formsfeeder.core.datasource.StandardMimeTypes;
@@ -47,7 +49,7 @@ class XmlDataSourceListEncoderTest {
 		String expectedResult = "<?xml version=\"1.0\" ?><DataSourceList>" + 
 							    "<DataSource Name=\"DsName1\" ContentType=\"text/plain; charset=UTF-8\"><Content>RHNWYWx1ZTE=</Content></DataSource>" + 
 							    "<DataSource Name=\"DsName2\" ContentType=\"text/plain; charset=UTF-8\"><Attribute Name=\"Ds2Attr1\" Value=\"Ds2AttrValue1\"/><Content>Mg==</Content></DataSource>" +
-							    "<DataSource Name=\"DSName3\" ContentType=\"application/pdf\" Filename=\"dir\\filename\"><Attribute Name=\"Ds3Attr1\" Value=\"Ds3AttrValue1\"/><Content>RFNWYWx1ZTM=</Content></DataSource>" +
+							    "<DataSource Name=\"DSName3\" ContentType=\"application/pdf\" Filename=\"dir" + File.separator + "filename\"><Attribute Name=\"Ds3Attr1\" Value=\"Ds3AttrValue1\"/><Content>RFNWYWx1ZTM=</Content></DataSource>" +
 							    "<DataSource Name=\"DSName4\" ContentType=\"text/plain; charset=UTF-8\"><Attribute Name=\"Ds4Attr1\" Value=\"Ds4AttrValue1\"/><Content>RFNWYWx1ZTRfMQ==</Content></DataSource>" +
 							    "<DataSource Name=\"DSName4\" ContentType=\"text/plain; charset=UTF-8\"><Attribute Name=\"Ds4Attr1\" Value=\"Ds4AttrValue1\"/><Content>RFNWYWx1ZTRfMg==</Content></DataSource>" +
 							    "<DataSource Name=\"DSName5\" ContentType=\"text/html\"><Attribute Name=\"Ds5Attr3\" Value=\"Ds5AttrValue3\"/><Attribute Name=\"Ds5Attr2\" Value=\"Ds5AttrValue2\"/><Attribute Name=\"Ds5Attr1\" Value=\"Ds5AttrValue1\"/><Content>RFM1Q29udGVudDE=</Content></DataSource>" +
@@ -66,7 +68,7 @@ class XmlDataSourceListEncoderTest {
 			underTest.encode(testDsl);
 		}
 		
-		assertEquals(expectedResult, new String(bos.toByteArray(), StandardCharsets.UTF_8));
+		assertThat(new String(bos.toByteArray(), StandardCharsets.UTF_8), CompareMatcher.isIdenticalTo(expectedResult));
 	}
 	
 	@Test

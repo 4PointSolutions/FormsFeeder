@@ -156,7 +156,10 @@ public class XmlDataSourceListDecoderTest {
 	public static final void dsEquals(DataSource firstDs, DataSource otherDs, boolean deep) throws Exception {
 		assertEquals(firstDs.name(), otherDs.name(), "DataSource 'name' fields do not match.");
 		assertEquals(firstDs.contentType(), otherDs.contentType(), "DataSource 'contentType' fields do not match.");
-		assertEquals(firstDs.filename(), otherDs.filename(), "DataSource 'filename' fields do not match.");
+		assertEquals(firstDs.filename().isPresent(), otherDs.filename().isPresent());
+		if (firstDs.filename().isPresent()) {
+			assertEquals(firstDs.filename().get(), otherDs.filename().get(), "DataSource 'filename' fields do not match.");
+		}
 		Map<String, String> firstAttributes = firstDs.attributes();
 		Map<String, String> otherAttributes = otherDs.attributes();
 		Set<Entry<String, String>> firstAttributeSet = firstAttributes.entrySet();
