@@ -55,10 +55,10 @@ public class DebugFeedConsumerExtension implements NamedFeedConsumer, ExtensionP
 			msgBuilder.append(" with null ContentType");
 		}
 		if (contentType.equals(StandardMimeTypes.TEXT_PLAIN_UTF8_TYPE)) {
-			msgBuilder.append(" with value '").append(Deconstructor.dsToString(ds)).append("'");
+			msgBuilder.append(" with UTF-8 text value '").append(Deconstructor.dsToString(ds)).append("'");
 		}
 		if (contentType.equals(StandardMimeTypes.TEXT_PLAIN_TYPE)) {
-			msgBuilder.append(" with value '").append(Deconstructor.dsToString(ds, StandardCharsets.US_ASCII))
+			msgBuilder.append(" with plain text value '").append(Deconstructor.dsToString(ds, StandardCharsets.US_ASCII))
 					.append("'");
 		} else {
 			msgBuilder.append(" with contentType '").append(contentType.asString()).append("'");
