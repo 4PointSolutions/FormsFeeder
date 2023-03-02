@@ -15,7 +15,7 @@ The goals of this project are:
 
 ## Functionality
 FormsFeeder provides the following functionality:
-* REST Interface - You don't have to know or understand REST in order to build custom logic into an AEM application.  All you need to know is Java to use the client libraries.  Likewise, you only need to know Java to understand the DataSourceList Jsva interface to write a plugin.
+* REST Interface - You don't have to know or understand REST in order to build custom logic into an AEM application.  All you need to know is Java to use the client libraries.  Likewise, you only need to know Java to understand the DataSourceList Java interface to write a plugin.
 * Reverse Proxy for HTML5 and Adaptive Forms - Client applications can call FormsFeeder without having to worry about Cross Origin Request Sharing settings.
 * Form Submission Processing - FormsFeeder can process AEM Form Submissions without having to open up any services to the internet (even if your AEM instance is somewhere in the cloud).
 * Java and XML parsing - FormsFeeder can automatically parse Java and XML into DataSourceList which makes processing of input simpler.
@@ -33,11 +33,20 @@ Client code that utilizes this project can access whatever layer is appropriate 
 ## Typical FormsFeeder Topologies 
 Typically, FormsFeeder is used in two different topologies:
 
-### Browser <-> FormsFeeder/Custom Logic <-> Adobe Experience Manager
+### FormsFeeder In Front
+
+```mermaid
+graph LR
+    A[Browser] <--> B[FormsFeeder/Custom Logic] <--> C[Adobe Experience Manager]
+```
 
 In this topology FormsFeeder resides between Adobe Experience Manager and the client browser allowing Formsfeeder to invoke custom functionality required by the client. Users interact with the FormsFeeder/Custom Logic layer. FormsFeeder then, in turn, interacts with Adobe Experience Manager.
 
-### Browser <-> Client Application <->  FormsFeeder/Custom Logic <-> Adobe Experience Manager
+### Custom Application In Front
+```mermaid
+graph LR
+    A[Browser] <--> B[Client Application] <--> C[FormsFeeder/Custom Logic] <--> D[Adobe Experience Manager]
+```
 
 In this topology FormsFeeder resides between Adobe Experience Manager and the client application allowing Formsfeeder to invoke custom functionality required by the client application. Users interact with the client application and the client application interacts with the FormsFeeder/Custom Logic layer.
 FormsFeeder provides a home for application code and reverse proxies the HTML generated from Adobe (both Adaptive Forms and HTML5).
