@@ -47,7 +47,7 @@ public class ExampleHtml5Plugin implements NamedFeedConsumer, ExtensionPoint {
 															  .useSsl(false)
 															  .aemServerType(serverType)
 															  // Formsfeeder acts as reverse proxy for AEM, so this fixes up URLs to match the proxied location.
-															  .addRenderResultFilter(is->StandardFormsFeederUrlFilters.replaceAemUrls(is, serverType))	
+															  .addRenderResultFilter(StandardFormsFeederUrlFilters.getStandardInputStreamFilter(serverType))	
 															  .build();
 
 			Document result = params.getData().isEmpty() ? html5Service.renderHtml5Form(params.getTemplate())
