@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>com._4point.aem</groupId>
 		<artifactId>formsfeeder.plugins</artifactId>
-		<version>0.0.2-SNAPSHOT</version>
+		<version>0.0.3-SNAPSHOT</version>
 	</parent>
 	<artifactId>example</artifactId>
 	<name>Example Plug-in</name>
@@ -20,7 +20,7 @@
 		need to be installed in the local maven repository. -->
 	<properties>
 		<wiremock.version>2.27.2</wiremock.version>
-		<fluentforms.version>0.0.2-SNAPSHOT</fluentforms.version>
+		<fluentforms.version>0.0.3-SNAPSHOT</fluentforms.version>
 		<!-- PF4J Plugin properties for this plugin -->
 		<plugin.id>com._4point.aem.formsfeeder.plugins.example</plugin.id>
 		<plugin.version>${project.version}</plugin.version>

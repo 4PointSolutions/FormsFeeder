@@ -9,7 +9,7 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<artifactId>formsfeeder.server</artifactId>
-	<version>0.0.2-SNAPSHOT</version>
+	<version>0.0.3-SNAPSHOT</version>
 	<name>Forms Feeder Server Framework</name>
 	<description>The Forms Feeder Server is a server that contains a plug-in framework that allows a client to extend the server functionality with their own custom code.</description>
 
