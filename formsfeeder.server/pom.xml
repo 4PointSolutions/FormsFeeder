@@ -20,7 +20,7 @@
 	 -->
 	<properties>
 		<java.version>11</java.version>
-		<wiremock.version>2.35.0</wiremock.version>
+		<wiremock.version>2.35.1</wiremock.version>
 		<pf4j-spring.version>0.8.0</pf4j-spring.version>
 		<pf4j.version>3.9.0</pf4j.version>
 		<jasypt-spring-boot.version>3.0.5</jasypt-spring-boot.version>
