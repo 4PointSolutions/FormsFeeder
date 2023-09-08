@@ -19,7 +19,7 @@
 		because these plugins are not referenced as dependencies, so they do not 
 		need to be installed in the local maven repository. -->
 	<properties>
-		<wiremock.version>2.27.2</wiremock.version>
+		<wiremock.version>2.35.1</wiremock.version>
 		<fluentforms.version>0.0.3-SNAPSHOT</fluentforms.version>
 		<!-- PF4J Plugin properties for this plugin -->
 		<plugin.id>com._4point.aem.formsfeeder.plugins.example</plugin.id>
