@@ -58,7 +58,7 @@
         <jimfs.version>1.1</jimfs.version>
         <hamcrest.version>2.2</hamcrest.version>
         <jsoup.version>1.15.3</jsoup.version>
-        <xml-unit-version>2.9.0</xml-unit-version>
+        <xml-unit-version>2.10.0</xml-unit-version>
         <xerces-version>2.12.2</xerces-version>
 	</properties>
 
