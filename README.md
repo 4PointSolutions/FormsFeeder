@@ -1,3 +1,14 @@
+## This project is no longer being maintained.  
+
+The original concept for this was something like a small footprint JEE server but based on Spring Boot and PF4J plugins.  The goal was allow a Java developer to develop a service without having to know how to create REST services and/or understand other frameworks besides FluentForms (for accessing AEM).
+
+It turned out that most developers already know (or should know) how to make a REST service and most developers either know or can learn enough Spring Boot to create one.  This makes this project rather redundant.
+
+### Alternatives
+
+1) Build a Spring Boot service using [FluentForms Spring Boot starter](https://github.com/4PointSolutions/FluentFormsAPI)
+2) Use a [JEE-based microprofile](https://microprofile.io/) server like Quarkus, WildFly, Open Liberty, Payara, etc. and the FluentForms cient libraries 
+
 # FormsFeeder
 This project provides a microservice that can be customized for individual AEM Forms customers in order to build a complete customer solution that includes an AEM Forms server.  The Forms Feeder service acts as a front-end that wraps (and "feeds") the AEM Forms services with custom code to perform commonly required tasks such as gathering pre-population data, posting submitted data to internal systems, generating documents of record and archiving document data and artifacts.
 
